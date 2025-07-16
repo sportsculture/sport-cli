@@ -44,7 +44,8 @@ import { Help } from './components/Help.js';
 import { loadHierarchicalGeminiMemory } from '../config/config.js';
 import { LoadedSettings } from '../config/settings.js';
 import { Tips } from './components/Tips.js';
-import { useConsolePatcher } from './components/ConsolePatcher.js';
+import { ConsolePatcher } from './utils/ConsolePatcher.js';
+import { registerCleanup } from '../utils/cleanup.js';
 import { DetailedMessagesDisplay } from './components/DetailedMessagesDisplay.js';
 import { HistoryItemDisplay } from './components/HistoryItemDisplay.js';
 import { ContextSummaryDisplay } from './components/ContextSummaryDisplay.js';
@@ -57,6 +58,9 @@ import {
   ApprovalMode,
   isEditorAvailable,
   EditorType,
+  FlashFallbackEvent,
+  logFlashFallback,
+  AuthType,
 } from '@google/gemini-cli-core';
 import { validateAuthMethod } from '../config/auth.js';
 import { useLogger } from './hooks/useLogger.js';
@@ -70,6 +74,11 @@ import { useBracketedPaste } from './hooks/useBracketedPaste.js';
 import { useTextBuffer } from './components/shared/text-buffer.js';
 import * as fs from 'fs';
 import { UpdateNotification } from './components/UpdateNotification.js';
+import {
+  isProQuotaExceededError,
+  isGenericQuotaExceededError,
+  UserTierId,
+} from '@google/gemini-cli-core';
 import { checkForUpdates } from './utils/updateCheck.js';
 import ansiEscapes from 'ansi-escapes';
 import { OverflowProvider } from './contexts/OverflowContext.js';
@@ -82,6 +91,7 @@ interface AppProps {
   config: Config;
   settings: LoadedSettings;
   startupWarnings?: string[];
+  version: string;
 }
 
 export const AppWrapper = (props: AppProps) => (
@@ -90,10 +100,11 @@ export const AppWrapper = (props: AppProps) => (
   </SessionStatsProvider>
 );
 
-const App = ({ config, settings, startupWarnings = [] }: AppProps) => {
+const App = ({ config, settings, startupWarnings = [], version }: AppProps) => {
   useBracketedPaste();
   const [updateMessage, setUpdateMessage] = useState<string | null>(null);
   const { stdout } = useStdout();
+  const nightly = version.includes('nightly');
 
   useEffect(() => {
     checkForUpdates().then(setUpdateMessage);
@@ -105,6 +116,16 @@ const App = ({ config, settings, startupWarnings = [] }: AppProps) => {
     handleNewMessage,
     clearConsoleMessages: clearConsoleMessagesState,
   } = useConsoleMessages();
+
+  useEffect(() => {
+    const consolePatcher = new ConsolePatcher({
+      onNewMessage: handleNewMessage,
+      debugMode: config.getDebugMode(),
+    });
+    consolePatcher.patch();
+    registerCleanup(consolePatcher.cleanup);
+  }, [handleNewMessage, config]);
+
   const { stats: sessionStats } = useSessionStats();
   const [staticNeedsRefresh, setStaticNeedsRefresh] = useState(false);
   const [staticKey, setStaticKey] = useState(0);
@@ -135,10 +156,14 @@ const App = ({ config, settings, startupWarnings = [] }: AppProps) => {
   const ctrlDTimerRef = useRef<NodeJS.Timeout | null>(null);
   const [constrainHeight, setConstrainHeight] = useState<boolean>(true);
   const [showPrivacyNotice, setShowPrivacyNotice] = useState<boolean>(false);
+  const [modelSwitchedFromQuotaError, setModelSwitchedFromQuotaError] =
+    useState<boolean>(false);
+  const [userTier, setUserTier] = useState<UserTierId | undefined>(undefined);
 
   const openPrivacyNotice = useCallback(() => {
     setShowPrivacyNotice(true);
   }, []);
+  const initialPromptSubmitted = useRef(false);
 
   const errorCount = useMemo(
     () => consoleMessages.filter((msg) => msg.type === 'error').length,
@@ -173,6 +198,29 @@ const App = ({ config, settings, startupWarnings = [] }: AppProps) => {
       }
     }
   }, [settings.merged.selectedAuthType, openAuthDialog, setAuthError]);
+
+  // Sync user tier from config when authentication changes
+  useEffect(() => {
+    const syncUserTier = async () => {
+      try {
+        const configUserTier = await config.getUserTier();
+        if (configUserTier !== userTier) {
+          setUserTier(configUserTier);
+        }
+      } catch (error) {
+        // Silently fail - this is not critical functionality
+        // Only log in debug mode to avoid cluttering the console
+        if (config.getDebugMode()) {
+          console.debug('Failed to sync user tier:', error);
+        }
+      }
+    };
+
+    // Only sync when not currently authenticating
+    if (!isAuthenticating) {
+      syncUserTier();
+    }
+  }, [config, userTier, isAuthenticating]);
 
   const {
     isEditorDialogOpen,
@@ -257,28 +305,91 @@ const App = ({ config, settings, startupWarnings = [] }: AppProps) => {
     const flashFallbackHandler = async (
       currentModel: string,
       fallbackModel: string,
+      error?: unknown,
     ): Promise<boolean> => {
-      // Add message to UI history
-      addItem(
-        {
-          type: MessageType.INFO,
-          text: `⚡ Slow response times detected. Automatically switching from ${currentModel} to ${fallbackModel} for faster responses for the remainder of this session.
-⚡ To avoid this you can either upgrade to Standard tier. See: https://goo.gle/set-up-gemini-code-assist
+      let message: string;
+
+      if (
+        config.getContentGeneratorConfig().authType ===
+        AuthType.LOGIN_WITH_GOOGLE
+      ) {
+        // Use actual user tier if available, otherwise default to FREE tier behavior (safe default)
+        const isPaidTier =
+          userTier === UserTierId.LEGACY || userTier === UserTierId.STANDARD;
+
+        // Check if this is a Pro quota exceeded error
+        if (error && isProQuotaExceededError(error)) {
+          if (isPaidTier) {
+            message = `⚡ You have reached your daily ${currentModel} quota limit.
+⚡ Automatically switching from ${currentModel} to ${fallbackModel} for the remainder of this session.
+⚡ To continue accessing the ${currentModel} model today, consider using /auth to switch to using a paid API key from AI Studio at https://aistudio.google.com/apikey`;
+          } else {
+            message = `⚡ You have reached your daily ${currentModel} quota limit.
+⚡ Automatically switching from ${currentModel} to ${fallbackModel} for the remainder of this session.
+⚡ To increase your limits, upgrade to a Gemini Code Assist Standard or Enterprise plan with higher limits at https://goo.gle/set-up-gemini-code-assist
 ⚡ Or you can utilize a Gemini API Key. See: https://goo.gle/gemini-cli-docs-auth#gemini-api-key
-⚡ You can switch authentication methods by typing /auth`,
-        },
-        Date.now(),
+⚡ You can switch authentication methods by typing /auth`;
+          }
+        } else if (error && isGenericQuotaExceededError(error)) {
+          if (isPaidTier) {
+            message = `⚡ You have reached your daily quota limit.
+⚡ Automatically switching from ${currentModel} to ${fallbackModel} for the remainder of this session.
+⚡ To continue accessing the ${currentModel} model today, consider using /auth to switch to using a paid API key from AI Studio at https://aistudio.google.com/apikey`;
+          } else {
+            message = `⚡ You have reached your daily quota limit.
+⚡ Automatically switching from ${currentModel} to ${fallbackModel} for the remainder of this session.
+⚡ To increase your limits, upgrade to a Gemini Code Assist Standard or Enterprise plan with higher limits at https://goo.gle/set-up-gemini-code-assist
+⚡ Or you can utilize a Gemini API Key. See: https://goo.gle/gemini-cli-docs-auth#gemini-api-key
+⚡ You can switch authentication methods by typing /auth`;
+          }
+        } else {
+          if (isPaidTier) {
+            // Default fallback message for other cases (like consecutive 429s)
+            message = `⚡ Automatically switching from ${currentModel} to ${fallbackModel} for faster responses for the remainder of this session.
+⚡ Possible reasons for this are that you have received multiple consecutive capacity errors or you have reached your daily ${currentModel} quota limit
+⚡ To continue accessing the ${currentModel} model today, consider using /auth to switch to using a paid API key from AI Studio at https://aistudio.google.com/apikey`;
+          } else {
+            // Default fallback message for other cases (like consecutive 429s)
+            message = `⚡ Automatically switching from ${currentModel} to ${fallbackModel} for faster responses for the remainder of this session.
+⚡ Possible reasons for this are that you have received multiple consecutive capacity errors or you have reached your daily ${currentModel} quota limit
+⚡ To increase your limits, upgrade to a Gemini Code Assist Standard or Enterprise plan with higher limits at https://goo.gle/set-up-gemini-code-assist
+⚡ Or you can utilize a Gemini API Key. See: https://goo.gle/gemini-cli-docs-auth#gemini-api-key
+⚡ You can switch authentication methods by typing /auth`;
+          }
+        }
+
+        // Add message to UI history
+        addItem(
+          {
+            type: MessageType.INFO,
+            text: message,
+          },
+          Date.now(),
+        );
+
+        // Set the flag to prevent tool continuation
+        setModelSwitchedFromQuotaError(true);
+        // Set global quota error flag to prevent Flash model calls
+        config.setQuotaErrorOccurred(true);
+      }
+
+      // Switch model for future use but return false to stop current retry
+      config.setModel(fallbackModel);
+      logFlashFallback(
+        config,
+        new FlashFallbackEvent(config.getContentGeneratorConfig().authType!),
       );
-      return true; // Always accept the fallback
+      return false; // Don't continue with current prompt
     };
 
     config.setFlashFallbackHandler(flashFallbackHandler);
-  }, [config, addItem]);
+  }, [config, addItem, userTier]);
 
   const {
     handleSlashCommand,
     slashCommands,
     pendingHistoryItems: pendingSlashCommandHistoryItems,
+    commandContext,
   } = useSlashCommandProcessor(
     config,
     settings,
@@ -292,9 +403,7 @@ const App = ({ config, settings, startupWarnings = [] }: AppProps) => {
     openThemeDialog,
     openAuthDialog,
     openEditorDialog,
-    performMemoryRefresh,
     toggleCorgiMode,
-    showToolDescriptions,
     setQuittingMessages,
     openPrivacyNotice,
     openModelSelector,
@@ -341,9 +450,10 @@ const App = ({ config, settings, startupWarnings = [] }: AppProps) => {
         const quitCommand = slashCommands.find(
           (cmd) => cmd.name === 'quit' || cmd.altName === 'exit',
         );
-        if (quitCommand) {
-          quitCommand.action('quit', '', '');
+        if (quitCommand && quitCommand.action) {
+          quitCommand.action(commandContext, '');
         } else {
+          // This is unlikely to be needed but added for an additional fallback.
           process.exit(0);
         }
       } else {
@@ -354,7 +464,8 @@ const App = ({ config, settings, startupWarnings = [] }: AppProps) => {
         }, CTRL_EXIT_PROMPT_DURATION_MS);
       }
     },
-    [slashCommands],
+    // Add commandContext to the dependency array here!
+    [slashCommands, commandContext],
   );
 
   useInput((input: string, key: InkKeyType) => {
@@ -389,11 +500,6 @@ const App = ({ config, settings, startupWarnings = [] }: AppProps) => {
     } else if (key.ctrl && input === 's' && !enteringConstrainHeightMode) {
       setConstrainHeight(false);
     }
-  });
-
-  useConsolePatcher({
-    onNewMessage: handleNewMessage,
-    debugMode: config.getDebugMode(),
   });
 
   useEffect(() => {
@@ -435,6 +541,8 @@ const App = ({ config, settings, startupWarnings = [] }: AppProps) => {
     getPreferredEditor,
     onAuthError,
     performMemoryRefresh,
+    modelSwitchedFromQuotaError,
+    setModelSwitchedFromQuotaError,
   );
   pendingHistoryItems.push(...pendingGeminiHistoryItems);
   const { elapsedTime, currentLoadingPhrase } =
@@ -557,6 +665,34 @@ const App = ({ config, settings, startupWarnings = [] }: AppProps) => {
     return getAllGeminiMdFilenames();
   }, [settings.merged.contextFileName]);
 
+  const initialPrompt = useMemo(() => config.getQuestion(), [config]);
+  const geminiClient = config.getGeminiClient();
+
+  useEffect(() => {
+    if (
+      initialPrompt &&
+      !initialPromptSubmitted.current &&
+      !isAuthenticating &&
+      !isAuthDialogOpen &&
+      !isThemeDialogOpen &&
+      !isEditorDialogOpen &&
+      !showPrivacyNotice &&
+      geminiClient?.isInitialized?.()
+    ) {
+      submitQuery(initialPrompt);
+      initialPromptSubmitted.current = true;
+    }
+  }, [
+    initialPrompt,
+    submitQuery,
+    isAuthenticating,
+    isAuthDialogOpen,
+    isThemeDialogOpen,
+    isEditorDialogOpen,
+    showPrivacyNotice,
+    geminiClient,
+  ]);
+
   if (quittingMessages) {
     return (
       <Box flexDirection="column" marginBottom={1}>
@@ -601,7 +737,13 @@ const App = ({ config, settings, startupWarnings = [] }: AppProps) => {
           key={staticKey}
           items={[
             <Box flexDirection="column" key="header">
-              <Header terminalWidth={terminalWidth} />
+              {!settings.merged.hideBanner && (
+                <Header
+                  terminalWidth={terminalWidth}
+                  version={version}
+                  nightly={nightly}
+                />
+              )}
               {!settings.merged.hideTips && <Tips config={config} />}
             </Box>,
             ...history.map((h) => (
@@ -678,6 +820,7 @@ const App = ({ config, settings, startupWarnings = [] }: AppProps) => {
               />
             </Box>
           ) : isAuthenticating ? (
+<<<<<<< HEAD
             <AuthInProgress
               onTimeout={() => {
                 setAuthError('Authentication timed out. Please try again.');
@@ -693,6 +836,31 @@ const App = ({ config, settings, startupWarnings = [] }: AppProps) => {
                 onCancel={handleApiKeyCancel}
               />
             </Box>
+=======
+            <>
+              <AuthInProgress
+                onTimeout={() => {
+                  setAuthError('Authentication timed out. Please try again.');
+                  cancelAuthentication();
+                  openAuthDialog();
+                }}
+              />
+              {showErrorDetails && (
+                <OverflowProvider>
+                  <Box flexDirection="column">
+                    <DetailedMessagesDisplay
+                      messages={filteredConsoleMessages}
+                      maxHeight={
+                        constrainHeight ? debugConsoleMaxHeight : undefined
+                      }
+                      width={inputWidth}
+                    />
+                    <ShowMoreLines constrainHeight={constrainHeight} />
+                  </Box>
+                </OverflowProvider>
+              )}
+            </>
+>>>>>>> upstream/main
           ) : isAuthDialogOpen ? (
             <Box flexDirection="column">
               <AuthDialog
@@ -809,6 +977,7 @@ const App = ({ config, settings, startupWarnings = [] }: AppProps) => {
                   onClearScreen={handleClearScreen}
                   config={config}
                   slashCommands={slashCommands}
+                  commandContext={commandContext}
                   shellModeActive={shellModeActive}
                   setShellModeActive={setShellModeActive}
                 />
@@ -861,6 +1030,7 @@ const App = ({ config, settings, startupWarnings = [] }: AppProps) => {
               config.getDebugMode() || config.getShowMemoryUsage()
             }
             promptTokenCount={sessionStats.lastPromptTokenCount}
+            nightly={nightly}
           />
         </Box>
       </Box>

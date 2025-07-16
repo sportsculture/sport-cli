@@ -48,6 +48,8 @@ export enum GeminiEventType {
   Error = 'error',
   ChatCompressed = 'chat_compressed',
   Thought = 'thought',
+  MaxSessionTurns = 'max_session_turns',
+  LoopDetected = 'loop_detected',
 }
 
 export interface StructuredError {
@@ -64,6 +66,7 @@ export interface ToolCallRequestInfo {
   name: string;
   args: Record<string, unknown>;
   isClientInitiated: boolean;
+  prompt_id: string;
 }
 
 export interface ToolCallResponseInfo {
@@ -127,6 +130,14 @@ export type ServerSprtscltrChatCompressedEvent = {
   value: ChatCompressionInfo | null;
 };
 
+export type ServerGeminiMaxSessionTurnsEvent = {
+  type: GeminiEventType.MaxSessionTurns;
+};
+
+export type ServerGeminiLoopDetectedEvent = {
+  type: GeminiEventType.LoopDetected;
+};
+
 // The original union type, now composed of the individual types
 export type ServerGeminiStreamEvent =
   | ServerGeminiContentEvent
@@ -135,15 +146,29 @@ export type ServerGeminiStreamEvent =
   | ServerGeminiToolCallConfirmationEvent
   | ServerGeminiUserCancelledEvent
   | ServerGeminiErrorEvent
+<<<<<<< HEAD
   | ServerSprtscltrChatCompressedEvent
   | ServerGeminiThoughtEvent;
+=======
+  | ServerGeminiChatCompressedEvent
+  | ServerGeminiThoughtEvent
+  | ServerGeminiMaxSessionTurnsEvent
+  | ServerGeminiLoopDetectedEvent;
+>>>>>>> upstream/main
 
 // A turn manages the agentic loop turn within the server context.
 export class Turn {
   readonly pendingToolCalls: ToolCallRequestInfo[];
   private debugResponses: GenerateContentResponse[];
 
+<<<<<<< HEAD
   constructor(private readonly chat: SprtscltrChat) {
+=======
+  constructor(
+    private readonly chat: GeminiChat,
+    private readonly prompt_id: string,
+  ) {
+>>>>>>> upstream/main
     this.pendingToolCalls = [];
     this.debugResponses = [];
   }
@@ -153,12 +178,15 @@ export class Turn {
     signal: AbortSignal,
   ): AsyncGenerator<ServerGeminiStreamEvent> {
     try {
-      const responseStream = await this.chat.sendMessageStream({
-        message: req,
-        config: {
-          abortSignal: signal,
+      const responseStream = await this.chat.sendMessageStream(
+        {
+          message: req,
+          config: {
+            abortSignal: signal,
+          },
         },
-      });
+        this.prompt_id,
+      );
 
       for await (const resp of responseStream) {
         if (signal?.aborted) {
@@ -252,6 +280,7 @@ export class Turn {
       name,
       args,
       isClientInitiated: false,
+      prompt_id: this.prompt_id,
     };
 
     this.pendingToolCalls.push(toolCallRequest);

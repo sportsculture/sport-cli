@@ -9,7 +9,7 @@
   "modules": {
     "core": {
       "status": "in-progress",
-      "completion": 50,
+      "completion": 75,
       "tests": {
         "passed": 12,
         "failed": 0,
@@ -17,8 +17,8 @@
       }
     },
     "ui": {
-      "status": "pending",
-      "completion": 0,
+      "status": "complete",
+      "completion": 100,
       "tests": {
         "passed": 0,
         "failed": 0,

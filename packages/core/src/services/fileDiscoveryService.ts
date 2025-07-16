@@ -85,7 +85,29 @@ export class FileDiscoveryService {
   }
 
   /**
+<<<<<<< HEAD
    * Returns loaded patterns from .sprtscltrignore
+=======
+   * Unified method to check if a file should be ignored based on filtering options
+   */
+  shouldIgnoreFile(
+    filePath: string,
+    options: FilterFilesOptions = {},
+  ): boolean {
+    const { respectGitIgnore = true, respectGeminiIgnore = true } = options;
+
+    if (respectGitIgnore && this.shouldGitIgnoreFile(filePath)) {
+      return true;
+    }
+    if (respectGeminiIgnore && this.shouldGeminiIgnoreFile(filePath)) {
+      return true;
+    }
+    return false;
+  }
+
+  /**
+   * Returns loaded patterns from .geminiignore
+>>>>>>> upstream/main
    */
   getGeminiIgnorePatterns(): string[] {
     return this.sprtscltrIgnoreFilter?.getPatterns() ?? [];

@@ -97,13 +97,13 @@ export abstract class BaseTool<
    * @param description Description of what the tool does
    * @param isOutputMarkdown Whether the tool's output should be rendered as markdown
    * @param canUpdateOutput Whether the tool supports live (streaming) output
-   * @param parameterSchema JSON Schema defining the parameters
+   * @param parameterSchema Open API 3.0 Schema defining the parameters
    */
   constructor(
     readonly name: string,
     readonly displayName: string,
     readonly description: string,
-    readonly parameterSchema: Record<string, unknown>,
+    readonly parameterSchema: Schema,
     readonly isOutputMarkdown: boolean = true,
     readonly canUpdateOutput: boolean = false,
   ) {}
@@ -115,7 +115,7 @@ export abstract class BaseTool<
     return {
       name: this.name,
       description: this.description,
-      parameters: this.parameterSchema as Schema,
+      parameters: this.parameterSchema,
     };
   }
 
@@ -173,6 +173,11 @@ export abstract class BaseTool<
 }
 
 export interface ToolResult {
+  /**
+   * A short, one-line summary of the tool's action and result.
+   * e.g., "Read 5 files", "Wrote 256 bytes to foo.txt"
+   */
+  summary?: string;
   /**
    * Content meant to be included in LLM history.
    * This should represent the factual outcome of the tool execution.

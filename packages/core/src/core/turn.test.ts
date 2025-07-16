@@ -55,7 +55,11 @@ describe('Turn', () => {
       sendMessageStream: mockSendMessageStream,
       getHistory: mockGetHistory,
     };
+<<<<<<< HEAD
     turn = new Turn(mockChatInstance as unknown as SprtscltrChat);
+=======
+    turn = new Turn(mockChatInstance as unknown as GeminiChat, 'prompt-id-1');
+>>>>>>> upstream/main
     mockGetHistory.mockReturnValue([]);
     mockSendMessageStream.mockResolvedValue((async function* () {})());
   });
@@ -92,10 +96,13 @@ describe('Turn', () => {
         events.push(event);
       }
 
-      expect(mockSendMessageStream).toHaveBeenCalledWith({
-        message: reqParts,
-        config: { abortSignal: expect.any(AbortSignal) },
-      });
+      expect(mockSendMessageStream).toHaveBeenCalledWith(
+        {
+          message: reqParts,
+          config: { abortSignal: expect.any(AbortSignal) },
+        },
+        'prompt-id-1',
+      );
 
       expect(events).toEqual([
         { type: GeminiEventType.Content, value: 'Hello' },
