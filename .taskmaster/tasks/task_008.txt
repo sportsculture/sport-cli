@@ -1,0 +1,11 @@
+# Task ID: 8
+# Title: Fix Token Usage Tracking for OpenRouter/DeepSeek Models
+# Status: pending
+# Dependencies: 1, 7
+# Priority: medium
+# Description: Update the system to accurately track and display token usage for OpenRouter/DeepSeek models, ensuring usage stats reflect actual tokens consumed.
+# Details:
+Investigate the current implementation for tracking token usage with OpenRouter/DeepSeek models, focusing on why token counts are reported as zero. Review the API responses from OpenRouter/DeepSeek to determine if token usage information is returned (e.g., in response metadata or headers). If the API does not provide token usage directly, implement logic to estimate tokens based on the prompt and completion using a compatible tokenizer (such as tiktoken or a DeepSeek-specific tokenizer). Integrate this logic into the model usage stats pipeline, ensuring that token counts are updated and displayed correctly in the UI and any relevant logs or analytics. If using a third-party analytics or logging tool (e.g., Langfuse), ensure custom model definitions are set up to enable token cost tracking, as described in community discussions and documentation. Document any changes to the tracking logic and update configuration or environment variables as needed.
+
+# Test Strategy:
+1. Unit test the token counting logic with a variety of prompts and completions to ensure accuracy. 2. Simulate API responses from OpenRouter/DeepSeek and verify that token usage is correctly parsed or estimated. 3. Perform integration tests to confirm that token usage stats are updated in the UI and logs after model invocations. 4. If using analytics tools, verify that token usage and cost are reported as expected for OpenRouter/DeepSeek models. 5. Conduct regression tests to ensure token tracking for other providers remains unaffected.

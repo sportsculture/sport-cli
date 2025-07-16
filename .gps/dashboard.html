@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GridPlay Project GPS Dashboard</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      margin: 0;
+      padding: 20px;
+      background: #f5f7fa;
+      color: #333;
+    }
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    .header {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 30px;
+      border-radius: 12px;
+      margin-bottom: 30px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+    .header h1 {
+      margin: 0;
+      font-size: 2.5em;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+      gap: 20px;
+      margin-bottom: 30px;
+    }
+    .card {
+      background: white;
+      padding: 25px;
+      border-radius: 12px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    }
+    .card h2 {
+      margin-top: 0;
+      color: #4a5568;
+      font-size: 1.3em;
+    }
+    .health-indicator {
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      margin-left: 10px;
+      animation: pulse 2s infinite;
+    }
+    .health-green { background: #48bb78; }
+    .health-yellow { background: #f6e05e; }
+    .health-red { background: #f56565; }
+    @keyframes pulse {
+      0% { opacity: 1; }
+      50% { opacity: 0.7; }
+      100% { opacity: 1; }
+    }
+    .progress-bar {
+      background: #e2e8f0;
+      border-radius: 10px;
+      height: 20px;
+      overflow: hidden;
+      margin: 10px 0;
+    }
+    .progress-fill {
+      background: linear-gradient(90deg, #4299e1 0%, #667eea 100%);
+      height: 100%;
+      transition: width 0.3s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 0.8em;
+      font-weight: bold;
+    }
+    .module-grid {
+      display: grid;
+      gap: 15px;
+    }
+    .module-item {
+      background: #f7fafc;
+      padding: 15px;
+      border-radius: 8px;
+      border-left: 4px solid #667eea;
+    }
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 15px;
+      text-align: center;
+    }
+    .metric-item {
+      padding: 15px;
+      background: #f7fafc;
+      border-radius: 8px;
+    }
+    .metric-value {
+      font-size: 2em;
+      font-weight: bold;
+      color: #667eea;
+    }
+    .metric-label {
+      color: #718096;
+      font-size: 0.9em;
+      margin-top: 5px;
+    }
+    .risk-item {
+      background: #fff5f5;
+      border-left: 4px solid #f56565;
+      padding: 15px;
+      margin: 10px 0;
+      border-radius: 8px;
+    }
+    .risk-level {
+      font-weight: bold;
+      text-transform: uppercase;
+      font-size: 0.8em;
+    }
+    .timestamp {
+      color: #a0aec0;
+      font-size: 0.9em;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>
+        <span id="projectName">Project</span> GPS Dashboard
+        <span class="health-indicator" id="healthIndicator"></span>
+      </h1>
+      <div class="progress-bar" style="margin-top: 20px;">
+        <div class="progress-fill" id="overallProgress">0%</div>
+      </div>
+      <div class="timestamp" id="lastUpdated">Last updated: Never</div>
+    </div>
+    
+    <div class="grid">
+      <div class="card">
+        <h2>📦 Module Status</h2>
+        <div class="module-grid" id="moduleGrid"></div>
+      </div>
+      
+      <div class="card">
+        <h2>📊 Metrics</h2>
+        <div class="metrics-grid" id="metricsGrid"></div>
+      </div>
+      
+      <div class="card">
+        <h2>🧪 Test Coverage</h2>
+        <canvas id="testChart"></canvas>
+      </div>
+      
+      <div class="card">
+        <h2>⚠️ Risk Assessment</h2>
+        <div id="riskList"></div>
+      </div>
+    </div>
+    
+    <div class="card">
+      <h2>📈 Progress Timeline</h2>
+      <canvas id="timelineChart"></canvas>
+    </div>
+  </div>
+  
+  <script>
+    async function loadStatus() {
+      try {
+        const response = await fetch('status.json');
+        const data = await response.json();
+        updateDashboard(data);
+      } catch (error) {
+        console.error('Error loading status:', error);
+      }
+    }
+    
+    function updateDashboard(data) {
+      // Update header
+      document.getElementById('projectName').textContent = data.project.name;
+      document.getElementById('overallProgress').style.width = data.project.completion + '%';
+      document.getElementById('overallProgress').textContent = data.project.completion + '%';
+      document.getElementById('healthIndicator').className = 'health-indicator health-' + data.project.health;
+      document.getElementById('lastUpdated').textContent = 'Last updated: ' + new Date(data.project.lastUpdated).toLocaleString();
+      
+      // Update modules
+      const moduleGrid = document.getElementById('moduleGrid');
+      moduleGrid.innerHTML = '';
+      Object.entries(data.modules).forEach(([name, module]) => {
+        const moduleEl = document.createElement('div');
+        moduleEl.className = 'module-item';
+        moduleEl.innerHTML = `
+          <strong>${name}</strong> - ${module.status}
+          <div class="progress-bar">
+            <div class="progress-fill" style="width: ${module.completion}%">${module.completion}%</div>
+          </div>
+          ${module.tests ? `<small>Tests: ${module.tests.passed}/${module.tests.total}</small>` : ''}
+        `;
+        moduleGrid.appendChild(moduleEl);
+      });
+      
+      // Update metrics
+      const metricsGrid = document.getElementById('metricsGrid');
+      metricsGrid.innerHTML = '';
+      const metrics = [
+        { label: 'Coverage', value: data.metrics.codeQuality.coverage + '%' },
+        { label: 'Build Time', value: data.metrics.performance.buildTime },
+        { label: 'Bundle Size', value: data.metrics.performance.bundleSize }
+      ];
+      metrics.forEach(metric => {
+        const metricEl = document.createElement('div');
+        metricEl.className = 'metric-item';
+        metricEl.innerHTML = `
+          <div class="metric-value">${metric.value}</div>
+          <div class="metric-label">${metric.label}</div>
+        `;
+        metricsGrid.appendChild(metricEl);
+      });
+      
+      // Update test chart
+      const testData = Object.entries(data.modules)
+        .filter(([_, m]) => m.tests)
+        .map(([name, m]) => ({
+          name,
+          passed: m.tests.passed,
+          failed: m.tests.failed,
+          pending: m.tests.total - m.tests.passed - m.tests.failed
+        }));
+      
+      updateTestChart(testData);
+      
+      // Update risks
+      const riskList = document.getElementById('riskList');
+      riskList.innerHTML = '';
+      data.risks.forEach(risk => {
+        const riskEl = document.createElement('div');
+        riskEl.className = 'risk-item';
+        riskEl.innerHTML = `
+          <div class="risk-level">${risk.level} Risk</div>
+          <div>${risk.description}</div>
+          <small>Mitigation: ${risk.mitigation}</small>
+        `;
+        riskList.appendChild(riskEl);
+      });
+      
+      // Update timeline
+      updateTimelineChart(data.modules);
+    }
+    
+    let testChart;
+    function updateTestChart(data) {
+      const ctx = document.getElementById('testChart').getContext('2d');
+      
+      if (testChart) {
+        testChart.destroy();
+      }
+      
+      testChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: data.map(d => d.name),
+          datasets: [
+            {
+              label: 'Passed',
+              data: data.map(d => d.passed),
+              backgroundColor: '#48bb78'
+            },
+            {
+              label: 'Failed',
+              data: data.map(d => d.failed),
+              backgroundColor: '#f56565'
+            },
+            {
+              label: 'Pending',
+              data: data.map(d => d.pending),
+              backgroundColor: '#cbd5e0'
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: true,
+          scales: {
+            x: { stacked: true },
+            y: { stacked: true }
+          }
+        }
+      });
+    }
+    
+    let timelineChart;
+    function updateTimelineChart(modules) {
+      const ctx = document.getElementById('timelineChart').getContext('2d');
+      
+      if (timelineChart) {
+        timelineChart.destroy();
+      }
+      
+      timelineChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: Object.keys(modules),
+          datasets: [{
+            label: 'Completion %',
+            data: Object.values(modules).map(m => m.completion),
+            borderColor: '#667eea',
+            backgroundColor: 'rgba(102, 126, 234, 0.1)',
+            tension: 0.4
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            y: {
+              beginAtZero: true,
+              max: 100
+            }
+          }
+        }
+      });
+    }
+    
+    // Load initial data
+    loadStatus();
+    
+    // Auto-refresh every 30 seconds
+    setInterval(loadStatus, 30000);
+  </script>
+</body>
+</html>

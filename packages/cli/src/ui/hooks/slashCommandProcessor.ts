@@ -18,6 +18,7 @@ import {
   MCPServerStatus,
   getMCPDiscoveryState,
   getMCPServerStatus,
+  AuthType,
 } from '@google/gemini-cli-core';
 import { useSessionStats } from '../contexts/SessionContext.js';
 import {
@@ -77,6 +78,7 @@ export const useSlashCommandProcessor = (
   showToolDescriptions: boolean = false,
   setQuittingMessages: (message: HistoryItem[]) => void,
   openPrivacyNotice: () => void,
+  openModelSelector?: () => void,
 ) => {
   const session = useSessionStats();
   const gitService = useMemo(() => {
@@ -206,7 +208,7 @@ export const useSlashCommandProcessor = (
       },
       {
         name: 'docs',
-        description: 'open full Gemini CLI documentation in your browser',
+        description: 'open full sprtscltr CLI documentation in your browser',
         action: async (_mainCommand, _subCommand, _args) => {
           const docsUrl = 'https://goo.gle/gemini-cli-docs';
           if (process.env.SANDBOX && process.env.SANDBOX !== 'sandbox-exec') {
@@ -255,6 +257,40 @@ export const useSlashCommandProcessor = (
         description: 'set external editor preference',
         action: (_mainCommand, _subCommand, _args) => {
           openEditorDialog();
+        },
+      },
+      {
+        name: 'model',
+        description: 'change the AI model (OpenRouter only)',
+        action: (_mainCommand, _subCommand, _args) => {
+          if (!config) {
+            addMessage({
+              type: MessageType.ERROR,
+              content: 'Configuration not loaded',
+              timestamp: new Date(),
+            });
+            return;
+          }
+          
+          const contentConfig = config.getContentGeneratorConfig();
+          if (!contentConfig || contentConfig.authType !== AuthType.USE_OPENROUTER) {
+            addMessage({
+              type: MessageType.ERROR,
+              content: 'Model selection is only available for OpenRouter authentication',
+              timestamp: new Date(),
+            });
+            return;
+          }
+          
+          if (openModelSelector) {
+            openModelSelector();
+          } else {
+            addMessage({
+              type: MessageType.ERROR,
+              content: 'Model selector not available',
+              timestamp: new Date(),
+            });
+          }
         },
       },
       {
@@ -527,7 +563,7 @@ export const useSlashCommandProcessor = (
       },
       {
         name: 'tools',
-        description: 'list available Gemini CLI tools',
+        description: 'list available sprtscltr CLI tools',
         action: async (_mainCommand, _subCommand, _args) => {
           // Check if the _subCommand includes a specific flag to control description visibility
           let useShowDescriptions = showToolDescriptions;
@@ -558,7 +594,7 @@ export const useSlashCommandProcessor = (
           // Filter out MCP tools by checking if they have a serverName property
           const geminiTools = tools.filter((tool) => !('serverName' in tool));
 
-          let message = 'Available Gemini CLI tools:\n\n';
+          let message = 'Available sprtscltr CLI tools:\n\n';
 
           if (geminiTools.length > 0) {
             geminiTools.forEach((tool) => {
@@ -943,7 +979,7 @@ export const useSlashCommandProcessor = (
           if (!checkpointDir) {
             addMessage({
               type: MessageType.ERROR,
-              content: 'Could not determine the .gemini directory path.',
+              content: 'Could not determine the .sprtscltr directory path.',
               timestamp: new Date(),
             });
             return;

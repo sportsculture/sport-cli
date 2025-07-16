@@ -39,7 +39,7 @@ const SIGN_IN_SUCCESS_URL =
 const SIGN_IN_FAILURE_URL =
   'https://developers.google.com/gemini-code-assist/auth_failure_gemini';
 
-const GEMINI_DIR = '.gemini';
+const SPRTSCLTR_DIR = '.sprtscltr';
 const CREDENTIAL_FILENAME = 'oauth_creds.json';
 const GOOGLE_ACCOUNT_ID_FILENAME = 'google_account_id';
 
@@ -221,11 +221,11 @@ async function cacheCredentials(credentials: Credentials) {
 }
 
 function getCachedCredentialPath(): string {
-  return path.join(os.homedir(), GEMINI_DIR, CREDENTIAL_FILENAME);
+  return path.join(os.homedir(), SPRTSCLTR_DIR, CREDENTIAL_FILENAME);
 }
 
 function getGoogleAccountIdCachePath(): string {
-  return path.join(os.homedir(), GEMINI_DIR, GOOGLE_ACCOUNT_ID_FILENAME);
+  return path.join(os.homedir(), SPRTSCLTR_DIR, GOOGLE_ACCOUNT_ID_FILENAME);
 }
 
 async function cacheGoogleAccountId(googleAccountId: string): Promise<void> {

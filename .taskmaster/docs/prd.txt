@@ -1,0 +1,56 @@
+OpenRouter API Key Prompt and Model Switching Implementation
+
+## Overview
+The sprtscltr CLI (formerly Gemini CLI) currently has OpenRouter integration but lacks two critical features:
+1. API key prompt when selecting OpenRouter authentication
+2. Model switching capability within OpenRouter
+
+## Current State
+- OpenRouter provider is implemented and functional
+- Authentication dialog shows OpenRouter as option 4
+- When selected, no API key prompt appears
+- No way to switch between different models available on OpenRouter
+
+## Requirements
+
+### 1. API Key Prompt Implementation
+- When user selects OpenRouter from auth dialog, prompt for API key
+- Store API key securely in environment/config
+- Handle cases where API key is already set via environment variable
+- Show appropriate error messages for invalid API keys
+
+### 2. Model Switching Functionality
+- Add ability to list available OpenRouter models
+- Implement model selection UI (similar to existing auth selection)
+- Allow switching models mid-session
+- Display current model in status bar or header
+- Save model preference for future sessions
+
+### 3. User Experience
+- Seamless flow from auth selection to API key entry to model selection
+- Clear feedback on authentication status
+- Graceful handling of API errors
+- Consistent UI/UX with existing sprtscltr patterns
+
+## Technical Implementation
+
+### Files to Modify
+- /packages/cli/src/ui/components/AuthDialog.tsx - Add API key prompt
+- /packages/cli/src/ui/hooks/useAuthCommand.ts - Handle auth flow
+- /packages/core/src/providers/openRouterContentGenerator.ts - Model switching
+- /packages/cli/src/ui/App.tsx - Display current model
+- Configuration files for storing API key and model preference
+
+### Key Considerations
+- Maintain backward compatibility with existing auth methods
+- Ensure Custom API provider follows same pattern
+- Consider adding model switching for all providers that support multiple models
+- Handle rate limits and API errors gracefully
+
+## Success Criteria
+1. User can select OpenRouter and be prompted for API key
+2. API key is validated and stored appropriately
+3. User can see list of available models
+4. User can switch between models easily
+5. Current model is displayed in UI
+6. Preferences persist across sessions

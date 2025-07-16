@@ -1,0 +1,11 @@
+# Task ID: 1
+# Title: Enhance AuthDialog for OpenRouter API Key Prompt
+# Status: done
+# Dependencies: None
+# Priority: high
+# Description: Modify AuthDialog.tsx to prompt for OpenRouter API key when selected, ensuring secure handling and environment/config storage.
+# Details:
+Update /packages/cli/src/ui/components/AuthDialog.tsx to include a prompt for OpenRouter API key input. Use secure input handling (e.g., masking). Store the API key in environment variables or a secure config file (e.g., dotenv for Node.js, or a custom encrypted config). Check for existing API keys in environment variables and skip prompt if present. Use react-hook-form for form state management (v7+).
+
+# Test Strategy:
+Test that the prompt appears only for OpenRouter selection. Verify API key is stored securely and not logged. Test environment variable override. Manual and automated UI tests.

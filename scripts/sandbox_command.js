@@ -35,7 +35,7 @@ const argv = yargs(hideBin(process.argv)).option('q', {
 let geminiSandbox = process.env.GEMINI_SANDBOX;
 
 if (!geminiSandbox) {
-  const userSettingsFile = join(os.homedir(), '.gemini', 'settings.json');
+  const userSettingsFile = join(os.homedir(), '.sprtscltr', 'settings.json');
   if (existsSync(userSettingsFile)) {
     const settings = JSON.parse(
       stripJsonComments(readFileSync(userSettingsFile, 'utf-8')),
@@ -49,7 +49,7 @@ if (!geminiSandbox) {
 if (!geminiSandbox) {
   let currentDir = process.cwd();
   while (currentDir !== '/') {
-    const geminiEnv = join(currentDir, '.gemini', '.env');
+    const geminiEnv = join(currentDir, '.sprtscltr', '.env');
     const regularEnv = join(currentDir, '.env');
     if (existsSync(geminiEnv)) {
       dotenv.config({ path: geminiEnv, quiet: true });

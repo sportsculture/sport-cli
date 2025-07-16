@@ -30,6 +30,8 @@ export function AuthDialog({
     { label: 'Login with Google', value: AuthType.LOGIN_WITH_GOOGLE },
     { label: 'Gemini API Key (AI Studio)', value: AuthType.USE_GEMINI },
     { label: 'Vertex AI', value: AuthType.USE_VERTEX_AI },
+    { label: 'OpenRouter', value: AuthType.USE_OPENROUTER },
+    { label: 'Custom API', value: AuthType.USE_CUSTOM_API },
   ];
 
   let initialAuthIndex = items.findIndex(
@@ -87,7 +89,7 @@ export function AuthDialog({
         <Text color={Colors.Gray}>(Use Enter to select)</Text>
       </Box>
       <Box marginTop={1}>
-        <Text>Terms of Services and Privacy Notice for Gemini CLI</Text>
+        <Text>Terms of Services and Privacy Notice for sprtscltr CLI</Text>
       </Box>
       <Box marginTop={1}>
         <Text color={Colors.AccentBlue}>

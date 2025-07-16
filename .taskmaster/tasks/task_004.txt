@@ -1,0 +1,11 @@
+# Task ID: 4
+# Title: Enable Model Switching and Persistence
+# Status: pending
+# Dependencies: 3
+# Priority: medium
+# Description: Allow users to switch models mid-session and persist model preference for future sessions.
+# Details:
+Update /packages/core/src/providers/openRouterContentGenerator.ts to support model switching. Store selected model in config/environment. Allow switching via UI or command. Use secure storage (e.g., encrypted config or environment variables).
+
+# Test Strategy:
+Test model switching and persistence. Verify model is saved and restored. Automated integration tests.

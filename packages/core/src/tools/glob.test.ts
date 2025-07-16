@@ -5,7 +5,7 @@
  */
 
 import { GlobTool, GlobToolParams, GlobPath, sortFileEntries } from './glob.js';
-import { partListUnionToString } from '../core/geminiRequest.js';
+import { partListUnionToString } from '../core/sprtscltrRequest.js';
 import path from 'path';
 import fs from 'fs/promises';
 import os from 'os';

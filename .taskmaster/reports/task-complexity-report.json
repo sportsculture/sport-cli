@@ -1,0 +1,21 @@
+{
+	"meta": {
+		"generatedAt": "2025-07-08T05:27:47.803Z",
+		"tasksAnalyzed": 1,
+		"totalTasks": 8,
+		"analysisCount": 1,
+		"thresholdScore": 5,
+		"projectName": "Taskmaster",
+		"usedResearch": false
+	},
+	"complexityAnalysis": [
+		{
+			"taskId": 3,
+			"taskTitle": "Add Model Listing and Selection UI",
+			"complexityScore": 6,
+			"recommendedSubtasks": 5,
+			"expansionPrompt": "Break down the task into subtasks such as: 1) Fetch available models from OpenRouter API using react-query, 2) Implement the ModelSelection component or extend AuthDialog.tsx, 3) Integrate react-select (v5+) for dropdown UI, 4) Persist selected model in state and config, 5) Ensure UI consistency with sprtscltr patterns and write manual/automated UI tests.",
+			"reasoning": "This task involves integrating external data fetching, UI component development, state management, and ensuring consistency with existing patterns. The use of react-query and react-select adds moderate complexity, as does the requirement for both manual and automated testing. The task is not trivial but does not involve highly complex algorithms or deep architectural changes, placing it at a moderate complexity level. Breaking it into at least five subtasks will help manage dependencies and ensure thorough implementation and testing."
+		}
+	]
+}

@@ -27,7 +27,7 @@ import { ReadManyFilesTool } from '../tools/read-many-files.js';
 import { getResponseText } from '../utils/generateContentResponseUtilities.js';
 import { checkNextSpeaker } from '../utils/nextSpeakerChecker.js';
 import { reportError } from '../utils/errorReporting.js';
-import { GeminiChat } from './geminiChat.js';
+import { SprtscltrChat } from './sprtscltrChat.js';
 import { retryWithBackoff } from '../utils/retry.js';
 import { getErrorMessage } from '../utils/errors.js';
 import { tokenLimit } from './tokenLimits.js';
@@ -46,7 +46,7 @@ function isThinkingSupported(model: string) {
 }
 
 export class GeminiClient {
-  private chat?: GeminiChat;
+  private chat?: SprtscltrChat;
   private contentGenerator?: ContentGenerator;
   private embeddingModel: string;
   private generateContentConfig: GenerateContentConfig = {
@@ -83,7 +83,7 @@ export class GeminiClient {
     this.getChat().addHistory(content);
   }
 
-  getChat(): GeminiChat {
+  getChat(): SprtscltrChat {
     if (!this.chat) {
       throw new Error('Chat not initialized');
     }
@@ -115,7 +115,7 @@ export class GeminiClient {
       fileService: this.config.getFileService(),
     });
     const context = `
-  This is the Gemini CLI. We are setting up the context for our chat.
+  This is the sprtscltr CLI. We are setting up the context for our chat.
   Today's date is ${today}.
   My operating system is: ${platform}
   I'm currently working in the directory: ${cwd}
@@ -166,7 +166,7 @@ export class GeminiClient {
     return initialParts;
   }
 
-  private async startChat(extraHistory?: Content[]): Promise<GeminiChat> {
+  private async startChat(extraHistory?: Content[]): Promise<SprtscltrChat> {
     const envParts = await this.getEnvironment();
     const toolRegistry = await this.config.getToolRegistry();
     const toolDeclarations = toolRegistry.getFunctionDeclarations();
@@ -195,7 +195,7 @@ export class GeminiClient {
             },
           }
         : this.generateContentConfig;
-      return new GeminiChat(
+      return new SprtscltrChat(
         this.config,
         this.getContentGenerator(),
         {
@@ -300,7 +300,14 @@ export class GeminiClient {
         throw error;
       }
       try {
-        return JSON.parse(text);
+        // Strip markdown code blocks if present
+        let cleanText = text.trim();
+        if (cleanText.startsWith('```json') && cleanText.endsWith('```')) {
+          cleanText = cleanText.slice(7, -3).trim();
+        } else if (cleanText.startsWith('```') && cleanText.endsWith('```')) {
+          cleanText = cleanText.slice(3, -3).trim();
+        }
+        return JSON.parse(cleanText);
       } catch (parseError) {
         await reportError(
           parseError,

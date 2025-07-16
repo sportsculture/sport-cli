@@ -26,6 +26,7 @@ import { useEditorSettings } from './hooks/useEditorSettings.js';
 import { useSlashCommandProcessor } from './hooks/slashCommandProcessor.js';
 import { useAutoAcceptIndicator } from './hooks/useAutoAcceptIndicator.js';
 import { useConsoleMessages } from './hooks/useConsoleMessages.js';
+import { useModelSelector } from './hooks/useModelSelector.js';
 import { Header } from './components/Header.js';
 import { LoadingIndicator } from './components/LoadingIndicator.js';
 import { AutoAcceptIndicator } from './components/AutoAcceptIndicator.js';
@@ -34,8 +35,10 @@ import { InputPrompt } from './components/InputPrompt.js';
 import { Footer } from './components/Footer.js';
 import { ThemeDialog } from './components/ThemeDialog.js';
 import { AuthDialog } from './components/AuthDialog.js';
+import { ApiKeyDialog } from './components/ApiKeyDialog.js';
 import { AuthInProgress } from './components/AuthInProgress.js';
 import { EditorSettingsDialog } from './components/EditorSettingsDialog.js';
+import { ModelSelector } from './components/ModelSelector.js';
 import { Colors } from './colors.js';
 import { Help } from './components/Help.js';
 import { loadHierarchicalGeminiMemory } from '../config/config.js';
@@ -155,6 +158,10 @@ const App = ({ config, settings, startupWarnings = [] }: AppProps) => {
     handleAuthSelect,
     isAuthenticating,
     cancelAuthentication,
+    needsApiKey,
+    pendingAuthType,
+    handleApiKeySubmit,
+    handleApiKeyCancel,
   } = useAuthCommand(settings, setAuthError, config);
 
   useEffect(() => {
@@ -177,6 +184,13 @@ const App = ({ config, settings, startupWarnings = [] }: AppProps) => {
   const toggleCorgiMode = useCallback(() => {
     setCorgiMode((prev) => !prev);
   }, []);
+
+  const {
+    isModelSelectorOpen,
+    openModelSelector,
+    closeModelSelector,
+    handleModelSelect,
+  } = useModelSelector(config, addItem);
 
   const performMemoryRefresh = useCallback(async () => {
     addItem(
@@ -283,6 +297,7 @@ const App = ({ config, settings, startupWarnings = [] }: AppProps) => {
     showToolDescriptions,
     setQuittingMessages,
     openPrivacyNotice,
+    openModelSelector,
   );
   const pendingHistoryItems = [...pendingSlashCommandHistoryItems];
 
@@ -670,6 +685,14 @@ const App = ({ config, settings, startupWarnings = [] }: AppProps) => {
                 openAuthDialog();
               }}
             />
+          ) : needsApiKey && pendingAuthType ? (
+            <Box flexDirection="column">
+              <ApiKeyDialog
+                authType={pendingAuthType}
+                onSubmit={handleApiKeySubmit}
+                onCancel={handleApiKeyCancel}
+              />
+            </Box>
           ) : isAuthDialogOpen ? (
             <Box flexDirection="column">
               <AuthDialog
@@ -689,6 +712,15 @@ const App = ({ config, settings, startupWarnings = [] }: AppProps) => {
                 onSelect={handleEditorSelect}
                 settings={settings}
                 onExit={exitEditorDialog}
+              />
+            </Box>
+          ) : isModelSelectorOpen ? (
+            <Box flexDirection="column">
+              <ModelSelector
+                config={config.getContentGeneratorConfig()}
+                currentModel={currentModel}
+                onSelect={handleModelSelect}
+                onCancel={closeModelSelector}
               />
             </Box>
           ) : showPrivacyNotice ? (
@@ -736,6 +768,8 @@ const App = ({ config, settings, startupWarnings = [] }: AppProps) => {
                       contextFileNames={contextFileNames}
                       mcpServers={config.getMcpServers()}
                       showToolDescriptions={showToolDescriptions}
+                      currentModel={currentModel}
+                      authType={config.getContentGeneratorConfig()?.authType}
                     />
                   )}
                 </Box>

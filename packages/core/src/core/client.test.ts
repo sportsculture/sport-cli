@@ -14,7 +14,7 @@ import {
 } from '@google/genai';
 import { GeminiClient } from './client.js';
 import { AuthType, ContentGenerator } from './contentGenerator.js';
-import { GeminiChat } from './geminiChat.js';
+import { SprtscltrChat } from './sprtscltrChat.js';
 import { Config } from '../config/config.js';
 import { Turn } from './turn.js';
 import { getCoreSystemPrompt } from './prompts.js';
@@ -377,7 +377,7 @@ describe('Gemini Client (client.ts)', () => {
       client['contentGenerator'] = mockGenerator as ContentGenerator;
 
       // Mock the chat's sendMessage method
-      const mockChat: Partial<GeminiChat> = {
+      const mockChat: Partial<SprtscltrChat> = {
         getHistory: vi
           .fn()
           .mockReturnValue([
@@ -386,7 +386,7 @@ describe('Gemini Client (client.ts)', () => {
         addHistory: vi.fn(),
         sendMessage: mockSendMessage,
       };
-      client['chat'] = mockChat as GeminiChat;
+      client['chat'] = mockChat as SprtscltrChat;
     });
 
     it('should not trigger summarization if token count is below threshold', async () => {
@@ -478,11 +478,11 @@ describe('Gemini Client (client.ts)', () => {
       })();
       mockTurnRunFn.mockReturnValue(mockStream);
 
-      const mockChat: Partial<GeminiChat> = {
+      const mockChat: Partial<SprtscltrChat> = {
         addHistory: vi.fn(),
         getHistory: vi.fn().mockReturnValue([]),
       };
-      client['chat'] = mockChat as GeminiChat;
+      client['chat'] = mockChat as SprtscltrChat;
 
       const mockGenerator: Partial<ContentGenerator> = {
         countTokens: vi.fn().mockResolvedValue({ totalTokens: 0 }),
@@ -526,11 +526,11 @@ describe('Gemini Client (client.ts)', () => {
       })();
       mockTurnRunFn.mockReturnValue(mockStream);
 
-      const mockChat: Partial<GeminiChat> = {
+      const mockChat: Partial<SprtscltrChat> = {
         addHistory: vi.fn(),
         getHistory: vi.fn().mockReturnValue([]),
       };
-      client['chat'] = mockChat as GeminiChat;
+      client['chat'] = mockChat as SprtscltrChat;
 
       const mockGenerator: Partial<ContentGenerator> = {
         countTokens: vi.fn().mockResolvedValue({ totalTokens: 0 }),
@@ -625,11 +625,11 @@ describe('Gemini Client (client.ts)', () => {
       })();
       mockTurnRunFn.mockReturnValue(mockStream);
 
-      const mockChat: Partial<GeminiChat> = {
+      const mockChat: Partial<SprtscltrChat> = {
         addHistory: vi.fn(),
         getHistory: vi.fn().mockReturnValue([]),
       };
-      client['chat'] = mockChat as GeminiChat;
+      client['chat'] = mockChat as SprtscltrChat;
 
       const mockGenerator: Partial<ContentGenerator> = {
         countTokens: vi.fn().mockResolvedValue({ totalTokens: 0 }),
@@ -733,7 +733,7 @@ describe('Gemini Client (client.ts)', () => {
         { role: 'model', parts: [{ text: 'Long response' }] },
       ];
 
-      const mockChat: Partial<GeminiChat> = {
+      const mockChat: Partial<SprtscltrChat> = {
         getHistory: vi.fn().mockReturnValue(mockChatHistory),
         sendMessage: mockSendMessage,
       };
@@ -749,7 +749,7 @@ describe('Gemini Client (client.ts)', () => {
         .mockReturnValueOnce(firstCurrentModel)
         .mockReturnValueOnce(secondCurrentModel);
 
-      client['chat'] = mockChat as GeminiChat;
+      client['chat'] = mockChat as SprtscltrChat;
       client['contentGenerator'] = mockGenerator as ContentGenerator;
       client['startChat'] = vi.fn().mockResolvedValue(mockChat);
 

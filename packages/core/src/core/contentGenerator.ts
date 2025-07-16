@@ -14,8 +14,10 @@ import {
   GoogleGenAI,
 } from '@google/genai';
 import { createCodeAssistContentGenerator } from '../code_assist/codeAssist.js';
-import { DEFAULT_GEMINI_MODEL } from '../config/models.js';
+import { DEFAULT_GEMINI_MODEL, DEFAULT_OPENROUTER_MODEL, DEFAULT_CUSTOM_API_MODEL } from '../config/models.js';
 import { getEffectiveModel } from './modelCheck.js';
+import { OpenRouterContentGenerator } from '../providers/openRouterContentGenerator.js';
+import { CustomApiContentGenerator } from '../providers/customApiContentGenerator.js';
 
 /**
  * Interface abstracting the core functionalities for generating content and counting tokens.
@@ -38,6 +40,8 @@ export enum AuthType {
   LOGIN_WITH_GOOGLE = 'oauth-personal',
   USE_GEMINI = 'gemini-api-key',
   USE_VERTEX_AI = 'vertex-ai',
+  USE_OPENROUTER = 'openrouter',
+  USE_CUSTOM_API = 'custom-api',
 }
 
 export type ContentGeneratorConfig = {
@@ -45,6 +49,8 @@ export type ContentGeneratorConfig = {
   apiKey?: string;
   vertexai?: boolean;
   authType?: AuthType | undefined;
+  customEndpoint?: string;
+  customHeaders?: Record<string, string>;
 };
 
 export async function createContentGeneratorConfig(
@@ -56,9 +62,25 @@ export async function createContentGeneratorConfig(
   const googleApiKey = process.env.GOOGLE_API_KEY;
   const googleCloudProject = process.env.GOOGLE_CLOUD_PROJECT;
   const googleCloudLocation = process.env.GOOGLE_CLOUD_LOCATION;
+  const openRouterApiKey = process.env.OPENROUTER_API_KEY;
+  const customApiKey = process.env.CUSTOM_API_KEY;
+  const customApiEndpoint = process.env.CUSTOM_API_ENDPOINT;
 
   // Use runtime model from config if available, otherwise fallback to parameter or default
-  const effectiveModel = config?.getModel?.() || model || DEFAULT_GEMINI_MODEL;
+  let defaultModel = DEFAULT_GEMINI_MODEL;
+  if (authType === AuthType.USE_OPENROUTER) {
+    defaultModel = DEFAULT_OPENROUTER_MODEL;
+  } else if (authType === AuthType.USE_CUSTOM_API) {
+    defaultModel = DEFAULT_CUSTOM_API_MODEL;
+  }
+  
+  // For OpenRouter and Custom API, prefer the model parameter over config
+  let effectiveModel: string;
+  if (authType === AuthType.USE_OPENROUTER || authType === AuthType.USE_CUSTOM_API) {
+    effectiveModel = model || defaultModel;
+  } else {
+    effectiveModel = config?.getModel?.() || model || defaultModel;
+  }
 
   const contentGeneratorConfig: ContentGeneratorConfig = {
     model: effectiveModel,
@@ -96,6 +118,19 @@ export async function createContentGeneratorConfig(
     return contentGeneratorConfig;
   }
 
+  if (authType === AuthType.USE_OPENROUTER && openRouterApiKey) {
+    contentGeneratorConfig.apiKey = openRouterApiKey;
+    // OpenRouter models don't need validation
+    return contentGeneratorConfig;
+  }
+
+  if (authType === AuthType.USE_CUSTOM_API && customApiKey && customApiEndpoint) {
+    contentGeneratorConfig.apiKey = customApiKey;
+    contentGeneratorConfig.customEndpoint = customApiEndpoint;
+    // Custom API models don't need validation
+    return contentGeneratorConfig;
+  }
+
   return contentGeneratorConfig;
 }
 
@@ -128,6 +163,14 @@ export async function createContentGenerator(
     });
 
     return googleGenAI.models;
+  }
+
+  if (config.authType === AuthType.USE_OPENROUTER) {
+    return new OpenRouterContentGenerator(config);
+  }
+
+  if (config.authType === AuthType.USE_CUSTOM_API) {
+    return new CustomApiContentGenerator(config);
   }
 
   throw new Error(

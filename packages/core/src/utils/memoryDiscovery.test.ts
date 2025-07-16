@@ -12,7 +12,7 @@ import * as os from 'os';
 import * as path from 'path';
 import { loadServerHierarchicalMemory } from './memoryDiscovery.js';
 import {
-  GEMINI_CONFIG_DIR,
+  SPRTSCLTR_CONFIG_DIR,
   setGeminiMdFilename,
   getCurrentGeminiMdFilename,
   DEFAULT_CONTEXT_FILENAME,
@@ -41,7 +41,7 @@ describe('loadServerHierarchicalMemory', () => {
   const PROJECT_ROOT = '/test/project';
   const USER_HOME = '/test/userhome';
 
-  let GLOBAL_GEMINI_DIR: string;
+  let GLOBAL_SPRTSCLTR_DIR: string;
   let GLOBAL_GEMINI_FILE: string; // Defined in beforeEach
 
   const fileService = new FileDiscoveryService(PROJECT_ROOT);
@@ -55,9 +55,9 @@ describe('loadServerHierarchicalMemory', () => {
     mockOs.homedir.mockReturnValue(USER_HOME);
 
     // Define these here to use potentially reset/updated values from imports
-    GLOBAL_GEMINI_DIR = path.join(USER_HOME, GEMINI_CONFIG_DIR);
+    GLOBAL_SPRTSCLTR_DIR = path.join(USER_HOME, SPRTSCLTR_CONFIG_DIR);
     GLOBAL_GEMINI_FILE = path.join(
-      GLOBAL_GEMINI_DIR,
+      GLOBAL_SPRTSCLTR_DIR,
       getCurrentGeminiMdFilename(), // Use current filename
     );
 
@@ -79,7 +79,7 @@ describe('loadServerHierarchicalMemory', () => {
 
   it('should load only the global context file if present and others are not (default filename)', async () => {
     const globalDefaultFile = path.join(
-      GLOBAL_GEMINI_DIR,
+      GLOBAL_SPRTSCLTR_DIR,
       DEFAULT_CONTEXT_FILENAME,
     );
     mockFs.access.mockImplementation(async (p) => {
@@ -111,7 +111,7 @@ describe('loadServerHierarchicalMemory', () => {
   it('should load only the global custom context file if present and filename is changed', async () => {
     const customFilename = 'CUSTOM_AGENTS.md';
     setGeminiMdFilename(customFilename);
-    const globalCustomFile = path.join(GLOBAL_GEMINI_DIR, customFilename);
+    const globalCustomFile = path.join(GLOBAL_SPRTSCLTR_DIR, customFilename);
 
     mockFs.access.mockImplementation(async (p) => {
       if (p === globalCustomFile) {
@@ -367,7 +367,7 @@ describe('loadServerHierarchicalMemory', () => {
     setGeminiMdFilename(ORIGINAL_GEMINI_MD_FILENAME_CONST_FOR_TEST); // Explicitly set for this test
 
     const globalFileToUse = path.join(
-      GLOBAL_GEMINI_DIR,
+      GLOBAL_SPRTSCLTR_DIR,
       ORIGINAL_GEMINI_MD_FILENAME_CONST_FOR_TEST,
     );
     const projectParentDir = path.dirname(PROJECT_ROOT);
@@ -392,7 +392,7 @@ describe('loadServerHierarchicalMemory', () => {
     mockFs.stat.mockImplementation(async (p) => {
       if (p === path.join(PROJECT_ROOT, '.git')) {
         return { isDirectory: () => true } as Stats;
-      } else if (p === path.join(PROJECT_ROOT, '.gemini')) {
+      } else if (p === path.join(PROJECT_ROOT, '.sprtscltr')) {
         return { isDirectory: () => true } as Stats;
       }
       throw new Error('File not found');

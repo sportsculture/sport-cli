@@ -109,7 +109,7 @@ export class ReadFileTool extends BaseTool<ReadFileToolParams, ToolResult> {
         params.absolute_path,
         this.rootDirectory,
       );
-      return `File path '${shortenPath(relativePath)}' is ignored by .geminiignore pattern(s).`;
+      return `File path '${shortenPath(relativePath)}' is ignored by .sprtscltrignore pattern(s).`;
     }
 
     return null;

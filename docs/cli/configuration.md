@@ -1,4 +1,4 @@
-# Gemini CLI Configuration
+# sprtscltr CLI Configuration
 
 Gemini CLI offers several ways to configure its behavior, including environment variables, command-line arguments, and settings files. This document outlines the different configuration methods and available settings.
 
@@ -40,7 +40,7 @@ In addition to a project settings file, a project's `.gemini` directory can cont
 
 - **`bugCommand`** (object):
   - **Description:** Overrides the default URL for the `/bug` command.
-  - **Default:** `"urlTemplate": "https://github.com/google-gemini/gemini-cli/issues/new?template=bug_report.yml&title={title}&info={info}"`
+  - **Default:** `"urlTemplate": "https://github.com/google-gemini/sprtscltr-cli/issues/new?template=bug_report.yml&title={title}&info={info}"`
   - **Properties:**
     - **`urlTemplate`** (string): A URL that can contain `{title}` and `{info}` placeholders.
   - **Example:**
@@ -88,7 +88,7 @@ In addition to a project settings file, a project's `.gemini` directory can cont
   - **Example:** `"theme": "GitHub"`
 
 - **`sandbox`** (boolean or string):
-  - **Description:** Controls whether and how to use sandboxing for tool execution. If set to `true`, Gemini CLI uses a pre-built `gemini-cli-sandbox` Docker image. For more information, see [Sandboxing](#sandboxing).
+  - **Description:** Controls whether and how to use sandboxing for tool execution. If set to `true`, Gemini CLI uses a pre-built `sprtscltr-cli-sandbox` Docker image. For more information, see [Sandboxing](#sandboxing).
   - **Default:** `false`
   - **Example:** `"sandbox": "docker"`
 
@@ -383,12 +383,12 @@ Sandboxing is disabled by default, but you can enable it in a few ways:
 - Setting `GEMINI_SANDBOX` environment variable.
 - Sandbox is enabled in `--yolo` mode by default.
 
-By default, it uses a pre-built `gemini-cli-sandbox` Docker image.
+By default, it uses a pre-built `sprtscltr-cli-sandbox` Docker image.
 
 For project-specific sandboxing needs, you can create a custom Dockerfile at `.gemini/sandbox.Dockerfile` in your project's root directory. This Dockerfile can be based on the base sandbox image:
 
 ```dockerfile
-FROM gemini-cli-sandbox
+FROM sprtscltr-cli-sandbox
 
 # Add your custom dependencies or configurations here
 # For example:

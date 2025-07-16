@@ -1,4 +1,4 @@
-# Gemini CLI Architecture Overview
+# sprtscltr CLI Architecture Overview
 
 This document provides a high-level overview of the Gemini CLI's architecture.
 

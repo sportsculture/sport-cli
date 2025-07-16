@@ -11,7 +11,7 @@ import { isNodeError } from '../utils/errors.js';
 import { isGitRepository } from '../utils/gitUtils.js';
 import { exec } from 'node:child_process';
 import { simpleGit, SimpleGit, CheckRepoActions } from 'simple-git';
-import { getProjectHash, GEMINI_DIR } from '../utils/paths.js';
+import { getProjectHash, SPRTSCLTR_DIR } from '../utils/paths.js';
 
 export class GitService {
   private projectRoot: string;
@@ -22,7 +22,7 @@ export class GitService {
 
   private getHistoryDir(): string {
     const hash = getProjectHash(this.projectRoot);
-    return path.join(os.homedir(), GEMINI_DIR, 'history', hash);
+    return path.join(os.homedir(), SPRTSCLTR_DIR, 'history', hash);
   }
 
   async initialize(): Promise<void> {
@@ -61,7 +61,7 @@ export class GitService {
     // We don't want to inherit the user's name, email, or gpg signing
     // preferences for the shadow repository, so we create a dedicated gitconfig.
     const gitConfigContent =
-      '[user]\n  name = Gemini CLI\n  email = gemini-cli@google.com\n[commit]\n  gpgsign = false\n';
+      '[user]\n  name = sprtscltr CLI\n  email = gemini-cli@google.com\n[commit]\n  gpgsign = false\n';
     await fs.writeFile(gitConfigPath, gitConfigContent);
 
     const repo = simpleGit(repoDir);

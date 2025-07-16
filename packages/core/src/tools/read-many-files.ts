@@ -124,7 +124,7 @@ export class ReadManyFilesTool extends BaseTool<
   ToolResult
 > {
   static readonly Name: string = 'read_many_files';
-  private readonly geminiIgnorePatterns: string[] = [];
+  private readonly sprtscltrIgnorePatterns: string[] = [];
 
   /**
    * Creates an instance of ReadManyFilesTool.
@@ -196,7 +196,7 @@ Use this tool when the user's query implies needing the content of several files
       parameterSchema,
     );
     this.targetDir = path.resolve(targetDir);
-    this.geminiIgnorePatterns = config
+    this.sprtscltrIgnorePatterns = config
       .getFileService()
       .getGeminiIgnorePatterns();
   }
@@ -257,18 +257,18 @@ Use this tool when the user's query implies needing the content of several files
 
     const finalExclusionPatternsForDescription: string[] =
       paramUseDefaultExcludes
-        ? [...DEFAULT_EXCLUDES, ...paramExcludes, ...this.geminiIgnorePatterns]
-        : [...paramExcludes, ...this.geminiIgnorePatterns];
+        ? [...DEFAULT_EXCLUDES, ...paramExcludes, ...this.sprtscltrIgnorePatterns]
+        : [...paramExcludes, ...this.sprtscltrIgnorePatterns];
 
     let excludeDesc = `Excluding: ${finalExclusionPatternsForDescription.length > 0 ? `patterns like \`${finalExclusionPatternsForDescription.slice(0, 2).join('`, `')}${finalExclusionPatternsForDescription.length > 2 ? '...`' : '`'}` : 'none specified'}`;
 
-    // Add a note if .geminiignore patterns contributed to the final list of exclusions
-    if (this.geminiIgnorePatterns.length > 0) {
-      const geminiPatternsInEffect = this.geminiIgnorePatterns.filter((p) =>
+    // Add a note if .sprtscltrignore patterns contributed to the final list of exclusions
+    if (this.sprtscltrIgnorePatterns.length > 0) {
+      const geminiPatternsInEffect = this.sprtscltrIgnorePatterns.filter((p) =>
         finalExclusionPatternsForDescription.includes(p),
       ).length;
       if (geminiPatternsInEffect > 0) {
-        excludeDesc += ` (includes ${geminiPatternsInEffect} from .geminiignore)`;
+        excludeDesc += ` (includes ${geminiPatternsInEffect} from .sprtscltrignore)`;
       }
     }
 
@@ -308,8 +308,8 @@ Use this tool when the user's query implies needing the content of several files
     const contentParts: PartListUnion = [];
 
     const effectiveExcludes = useDefaultExcludes
-      ? [...DEFAULT_EXCLUDES, ...exclude, ...this.geminiIgnorePatterns]
-      : [...exclude, ...this.geminiIgnorePatterns];
+      ? [...DEFAULT_EXCLUDES, ...exclude, ...this.sprtscltrIgnorePatterns]
+      : [...exclude, ...this.sprtscltrIgnorePatterns];
 
     const searchPatterns = [...inputPatterns, ...include];
     if (searchPatterns.length === 0) {

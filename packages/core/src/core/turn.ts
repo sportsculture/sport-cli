@@ -22,7 +22,7 @@ import {
   UnauthorizedError,
   toFriendlyError,
 } from '../utils/errors.js';
-import { GeminiChat } from './geminiChat.js';
+import { SprtscltrChat } from './sprtscltrChat.js';
 
 // Define a structure for tools passed to the server
 export interface ServerTool {
@@ -122,7 +122,7 @@ export interface ChatCompressionInfo {
   newTokenCount: number;
 }
 
-export type ServerGeminiChatCompressedEvent = {
+export type ServerSprtscltrChatCompressedEvent = {
   type: GeminiEventType.ChatCompressed;
   value: ChatCompressionInfo | null;
 };
@@ -135,7 +135,7 @@ export type ServerGeminiStreamEvent =
   | ServerGeminiToolCallConfirmationEvent
   | ServerGeminiUserCancelledEvent
   | ServerGeminiErrorEvent
-  | ServerGeminiChatCompressedEvent
+  | ServerSprtscltrChatCompressedEvent
   | ServerGeminiThoughtEvent;
 
 // A turn manages the agentic loop turn within the server context.
@@ -143,7 +143,7 @@ export class Turn {
   readonly pendingToolCalls: ToolCallRequestInfo[];
   private debugResponses: GenerateContentResponse[];
 
-  constructor(private readonly chat: GeminiChat) {
+  constructor(private readonly chat: SprtscltrChat) {
     this.pendingToolCalls = [];
     this.debugResponses = [];
   }

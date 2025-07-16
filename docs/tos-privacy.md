@@ -1,4 +1,4 @@
-# Gemini CLI: Terms of Service and Privacy Notice
+# sprtscltr CLI: Terms of Service and Privacy Notice
 
 Gemini CLI is an open-source tool that lets you interact with Google's powerful language models directly from your command-line interface. The Terms of Service and Privacy notices that apply to your usage of Gemini CLI depend on the type of account you use to authenticate with Google. See [quota and pricing](./quota-and-pricing.md) for details on the quota and pricing details that apply to your usage of Gemini CLI.
 

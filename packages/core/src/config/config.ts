@@ -24,7 +24,7 @@ import { ReadManyFilesTool } from '../tools/read-many-files.js';
 import {
   MemoryTool,
   setGeminiMdFilename,
-  GEMINI_CONFIG_DIR as GEMINI_DIR,
+  SPRTSCLTR_CONFIG_DIR as SPRTSCLTR_DIR,
 } from '../tools/memoryTool.js';
 import { WebSearchTool } from '../tools/web-search.js';
 import { GeminiClient } from '../core/client.js';
@@ -112,7 +112,7 @@ export interface ConfigParameters {
   mcpServerCommand?: string;
   mcpServers?: Record<string, MCPServerConfig>;
   userMemory?: string;
-  geminiMdFileCount?: number;
+  sprtscltrMdFileCount?: number;
   approvalMode?: ApprovalMode;
   showMemoryUsage?: boolean;
   contextFileName?: string | string[];
@@ -149,13 +149,13 @@ export class Config {
   private readonly mcpServerCommand: string | undefined;
   private readonly mcpServers: Record<string, MCPServerConfig> | undefined;
   private userMemory: string;
-  private geminiMdFileCount: number;
+  private sprtscltrMdFileCount: number;
   private approvalMode: ApprovalMode;
   private readonly showMemoryUsage: boolean;
   private readonly accessibility: AccessibilitySettings;
   private readonly telemetrySettings: TelemetrySettings;
   private readonly usageStatisticsEnabled: boolean;
-  private geminiClient!: GeminiClient;
+  private sprtscltrClient!: GeminiClient;
   private readonly fileFiltering: {
     respectGitIgnore: boolean;
     enableRecursiveFileSearch: boolean;
@@ -187,7 +187,7 @@ export class Config {
     this.mcpServerCommand = params.mcpServerCommand;
     this.mcpServers = params.mcpServers;
     this.userMemory = params.userMemory ?? '';
-    this.geminiMdFileCount = params.geminiMdFileCount ?? 0;
+    this.sprtscltrMdFileCount = params.sprtscltrMdFileCount ?? 0;
     this.approvalMode = params.approvalMode ?? ApprovalMode.DEFAULT;
     this.showMemoryUsage = params.showMemoryUsage ?? false;
     this.accessibility = params.accessibility ?? {};
@@ -233,7 +233,14 @@ export class Config {
     // Always use the original default model when switching auth methods
     // This ensures users don't stay on Flash after switching between auth types
     // and allows API key users to get proper fallback behavior from getEffectiveModel
-    const modelToUse = this.model; // Use the original default model
+    let modelToUse = this.model; // Use the original default model
+    
+    // For OpenRouter and Custom API, use their specific default models
+    if (authMethod === AuthType.USE_OPENROUTER) {
+      modelToUse = 'deepseek/deepseek-chat'; // Default OpenRouter model
+    } else if (authMethod === AuthType.USE_CUSTOM_API) {
+      modelToUse = 'deepseek-v3'; // Default Custom API model
+    }
 
     // Temporarily clear contentGeneratorConfig to prevent getModel() from returning
     // the previous session's model (which might be Flash)
@@ -246,7 +253,7 @@ export class Config {
     );
 
     const gc = new GeminiClient(this);
-    this.geminiClient = gc;
+    this.sprtscltrClient = gc;
     this.toolRegistry = await createToolRegistry(this);
     await gc.initialize(contentConfig);
     this.contentGeneratorConfig = contentConfig;
@@ -355,11 +362,11 @@ export class Config {
   }
 
   getGeminiMdFileCount(): number {
-    return this.geminiMdFileCount;
+    return this.sprtscltrMdFileCount;
   }
 
   setGeminiMdFileCount(count: number): void {
-    this.geminiMdFileCount = count;
+    this.sprtscltrMdFileCount = count;
   }
 
   getApprovalMode(): ApprovalMode {
@@ -395,11 +402,11 @@ export class Config {
   }
 
   getGeminiClient(): GeminiClient {
-    return this.geminiClient;
+    return this.sprtscltrClient;
   }
 
   getGeminiDir(): string {
-    return path.join(this.targetDir, GEMINI_DIR);
+    return path.join(this.targetDir, SPRTSCLTR_DIR);
   }
 
   getProjectTempDir(): string {

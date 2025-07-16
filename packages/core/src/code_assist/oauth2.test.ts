@@ -159,7 +159,7 @@ describe('oauth2', () => {
     // Verify Google Account ID was cached
     const googleAccountIdPath = path.join(
       tempHomeDir,
-      '.gemini',
+      '.sprtscltr',
       'google_account_id',
     );
     expect(fs.existsSync(googleAccountIdPath)).toBe(true);

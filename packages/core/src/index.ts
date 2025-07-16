@@ -6,18 +6,23 @@
 
 // Export config
 export * from './config/config.js';
+export * from './config/models.js';
 
 // Export Core Logic
 export * from './core/client.js';
 export * from './core/contentGenerator.js';
-export * from './core/geminiChat.js';
+export * from './core/sprtscltrChat.js';
 export * from './core/logger.js';
 export * from './core/prompts.js';
 export * from './core/tokenLimits.js';
 export * from './core/turn.js';
-export * from './core/geminiRequest.js';
+export * from './core/sprtscltrRequest.js';
 export * from './core/coreToolScheduler.js';
 export * from './core/nonInteractiveToolExecutor.js';
+
+// Export providers
+export * from './providers/openRouterContentGenerator.js';
+export * from './providers/customApiContentGenerator.js';
 
 export * from './code_assist/codeAssist.js';
 export * from './code_assist/oauth2.js';

@@ -185,7 +185,7 @@ describe('GitService', () => {
   });
 
   describe('setupShadowGitRepository', () => {
-    const repoDir = path.join(mockHomedir, '.gemini', 'history', mockHash);
+    const repoDir = path.join(mockHomedir, '.sprtscltr', 'history', mockHash);
     const hiddenGitIgnorePath = path.join(repoDir, '.gitignore');
     const visibleGitIgnorePath = path.join(mockProjectRoot, '.gitignore');
     const gitConfigPath = path.join(repoDir, '.gitconfig');
@@ -194,7 +194,7 @@ describe('GitService', () => {
       const service = new GitService(mockProjectRoot);
       await service.setupShadowGitRepository();
       const expectedConfigContent =
-        '[user]\n  name = Gemini CLI\n  email = gemini-cli@google.com\n[commit]\n  gpgsign = false\n';
+        '[user]\n  name = sprtscltr CLI\n  email = gemini-cli@google.com\n[commit]\n  gpgsign = false\n';
       expect(hoistedMockWriteFile).toHaveBeenCalledWith(
         gitConfigPath,
         expectedConfigContent,

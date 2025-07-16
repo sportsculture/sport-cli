@@ -1,4 +1,4 @@
-# Gemini CLI
+# sprtscltr CLI
 
 Within Gemini CLI, `packages/cli` is the frontend for users to send and receive prompts with the Gemini AI model and its associated tools. For a general overview of Gemini CLI, see the [main documentation page](../index.md).
 

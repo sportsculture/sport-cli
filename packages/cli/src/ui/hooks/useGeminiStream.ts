@@ -13,7 +13,7 @@ import {
   ServerGeminiStreamEvent as GeminiEvent,
   ServerGeminiContentEvent as ContentEvent,
   ServerGeminiErrorEvent as ErrorEvent,
-  ServerGeminiChatCompressedEvent,
+  ServerSprtscltrChatCompressedEvent,
   getErrorMessage,
   isNodeError,
   MessageSenderType,
@@ -412,7 +412,7 @@ export const useGeminiStream = (
   );
 
   const handleChatCompressionEvent = useCallback(
-    (eventValue: ServerGeminiChatCompressedEvent['value']) =>
+    (eventValue: ServerSprtscltrChatCompressedEvent['value']) =>
       addItem(
         {
           type: 'info',

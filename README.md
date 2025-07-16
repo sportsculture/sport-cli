@@ -1,6 +1,6 @@
-# Gemini CLI
+# sprtscltr CLI
 
-[![Gemini CLI CI](https://github.com/google-gemini/gemini-cli/actions/workflows/ci.yml/badge.svg)](https://github.com/google-gemini/gemini-cli/actions/workflows/ci.yml)
+[![Gemini CLI CI](https://github.com/google-gemini/sprtscltr-cli/actions/workflows/ci.yml/badge.svg)](https://github.com/google-gemini/sprtscltr-cli/actions/workflows/ci.yml)
 
 ![Gemini CLI Screenshot](./docs/assets/gemini-screenshot.png)
 
@@ -23,13 +23,13 @@ With the Gemini CLI you can:
 2. **Run the CLI:** Execute the following command in your terminal:
 
    ```bash
-   npx https://github.com/google-gemini/gemini-cli
+   npx https://github.com/google-gemini/sprtscltr-cli
    ```
 
    Or install it with:
 
    ```bash
-   npm install -g @google/gemini-cli
+   npm install -g @google/sprtscltr-cli
    gemini
    ```
 
@@ -68,8 +68,8 @@ gemini
 Or work with an existing project:
 
 ```sh
-git clone https://github.com/google-gemini/gemini-cli
-cd gemini-cli
+git clone https://github.com/google-gemini/sprtscltr-cli
+cd sprtscltr-cli
 gemini
 > Give me a summary of all of the changes that went in yesterday
 ```

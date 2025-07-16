@@ -1,0 +1,11 @@
+# Task ID: 2
+# Title: Implement API Key Validation and Error Handling
+# Status: done
+# Dependencies: 1
+# Priority: high
+# Description: Add logic to validate OpenRouter API keys and provide user feedback for invalid or missing keys.
+# Details:
+In /packages/cli/src/ui/hooks/useAuthCommand.ts, implement API key validation by making a test request to OpenRouter (e.g., GET /api/keys endpoint). Use axios (v1.6+) for HTTP requests. Display clear error messages for invalid or missing keys. Handle rate limits and API errors gracefully. Store validated API key securely.
+
+# Test Strategy:
+Test with valid, invalid, and missing API keys. Verify error messages and graceful handling. Automated integration tests for API key validation.

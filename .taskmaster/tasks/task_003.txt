@@ -1,0 +1,11 @@
+# Task ID: 3
+# Title: Add Model Listing and Selection UI
+# Status: pending
+# Dependencies: 2
+# Priority: medium
+# Description: Implement UI to list available OpenRouter models and allow user selection, consistent with existing auth patterns.
+# Details:
+Extend AuthDialog.tsx or create a new ModelSelection component to list models fetched from OpenRouter (GET /api/models). Use react-select (v5+) for dropdown. Save selected model in state and config. Ensure UI matches existing sprtscltr patterns. Use react-query (v4+) for data fetching and caching.
+
+# Test Strategy:
+Test model listing and selection. Verify UI consistency. Manual and automated UI tests.
