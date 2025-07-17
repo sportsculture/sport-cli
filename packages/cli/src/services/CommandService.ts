@@ -24,6 +24,7 @@ import { compressCommand } from '../ui/commands/compressCommand.js';
 import { ideCommand } from '../ui/commands/ideCommand.js';
 import { bugCommand } from '../ui/commands/bugCommand.js';
 import { quitCommand } from '../ui/commands/quitCommand.js';
+import { modelsCommand } from '../ui/commands/modelsCommand.js';
 
 const loadBuiltInCommands = async (
   config: Config | null,
@@ -42,6 +43,7 @@ const loadBuiltInCommands = async (
     ideCommand(config),
     mcpCommand,
     memoryCommand,
+    modelsCommand,
     privacyCommand,
     quitCommand,
     statsCommand,

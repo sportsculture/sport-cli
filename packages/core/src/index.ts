@@ -23,6 +23,9 @@ export * from './core/nonInteractiveToolExecutor.js';
 // Export providers
 export * from './providers/openRouterContentGenerator.js';
 export * from './providers/customApiContentGenerator.js';
+export * from './providers/geminiContentGenerator.js';
+export * from './providers/types.js';
+export { isProvider } from './core/contentGenerator.js';
 
 export * from './code_assist/codeAssist.js';
 export * from './code_assist/oauth2.js';

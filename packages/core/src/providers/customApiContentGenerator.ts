@@ -21,6 +21,8 @@ import {
   FunctionDeclaration,
 } from '@google/genai';
 import { retryWithBackoff } from '../utils/retry.js';
+import { IProvider, ModelInfo, ProviderStatus } from './types.js';
+import { DEFAULT_CUSTOM_API_MODEL } from '../config/models.js';
 
 interface CustomApiMessage {
   role: 'system' | 'user' | 'assistant' | 'function';
@@ -93,7 +95,7 @@ interface CustomApiStreamResponse {
   choices: CustomApiStreamChoice[];
 }
 
-export class CustomApiContentGenerator implements ContentGenerator {
+export class CustomApiContentGenerator implements IProvider {
   private apiKey: string;
   private model: string;
   private baseUrl: string;
@@ -572,5 +574,112 @@ export class CustomApiContentGenerator implements ContentGenerator {
     }
 
     throw new Error('Embeddings are not supported by this custom API');
+  }
+
+  // IProvider implementation
+  async getAvailableModels(): Promise<ModelInfo[]> {
+    // Try to fetch models from the custom API
+    try {
+      const response = await fetch(`${this.baseUrl}/v1/models`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${this.apiKey}`,
+          ...this.customHeaders,
+        },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        const models = data.data || data.models || [];
+        
+        return models.map((model: any) => ({
+          id: model.id || model.name,
+          name: model.name || model.id,
+          provider: 'Custom API',
+          isDefault: model.id === this.model,
+          description: model.description || 'Custom API model',
+          capabilities: {
+            contextWindow: model.context_length || model.max_tokens,
+            supportsFunctions: model.supports_functions !== false,
+            supportsStreaming: model.supports_streaming !== false,
+            strengths: model.strengths || ['General purpose'],
+          },
+        }));
+      }
+    } catch (error) {
+      console.error('Error fetching custom API models:', error);
+    }
+
+    // Fallback to showing the configured model
+    return [{
+      id: this.model,
+      name: this.model,
+      provider: 'Custom API',
+      isDefault: true,
+      description: 'Custom API model',
+      capabilities: {
+        supportsFunctions: true,
+        supportsStreaming: true,
+        strengths: ['General purpose'],
+      },
+    }];
+  }
+
+  async checkConfiguration(): Promise<ProviderStatus> {
+    if (!this.apiKey) {
+      return {
+        isConfigured: false,
+        errorMessage: 'No API key configured',
+        configInstructions: 'Set CUSTOM_API_KEY environment variable',
+      };
+    }
+
+    if (!this.baseUrl) {
+      return {
+        isConfigured: false,
+        errorMessage: 'No API endpoint configured',
+        configInstructions: 'Set CUSTOM_API_ENDPOINT environment variable',
+      };
+    }
+
+    try {
+      // Try to make a simple API call to verify the configuration
+      const response = await fetch(`${this.baseUrl}/v1/models`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${this.apiKey}`,
+          ...this.customHeaders,
+        },
+      });
+
+      if (response.ok || response.status === 404) {
+        // 404 is ok - the models endpoint might not exist
+        return {
+          isConfigured: true,
+        };
+      } else if (response.status === 401) {
+        return {
+          isConfigured: false,
+          errorMessage: 'Invalid API key',
+          configInstructions: 'Check your CUSTOM_API_KEY is valid',
+        };
+      } else {
+        return {
+          isConfigured: false,
+          errorMessage: `API error: ${response.status}`,
+          configInstructions: 'Check your CUSTOM_API_ENDPOINT and CUSTOM_API_KEY',
+        };
+      }
+    } catch (error: any) {
+      return {
+        isConfigured: false,
+        errorMessage: `Connection error: ${error.message}`,
+        configInstructions: 'Ensure CUSTOM_API_ENDPOINT is reachable and CUSTOM_API_KEY is set',
+      };
+    }
+  }
+
+  getProviderName(): string {
+    return 'Custom API';
   }
 }

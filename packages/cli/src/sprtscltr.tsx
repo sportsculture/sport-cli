@@ -126,6 +126,62 @@ export async function main() {
     process.exit(0);
   }
 
+  if (config.getListModels()) {
+    // Import necessary modules at the top of the function to avoid hoisting issues
+    const { createContentGenerator, createContentGeneratorConfig } = await import('@google/gemini-cli-core');
+    const { isProvider } = await import('@google/gemini-cli-core');
+    
+    console.log('Available AI Models:\n');
+    
+    // Create content generators for each possible auth type
+    const authTypes = [AuthType.USE_GEMINI, AuthType.USE_OPENROUTER, AuthType.USE_CUSTOM_API];
+    
+    for (const checkAuthType of authTypes) {
+      try {
+        // Create a content generator config for this auth type
+        const generatorConfig = createContentGeneratorConfig(config, checkAuthType);
+        
+        const generator = await createContentGenerator(generatorConfig, config);
+        
+        if (isProvider(generator)) {
+          const status = await generator.checkConfiguration();
+          const providerName = generator.getProviderName();
+          const statusIcon = status.isConfigured ? '✓' : '✗';
+          
+          console.log(`${providerName} (${statusIcon})`);
+          
+          if (status.isConfigured) {
+            const models = await generator.getAvailableModels();
+            for (const model of models) {
+              const defaultLabel = model.isDefault ? ' (default)' : '';
+              const description = model.description ? ` - ${model.description}` : '';
+              console.log(`  - ${model.id}${defaultLabel}${description}`);
+              
+              if (model.capabilities?.contextWindow) {
+                console.log(`    Context: ${model.capabilities.contextWindow.toLocaleString()} tokens`);
+              }
+              
+              if (model.capabilities?.strengths && model.capabilities.strengths.length > 0) {
+                console.log(`    Strengths: ${model.capabilities.strengths.join(', ')}`);
+              }
+            }
+          } else {
+            console.log(`  ${status.configInstructions || 'Not configured'}`);
+          }
+          
+          console.log();
+        }
+      } catch (error) {
+        // Skip providers that can't be instantiated
+        if (config.getDebugMode()) {
+          console.error(`Failed to check ${checkAuthType}:`, error);
+        }
+      }
+    }
+    
+    process.exit(0);
+  }
+
   // Set a default auth type if one isn't set.
   if (!settings.merged.selectedAuthType) {
     if (process.env.CLOUD_SHELL === 'true') {

@@ -57,6 +57,7 @@ export interface CliArgs {
   extensions: string[] | undefined;
   listExtensions: boolean | undefined;
   ideMode: boolean | undefined;
+  models: boolean | undefined;
 }
 
 export async function parseArguments(): Promise<CliArgs> {
@@ -181,6 +182,10 @@ export async function parseArguments(): Promise<CliArgs> {
     .option('ide-mode', {
       type: 'boolean',
       description: 'Run in IDE mode?',
+    })
+    .option('models', {
+      type: 'boolean',
+      description: 'List all available AI models and exit.',
     })
 
     .version(await getCliVersion()) // This will enable the --version flag based on package.json
@@ -390,6 +395,7 @@ export async function loadCliConfig(
     extensionContextFilePaths,
     maxSessionTurns: settings.maxSessionTurns ?? -1,
     listExtensions: argv.listExtensions || false,
+    listModels: argv.models || false,
     activeExtensions: activeExtensions.map((e) => ({
       name: e.config.name,
       version: e.config.version,

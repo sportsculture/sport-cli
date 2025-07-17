@@ -11,7 +11,6 @@ import {
   CountTokensParameters,
   EmbedContentResponse,
   EmbedContentParameters,
-  GoogleGenAI,
 } from '@google/genai';
 import { createCodeAssistContentGenerator } from '../code_assist/codeAssist.js';
 import { DEFAULT_GEMINI_MODEL, DEFAULT_OPENROUTER_MODEL, DEFAULT_CUSTOM_API_MODEL } from '../config/models.js';
@@ -20,6 +19,8 @@ import { getEffectiveModel } from './modelCheck.js';
 import { UserTierId } from '../code_assist/types.js';
 import { OpenRouterContentGenerator } from '../providers/openRouterContentGenerator.js';
 import { CustomApiContentGenerator } from '../providers/customApiContentGenerator.js';
+import { GeminiContentGenerator } from '../providers/geminiContentGenerator.js';
+import { IProvider } from '../providers/types.js';
 
 /**
  * Interface abstracting the core functionalities for generating content and counting tokens.
@@ -164,13 +165,7 @@ export async function createContentGenerator(
     config.authType === AuthType.USE_GEMINI ||
     config.authType === AuthType.USE_VERTEX_AI
   ) {
-    const googleGenAI = new GoogleGenAI({
-      apiKey: config.apiKey === '' ? undefined : config.apiKey,
-      vertexai: config.vertexai,
-      httpOptions,
-    });
-
-    return googleGenAI.models;
+    return new GeminiContentGenerator(config);
   }
 
   if (config.authType === AuthType.USE_OPENROUTER) {
@@ -183,5 +178,13 @@ export async function createContentGenerator(
 
   throw new Error(
     `Error creating contentGenerator: Unsupported authType: ${config.authType}`,
+  );
+}
+
+export function isProvider(generator: ContentGenerator): generator is IProvider {
+  return (
+    'getAvailableModels' in generator &&
+    'checkConfiguration' in generator &&
+    'getProviderName' in generator
   );
 }

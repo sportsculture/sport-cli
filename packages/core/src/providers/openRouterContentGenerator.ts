@@ -21,6 +21,8 @@ import {
   FunctionDeclaration,
 } from '@google/genai';
 import { retryWithBackoff } from '../utils/retry.js';
+import { IProvider, ModelInfo, ProviderStatus } from './types.js';
+import { OPENROUTER_MODELS } from '../config/models.js';
 
 interface OpenRouterMessage {
   role: 'system' | 'user' | 'assistant' | 'tool';
@@ -117,7 +119,7 @@ interface OpenRouterStreamResponse {
   };
 }
 
-export class OpenRouterContentGenerator implements ContentGenerator {
+export class OpenRouterContentGenerator implements IProvider {
   private apiKey: string;
   private model: string;
   private baseUrl = 'https://openrouter.ai/api/v1';
@@ -576,7 +578,7 @@ export class OpenRouterContentGenerator implements ContentGenerator {
   async fetchModels(): Promise<Array<{id: string; name: string; context_length?: number; pricing?: any}>> {
     try {
       const response = await retryWithBackoff(async () => {
-        const resp = await fetch(`${this.baseUrl}/api/v1/models`, {
+        const resp = await fetch(`${this.baseUrl}/models`, {
           method: 'GET',
           headers: {
             'Authorization': `Bearer ${this.apiKey}`,
@@ -606,5 +608,104 @@ export class OpenRouterContentGenerator implements ContentGenerator {
         { id: 'mistralai/mixtral-8x7b', name: 'Mixtral 8x7B' },
       ];
     }
+  }
+
+  // IProvider implementation
+  async getAvailableModels(): Promise<ModelInfo[]> {
+    const models = await this.fetchModels();
+    
+    return models.map(model => {
+      // Check if this is a known model from our predefined list
+      const knownModel = Object.entries(OPENROUTER_MODELS).find(([_, id]) => id === model.id);
+      const isDefault = model.id === 'deepseek/deepseek-chat';
+      
+      const modelInfo: ModelInfo = {
+        id: model.id,
+        name: model.name || model.id,
+        provider: 'OpenRouter',
+        isDefault,
+        description: this.getModelDescription(model.id),
+        capabilities: {
+          contextWindow: model.context_length,
+          supportsFunctions: true,
+          supportsStreaming: true,
+          strengths: this.getModelStrengths(model.id),
+        },
+      };
+
+      // Add pricing if available
+      if (model.pricing) {
+        modelInfo.pricing = {
+          inputPer1k: model.pricing.prompt ? parseFloat(model.pricing.prompt) * 1000 : undefined,
+          outputPer1k: model.pricing.completion ? parseFloat(model.pricing.completion) * 1000 : undefined,
+        };
+      }
+
+      return modelInfo;
+    });
+  }
+
+  async checkConfiguration(): Promise<ProviderStatus> {
+    try {
+      // Try to make a simple API call to verify the key
+      const response = await fetch(`${this.baseUrl}/auth/key`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${this.apiKey}`,
+        },
+      });
+
+      if (response.ok) {
+        return {
+          isConfigured: true,
+        };
+      } else {
+        return {
+          isConfigured: false,
+          errorMessage: `Invalid API key: ${response.status}`,
+          configInstructions: 'Set OPENROUTER_API_KEY environment variable with a valid OpenRouter API key',
+        };
+      }
+    } catch (error) {
+      return {
+        isConfigured: false,
+        errorMessage: `Connection error: ${error}`,
+        configInstructions: 'Ensure you have internet connectivity and OPENROUTER_API_KEY is set',
+      };
+    }
+  }
+
+  getProviderName(): string {
+    return 'OpenRouter';
+  }
+
+  private getModelDescription(modelId: string): string {
+    const descriptions: Record<string, string> = {
+      'deepseek/deepseek-chat': 'Cost-effective model with strong performance',
+      'deepseek/deepseek-coder': 'Specialized for code generation and analysis',
+      'anthropic/claude-3-opus': 'Most capable Claude model for complex tasks',
+      'anthropic/claude-3-sonnet': 'Balanced Claude model for general use',
+      'openai/gpt-4': 'Industry standard for complex reasoning',
+      'openai/gpt-4-turbo': 'Faster GPT-4 with larger context window',
+      'mistralai/mixtral-8x7b': 'Open-source mixture of experts model',
+      'meta-llama/llama-3-70b': 'Large open-source model from Meta',
+    };
+    
+    return descriptions[modelId] || 'AI model available through OpenRouter';
+  }
+
+  private getModelStrengths(modelId: string): string[] {
+    const strengths: Record<string, string[]> = {
+      'deepseek/deepseek-chat': ['Cost-effective', 'General purpose', 'Fast responses'],
+      'deepseek/deepseek-coder': ['Code generation', 'Bug fixing', 'Code review'],
+      'anthropic/claude-3-opus': ['Complex reasoning', 'Creative writing', 'Technical analysis'],
+      'anthropic/claude-3-sonnet': ['Balanced performance', 'General tasks', 'Efficient'],
+      'openai/gpt-4': ['Reasoning', 'Analysis', 'Problem solving'],
+      'openai/gpt-4-turbo': ['Fast processing', 'Large context', 'Versatile'],
+      'mistralai/mixtral-8x7b': ['Open source', 'Efficient', 'Multi-lingual'],
+      'meta-llama/llama-3-70b': ['Open source', 'Large scale', 'Research'],
+    };
+    
+    return strengths[modelId] || ['General purpose'];
   }
 }
