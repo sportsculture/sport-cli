@@ -47,6 +47,8 @@ export enum AuthType {
   CLOUD_SHELL = 'cloud-shell',
   USE_OPENROUTER = 'openrouter',
   USE_CUSTOM_API = 'custom-api',
+  USE_ZEN_MCP = 'zen-mcp',
+  USE_TASK_MASTER_MCP = 'task-master-mcp',
 }
 
 export type ContentGeneratorConfig = {
