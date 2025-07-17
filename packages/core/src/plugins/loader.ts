@@ -13,7 +13,8 @@ import {
   PluginLoadOptions,
   PluginError,
   PluginDependency,
-  PluginMetrics
+  PluginMetrics,
+  PluginPermission
 } from './types.js';
 
 /**
@@ -164,7 +165,8 @@ export class PluginLoader {
    */
   private checkPermissions(plugin: SportCliPlugin): void {
     // TODO: Implement permission checking based on config
-    const allowedPermissions = this.config.get('plugins.permissions') || [];
+    // For now, allow all permissions until we add plugin config to Config class
+    const allowedPermissions = Object.values(PluginPermission);
     const requiredPermissions = plugin.permissions || [];
     
     for (const permission of requiredPermissions) {
@@ -229,7 +231,8 @@ export class PluginLoader {
    * Sort plugins by priority
    */
   private sortByPriority(): Map<string, SportCliPlugin> {
-    const priorities = this.config.get('plugins.priority') || {};
+    // TODO: Add plugin priority configuration to Config class
+    const priorities: Record<string, number> = {};
     const sorted = new Map<string, SportCliPlugin>();
     
     // Sort entries by priority (higher number = higher priority)

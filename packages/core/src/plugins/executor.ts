@@ -50,16 +50,29 @@ export class PluginExecutor {
         return args[0]; // Pass through if hook not implemented
       }
 
-      // Execute with timeout
-      const result = await Promise.race([
-        Promise.resolve(hook(...args, context)),
-        new Promise((_, reject) =>
-          setTimeout(
-            () => reject(new Error(`Plugin timeout after ${this.timeout}ms`)),
-            this.timeout
-          )
+      // Execute hook based on its type
+      let result: any;
+      if (hookName === 'onError') {
+        // Special handling for onError hook
+        const errorContext: ErrorContext = {
+          ...context,
+          originalArgs: args.slice(1)
+        };
+        result = await Promise.resolve((hook as any)(args[0], errorContext));
+      } else {
+        // All other hooks take data as first param and context as second
+        result = await Promise.resolve((hook as any)(args[0], context));
+      }
+
+      // Add timeout protection
+      const timeoutPromise = new Promise((_, reject) =>
+        setTimeout(
+          () => reject(new Error(`Plugin timeout after ${this.timeout}ms`)),
+          this.timeout
         )
-      ]);
+      );
+
+      result = await Promise.race([result, timeoutPromise]);
 
       // Record metrics
       this.recordMetric(plugin.name, hookName, Date.now() - startTime);

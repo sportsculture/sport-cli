@@ -194,6 +194,35 @@ describe('useSlashCommandProcessor', () => {
     );
   };
 
+  // Helper function for tests that need direct access to hook result
+  const getProcessor = (ignoreParam?: any) => {
+    const settings = {
+      merged: {
+        contextFileName: 'GEMINI.md',
+      },
+    } as unknown as LoadedSettings;
+    const hook = renderHook(() =>
+      useSlashCommandProcessor(
+        mockConfig, // Use current mockConfig value
+        settings,
+        [],
+        mockAddItem,
+        mockClearItems,
+        mockLoadHistory,
+        mockRefreshStatic,
+        mockSetShowHelp,
+        mockOnDebugMessage,
+        mockOpenThemeDialog,
+        mockOpenAuthDialog,
+        mockOpenEditorDialog,
+        mockCorgiMode,
+        mockSetQuittingMessages,
+        vi.fn(), // mockOpenPrivacyNotice
+      ),
+    );
+    return hook.result.current;
+  };
+
   describe('New command registry', () => {
     let ActualCommandService: typeof CommandService;
 

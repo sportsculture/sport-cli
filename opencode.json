@@ -1,0 +1,10 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "mcp": {
+    "zen-mcp-server": {
+      "type": "local",
+      "command": ["npx", "-y", "zen-mcp-server-199bio"],
+      "enabled": true
+    }
+  }
+}
