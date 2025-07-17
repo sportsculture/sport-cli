@@ -1,13 +1,7 @@
 {
-<<<<<<< HEAD
-  "name": "@google/sprtscltr-cli-core",
-  "version": "0.1.9",
-  "description": "sprtscltr CLI Core",
-=======
   "name": "@google/gemini-cli-core",
   "version": "0.1.12",
-  "description": "Gemini CLI Core",
->>>>>>> upstream/main
+  "description": "Gemini CLI Core (Enhanced Multi-Provider Fork)",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/google-gemini/gemini-cli.git"

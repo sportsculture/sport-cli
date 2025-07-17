@@ -8,12 +8,9 @@ import path from 'node:path';
 import os from 'os';
 import * as crypto from 'crypto';
 
-<<<<<<< HEAD
-export const SPRTSCLTR_DIR = '.sprtscltr';
-=======
 export const GEMINI_DIR = '.gemini';
+export const SPRTSCLTR_DIR = GEMINI_DIR; // Alias for compatibility
 export const GOOGLE_ACCOUNTS_FILENAME = 'google_accounts.json';
->>>>>>> upstream/main
 const TMP_DIR_NAME = 'tmp';
 
 /**

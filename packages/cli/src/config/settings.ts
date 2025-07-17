@@ -10,7 +10,7 @@ import { homedir, platform } from 'os';
 import * as dotenv from 'dotenv';
 import {
   MCPServerConfig,
-  GEMINI_CONFIG_DIR as GEMINI_DIR,
+  GEMINI_DIR,
   getErrorMessage,
   BugCommandSettings,
   TelemetrySettings,

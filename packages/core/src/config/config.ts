@@ -175,7 +175,7 @@ export class Config {
   private readonly accessibility: AccessibilitySettings;
   private readonly telemetrySettings: TelemetrySettings;
   private readonly usageStatisticsEnabled: boolean;
-  private sprtscltrClient!: GeminiClient;
+  private geminiClient!: GeminiClient;
   private readonly fileFiltering: {
     respectGitIgnore: boolean;
     enableRecursiveFileSearch: boolean;
@@ -274,43 +274,16 @@ export class Config {
   }
 
   async refreshAuth(authMethod: AuthType) {
-<<<<<<< HEAD
-    // Always use the original default model when switching auth methods
-    // This ensures users don't stay on Flash after switching between auth types
-    // and allows API key users to get proper fallback behavior from getEffectiveModel
-    let modelToUse = this.model; // Use the original default model
-    
-    // For OpenRouter and Custom API, use their specific default models
-    if (authMethod === AuthType.USE_OPENROUTER) {
-      modelToUse = 'deepseek/deepseek-chat'; // Default OpenRouter model
-    } else if (authMethod === AuthType.USE_CUSTOM_API) {
-      modelToUse = 'deepseek-v3'; // Default Custom API model
-    }
-
-    // Temporarily clear contentGeneratorConfig to prevent getModel() from returning
-    // the previous session's model (which might be Flash)
-    this.contentGeneratorConfig = undefined!;
-
-    const contentConfig = await createContentGeneratorConfig(
-      modelToUse,
-      authMethod,
-=======
+    // Create content generator config with the appropriate auth method
     this.contentGeneratorConfig = createContentGeneratorConfig(
->>>>>>> upstream/main
       this,
       authMethod,
     );
 
-<<<<<<< HEAD
-    const gc = new GeminiClient(this);
-    this.sprtscltrClient = gc;
-    this.toolRegistry = await createToolRegistry(this);
-    await gc.initialize(contentConfig);
-    this.contentGeneratorConfig = contentConfig;
-=======
+    // Initialize the Gemini client
     this.geminiClient = new GeminiClient(this);
+    this.toolRegistry = await this.createToolRegistry();
     await this.geminiClient.initialize(this.contentGeneratorConfig);
->>>>>>> upstream/main
 
     // Reset the session flag since we're explicitly changing auth and using default model
     this.modelSwitchedDuringSession = false;
@@ -474,7 +447,7 @@ export class Config {
   }
 
   getGeminiClient(): GeminiClient {
-    return this.sprtscltrClient;
+    return this.geminiClient;
   }
 
   getGeminiDir(): string {

@@ -16,17 +16,14 @@ import { ShellTool } from '../tools/shell.js';
 import { WriteFileTool } from '../tools/write-file.js';
 import process from 'node:process';
 import { isGitRepository } from '../utils/gitUtils.js';
-import { MemoryTool, SPRTSCLTR_CONFIG_DIR } from '../tools/memoryTool.js';
+import { MemoryTool } from '../tools/memoryTool.js';
+import { GEMINI_DIR } from '../utils/paths.js';
 
 export function getCoreSystemPrompt(userMemory?: string): string {
   // if GEMINI_SYSTEM_MD is set (and not 0|false), override system prompt from file
   // default path is .sprtscltr/system.md but can be modified via custom path in GEMINI_SYSTEM_MD
   let systemMdEnabled = false;
-<<<<<<< HEAD
-  let systemMdPath = path.join(SPRTSCLTR_CONFIG_DIR, 'system.md');
-=======
-  let systemMdPath = path.resolve(path.join(GEMINI_CONFIG_DIR, 'system.md'));
->>>>>>> upstream/main
+  let systemMdPath = path.resolve(path.join(GEMINI_DIR, 'system.md'));
   const systemMdVar = process.env.GEMINI_SYSTEM_MD?.toLowerCase();
   if (systemMdVar && !['0', 'false'].includes(systemMdVar)) {
     systemMdEnabled = true; // enable system prompt override

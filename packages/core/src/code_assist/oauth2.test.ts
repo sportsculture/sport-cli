@@ -158,13 +158,8 @@ describe('oauth2', () => {
     // Verify Google Account was cached
     const googleAccountPath = path.join(
       tempHomeDir,
-<<<<<<< HEAD
-      '.sprtscltr',
-      'google_account_id',
-=======
       '.gemini',
       'google_accounts.json',
->>>>>>> upstream/main
     );
     expect(fs.existsSync(googleAccountPath)).toBe(true);
     const cachedGoogleAccount = fs.readFileSync(googleAccountPath, 'utf-8');

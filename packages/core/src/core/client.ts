@@ -27,7 +27,7 @@ import { ReadManyFilesTool } from '../tools/read-many-files.js';
 import { getResponseText } from '../utils/generateContentResponseUtilities.js';
 import { checkNextSpeaker } from '../utils/nextSpeakerChecker.js';
 import { reportError } from '../utils/errorReporting.js';
-import { SprtscltrChat } from './sprtscltrChat.js';
+import { GeminiChat } from './geminiChat.js';
 import { retryWithBackoff } from '../utils/retry.js';
 import { getErrorMessage } from '../utils/errors.js';
 import { isFunctionResponse } from '../utils/messageInspectors.js';
@@ -81,7 +81,7 @@ export function findIndexAfterFraction(
 }
 
 export class GeminiClient {
-  private chat?: SprtscltrChat;
+  private chat?: GeminiChat;
   private contentGenerator?: ContentGenerator;
   private embeddingModel: string;
   private generateContentConfig: GenerateContentConfig = {
@@ -133,7 +133,7 @@ export class GeminiClient {
     this.getChat().addHistory(content);
   }
 
-  getChat(): SprtscltrChat {
+  getChat(): GeminiChat {
     if (!this.chat) {
       throw new Error('Chat not initialized');
     }
@@ -169,7 +169,7 @@ export class GeminiClient {
       fileService: this.config.getFileService(),
     });
     const context = `
-  This is the sprtscltr CLI. We are setting up the context for our chat.
+  This is the gemini CLI. We are setting up the context for our chat.
   Today's date is ${today}.
   My operating system is: ${platform}
   I'm currently working in the directory: ${cwd}
@@ -220,7 +220,7 @@ export class GeminiClient {
     return initialParts;
   }
 
-  private async startChat(extraHistory?: Content[]): Promise<SprtscltrChat> {
+  private async startChat(extraHistory?: Content[]): Promise<GeminiChat> {
     const envParts = await this.getEnvironment();
     const toolRegistry = await this.config.getToolRegistry();
     const toolDeclarations = toolRegistry.getFunctionDeclarations();
@@ -249,7 +249,7 @@ export class GeminiClient {
             },
           }
         : this.generateContentConfig;
-      return new SprtscltrChat(
+      return new GeminiChat(
         this.config,
         this.getContentGenerator(),
         {

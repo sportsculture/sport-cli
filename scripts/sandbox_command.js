@@ -48,13 +48,8 @@ if (!geminiSandbox) {
 
 if (!geminiSandbox) {
   let currentDir = process.cwd();
-<<<<<<< HEAD
   while (currentDir !== '/') {
-    const geminiEnv = join(currentDir, '.sprtscltr', '.env');
-=======
-  while (true) {
     const geminiEnv = join(currentDir, '.gemini', '.env');
->>>>>>> upstream/main
     const regularEnv = join(currentDir, '.env');
     if (existsSync(geminiEnv)) {
       dotenv.config({ path: geminiEnv, quiet: true });

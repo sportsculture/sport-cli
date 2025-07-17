@@ -1,13 +1,7 @@
 {
-<<<<<<< HEAD
-  "name": "@google/sprtscltr-cli",
-  "version": "0.1.9",
-  "description": "sprtscltr CLI",
-=======
   "name": "@google/gemini-cli",
   "version": "0.1.12",
-  "description": "Gemini CLI",
->>>>>>> upstream/main
+  "description": "Gemini CLI (Enhanced Multi-Provider Fork)",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/google-gemini/gemini-cli.git"
@@ -48,6 +42,7 @@
     "ink-link": "^4.1.0",
     "ink-select-input": "^6.2.0",
     "ink-spinner": "^5.0.0",
+    "ink-text-input": "^6.0.0",
     "lowlight": "^3.3.0",
     "mime-types": "^3.0.1",
     "open": "^10.1.2",
@@ -62,6 +57,7 @@
   },
   "devDependencies": {
     "@babel/runtime": "^7.27.6",
+    "@testing-library/dom": "^10.4.0",
     "@testing-library/react": "^16.3.0",
     "@types/command-exists": "^1.2.3",
     "@types/diff": "^7.0.2",

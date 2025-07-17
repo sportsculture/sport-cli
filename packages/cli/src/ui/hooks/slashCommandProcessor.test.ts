@@ -593,8 +593,6 @@ describe('useSlashCommandProcessor', () => {
       },
     );
   });
-<<<<<<< HEAD
-
   describe('Unknown command', () => {
     it('should show an error and return true for a general unknown command', async () => {
       const { handleSlashCommand } = getProcessor();
@@ -661,8 +659,8 @@ describe('useSlashCommandProcessor', () => {
       expect(commandResult).toBe(true);
     });
 
-    it('should display only sprtscltr CLI tools (filtering out MCP tools)', async () => {
-      // Create mock tools - some with serverName property (MCP tools) and some without (sprtscltr CLI tools)
+    it('should display only gemini CLI tools (filtering out MCP tools)', async () => {
+      // Create mock tools - some with serverName property (MCP tools) and some without (gemini CLI tools)
       const mockTools = [
         { name: 'tool1', displayName: 'Tool1' },
         { name: 'tool2', displayName: 'Tool2' },
@@ -690,7 +688,7 @@ describe('useSlashCommandProcessor', () => {
       expect(commandResult).toBe(true);
     });
 
-    it('should display a message when no sprtscltr CLI tools are available', async () => {
+    it('should display a message when no gemini CLI tools are available', async () => {
       // Only MCP tools available
       const mockTools = [
         { name: 'mcp_tool1', serverName: 'mcp-server1' },
@@ -1261,6 +1259,4 @@ describe('useSlashCommandProcessor', () => {
       );
     });
   });
-=======
->>>>>>> upstream/main
 });

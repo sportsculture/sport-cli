@@ -335,7 +335,7 @@ export class OpenRouterContentGenerator implements ContentGenerator {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${this.apiKey}`,
           'HTTP-Referer': 'https://github.com/google/gemini-cli',
-          'X-Title': 'sprtscltr CLI',
+          'X-Title': 'gemini CLI',
         },
         body: JSON.stringify(openRouterRequest),
       });
@@ -377,7 +377,7 @@ export class OpenRouterContentGenerator implements ContentGenerator {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${this.apiKey}`,
         'HTTP-Referer': 'https://github.com/google/gemini-cli',
-        'X-Title': 'sprtscltr CLI',
+        'X-Title': 'gemini CLI',
       },
       body: JSON.stringify(openRouterRequest),
     });

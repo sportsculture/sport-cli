@@ -13,7 +13,7 @@ import {
 } from './turn.js';
 import { GenerateContentResponse, Part, Content } from '@google/genai';
 import { reportError } from '../utils/errorReporting.js';
-import { SprtscltrChat } from './sprtscltrChat.js';
+import { GeminiChat } from './geminiChat.js';
 
 const mockSendMessageStream = vi.fn();
 const mockGetHistory = vi.fn();
@@ -55,11 +55,7 @@ describe('Turn', () => {
       sendMessageStream: mockSendMessageStream,
       getHistory: mockGetHistory,
     };
-<<<<<<< HEAD
-    turn = new Turn(mockChatInstance as unknown as SprtscltrChat);
-=======
     turn = new Turn(mockChatInstance as unknown as GeminiChat, 'prompt-id-1');
->>>>>>> upstream/main
     mockGetHistory.mockReturnValue([]);
     mockSendMessageStream.mockResolvedValue((async function* () {})());
   });

@@ -819,15 +819,6 @@ const App = ({ config, settings, startupWarnings = [], version }: AppProps) => {
                 terminalWidth={mainAreaWidth}
               />
             </Box>
-          ) : isAuthenticating ? (
-<<<<<<< HEAD
-            <AuthInProgress
-              onTimeout={() => {
-                setAuthError('Authentication timed out. Please try again.');
-                cancelAuthentication();
-                openAuthDialog();
-              }}
-            />
           ) : needsApiKey && pendingAuthType ? (
             <Box flexDirection="column">
               <ApiKeyDialog
@@ -836,7 +827,7 @@ const App = ({ config, settings, startupWarnings = [], version }: AppProps) => {
                 onCancel={handleApiKeyCancel}
               />
             </Box>
-=======
+          ) : isAuthenticating ? (
             <>
               <AuthInProgress
                 onTimeout={() => {
@@ -860,7 +851,6 @@ const App = ({ config, settings, startupWarnings = [], version }: AppProps) => {
                 </OverflowProvider>
               )}
             </>
->>>>>>> upstream/main
           ) : isAuthDialogOpen ? (
             <Box flexDirection="column">
               <AuthDialog

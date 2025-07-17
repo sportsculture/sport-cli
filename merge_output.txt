@@ -1,0 +1,84 @@
+Auto-merging .gitignore
+CONFLICT (content): Merge conflict in .gitignore
+Auto-merging CONTRIBUTING.md
+Auto-merging README.md
+CONFLICT (content): Merge conflict in README.md
+Auto-merging docs/Uninstall.md
+Auto-merging docs/cli/configuration.md
+Auto-merging docs/deployment.md
+CONFLICT (content): Merge conflict in docs/deployment.md
+Auto-merging docs/npm.md
+Auto-merging docs/sandbox.md
+CONFLICT (content): Merge conflict in docs/sandbox.md
+Auto-merging docs/telemetry.md
+Auto-merging docs/tos-privacy.md
+Auto-merging package-lock.json
+CONFLICT (content): Merge conflict in package-lock.json
+Auto-merging package.json
+CONFLICT (content): Merge conflict in package.json
+Auto-merging packages/cli/package.json
+CONFLICT (content): Merge conflict in packages/cli/package.json
+Auto-merging packages/cli/src/config/auth.ts
+Auto-merging packages/cli/src/config/config.test.ts
+Auto-merging packages/cli/src/config/config.ts
+CONFLICT (content): Merge conflict in packages/cli/src/config/config.ts
+Auto-merging packages/cli/src/config/extension.ts
+Auto-merging packages/cli/src/config/settings.ts
+Auto-merging packages/cli/src/sprtscltr.test.tsx
+Auto-merging packages/cli/src/ui/App.test.tsx
+CONFLICT (content): Merge conflict in packages/cli/src/ui/App.test.tsx
+Auto-merging packages/cli/src/ui/App.tsx
+CONFLICT (content): Merge conflict in packages/cli/src/ui/App.tsx
+Auto-merging packages/cli/src/ui/components/AuthDialog.tsx
+Auto-merging packages/cli/src/ui/hooks/slashCommandProcessor.test.ts
+CONFLICT (content): Merge conflict in packages/cli/src/ui/hooks/slashCommandProcessor.test.ts
+Auto-merging packages/cli/src/ui/hooks/slashCommandProcessor.ts
+CONFLICT (content): Merge conflict in packages/cli/src/ui/hooks/slashCommandProcessor.ts
+Auto-merging packages/cli/src/ui/hooks/useAuthCommand.ts
+Auto-merging packages/cli/src/ui/hooks/useGeminiStream.test.tsx
+Auto-merging packages/cli/src/ui/hooks/useGeminiStream.ts
+Auto-merging packages/core/package.json
+CONFLICT (content): Merge conflict in packages/core/package.json
+Auto-merging packages/core/src/code_assist/oauth2.test.ts
+CONFLICT (content): Merge conflict in packages/core/src/code_assist/oauth2.test.ts
+Auto-merging packages/core/src/code_assist/oauth2.ts
+CONFLICT (content): Merge conflict in packages/core/src/code_assist/oauth2.ts
+Auto-merging packages/core/src/config/config.test.ts
+Auto-merging packages/core/src/config/config.ts
+CONFLICT (content): Merge conflict in packages/core/src/config/config.ts
+Auto-merging packages/core/src/core/client.test.ts
+CONFLICT (content): Merge conflict in packages/core/src/core/client.test.ts
+Auto-merging packages/core/src/core/client.ts
+Auto-merging packages/core/src/core/contentGenerator.ts
+CONFLICT (content): Merge conflict in packages/core/src/core/contentGenerator.ts
+Auto-merging packages/core/src/core/prompts.ts
+CONFLICT (content): Merge conflict in packages/core/src/core/prompts.ts
+Auto-merging packages/core/src/core/sprtscltrChat.test.ts
+Auto-merging packages/core/src/core/sprtscltrChat.ts
+Auto-merging packages/core/src/core/turn.test.ts
+CONFLICT (content): Merge conflict in packages/core/src/core/turn.test.ts
+Auto-merging packages/core/src/core/turn.ts
+CONFLICT (content): Merge conflict in packages/core/src/core/turn.ts
+Auto-merging packages/core/src/index.ts
+Auto-merging packages/core/src/services/fileDiscoveryService.ts
+CONFLICT (content): Merge conflict in packages/core/src/services/fileDiscoveryService.ts
+Auto-merging packages/core/src/services/gitService.test.ts
+Auto-merging packages/core/src/services/gitService.ts
+Auto-merging packages/core/src/tools/glob.test.ts
+Auto-merging packages/core/src/tools/memoryTool.ts
+Auto-merging packages/core/src/tools/read-file.test.ts
+Auto-merging packages/core/src/tools/read-file.ts
+CONFLICT (content): Merge conflict in packages/core/src/tools/read-file.ts
+Auto-merging packages/core/src/tools/read-many-files.test.ts
+Auto-merging packages/core/src/tools/read-many-files.ts
+CONFLICT (content): Merge conflict in packages/core/src/tools/read-many-files.ts
+Auto-merging packages/core/src/tools/tool-registry.test.ts
+Auto-merging packages/core/src/utils/editCorrector.test.ts
+Auto-merging packages/core/src/utils/nextSpeakerChecker.test.ts
+Auto-merging packages/core/src/utils/nextSpeakerChecker.ts
+Auto-merging packages/core/src/utils/paths.ts
+CONFLICT (content): Merge conflict in packages/core/src/utils/paths.ts
+Auto-merging packages/core/src/utils/user_id.ts
+Auto-merging scripts/sandbox_command.js
+CONFLICT (content): Merge conflict in scripts/sandbox_command.js
+Automatic merge failed; fix conflicts and then commit the result.

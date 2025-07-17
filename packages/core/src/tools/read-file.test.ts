@@ -36,7 +36,7 @@ describe('ReadFileTool', () => {
       path.join(os.tmpdir(), 'read-file-tool-root-'),
     );
     fs.writeFileSync(
-      path.join(tempRootDir, '.sprtscltrignore'),
+      path.join(tempRootDir, '.geminiignore'),
       ['foo.*'].join('\n'),
     );
     const fileService = new FileDiscoveryService(tempRootDir);
@@ -240,7 +240,7 @@ describe('ReadFileTool', () => {
       );
     });
 
-    it('should return error if path is ignored by a .sprtscltrignore pattern', async () => {
+    it('should return error if path is ignored by a .geminiignore pattern', async () => {
       const params: ReadFileToolParams = {
         absolute_path: path.join(tempRootDir, 'foo.bar'),
       };

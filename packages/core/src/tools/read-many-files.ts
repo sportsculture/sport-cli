@@ -124,12 +124,7 @@ export class ReadManyFilesTool extends BaseTool<
   ToolResult
 > {
   static readonly Name: string = 'read_many_files';
-<<<<<<< HEAD
-  private readonly sprtscltrIgnorePatterns: string[] = [];
-=======
-
   private readonly geminiIgnorePatterns: string[] = [];
->>>>>>> upstream/main
 
   constructor(private config: Config) {
     const parameterSchema: Schema = {
@@ -202,12 +197,7 @@ This tool is useful when you need to understand or analyze a collection of files
 Use this tool when the user's query implies needing the content of several files simultaneously for context, analysis, or summarization. For text files, it uses default UTF-8 encoding and a '--- {filePath} ---' separator between file contents. Ensure paths are relative to the target directory. Glob patterns like 'src/**/*.js' are supported. Avoid using for single files if a more specific single-file reading tool is available, unless the user specifically requests to process a list containing just one file via this tool. Other binary files (not explicitly requested as image/PDF) are generally skipped. Default excludes apply to common non-text files (except for explicitly requested images/PDFs) and large dependency directories unless 'useDefaultExcludes' is false.`,
       parameterSchema,
     );
-<<<<<<< HEAD
-    this.targetDir = path.resolve(targetDir);
-    this.sprtscltrIgnorePatterns = config
-=======
     this.geminiIgnorePatterns = config
->>>>>>> upstream/main
       .getFileService()
       .getGeminiIgnorePatterns();
   }
@@ -230,18 +220,18 @@ Use this tool when the user's query implies needing the content of several files
 
     const finalExclusionPatternsForDescription: string[] =
       paramUseDefaultExcludes
-        ? [...DEFAULT_EXCLUDES, ...paramExcludes, ...this.sprtscltrIgnorePatterns]
-        : [...paramExcludes, ...this.sprtscltrIgnorePatterns];
+        ? [...DEFAULT_EXCLUDES, ...paramExcludes, ...this.geminiIgnorePatterns]
+        : [...paramExcludes, ...this.geminiIgnorePatterns];
 
     let excludeDesc = `Excluding: ${finalExclusionPatternsForDescription.length > 0 ? `patterns like \`${finalExclusionPatternsForDescription.slice(0, 2).join('`, `')}${finalExclusionPatternsForDescription.length > 2 ? '...`' : '`'}` : 'none specified'}`;
 
-    // Add a note if .sprtscltrignore patterns contributed to the final list of exclusions
-    if (this.sprtscltrIgnorePatterns.length > 0) {
-      const geminiPatternsInEffect = this.sprtscltrIgnorePatterns.filter((p) =>
+    // Add a note if .geminiignore patterns contributed to the final list of exclusions
+    if (this.geminiIgnorePatterns.length > 0) {
+      const geminiPatternsInEffect = this.geminiIgnorePatterns.filter((p: string) =>
         finalExclusionPatternsForDescription.includes(p),
       ).length;
       if (geminiPatternsInEffect > 0) {
-        excludeDesc += ` (includes ${geminiPatternsInEffect} from .sprtscltrignore)`;
+        excludeDesc += ` (includes ${geminiPatternsInEffect} from .geminiignore)`;
       }
     }
 
@@ -280,8 +270,8 @@ Use this tool when the user's query implies needing the content of several files
     const contentParts: PartListUnion = [];
 
     const effectiveExcludes = useDefaultExcludes
-      ? [...DEFAULT_EXCLUDES, ...exclude, ...this.sprtscltrIgnorePatterns]
-      : [...exclude, ...this.sprtscltrIgnorePatterns];
+      ? [...DEFAULT_EXCLUDES, ...exclude, ...this.geminiIgnorePatterns]
+      : [...exclude, ...this.geminiIgnorePatterns];
 
     const searchPatterns = [...inputPatterns, ...include];
     if (searchPatterns.length === 0) {

@@ -135,6 +135,10 @@ vi.mock('@google/gemini-cli-core', async (importOriginal) => {
         setFlashFallbackHandler: vi.fn(),
         getSessionId: vi.fn(() => 'test-session-id'),
         getUserTier: vi.fn().mockResolvedValue(undefined),
+        getContentGeneratorConfig: vi.fn(() => ({
+          authType: opts.authType || 'gemini-api-key',
+          model: opts.model || 'test-model-in-mock-factory',
+        })),
       };
     });
   return {
@@ -213,15 +217,8 @@ describe('App UI', () => {
       settings: settings.user || {},
     };
     const workspaceSettingsFile: SettingsFile = {
-<<<<<<< HEAD
-      path: '/workspace/.sprtscltr/settings.json',
-      settings: {
-        ...settings,
-      },
-=======
       path: '/workspace/.gemini/settings.json',
       settings: settings.workspace || {},
->>>>>>> upstream/main
     };
     return new LoadedSettings(
       systemSettingsFile,

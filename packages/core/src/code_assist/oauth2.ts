@@ -53,7 +53,7 @@ const SIGN_IN_SUCCESS_URL =
 const SIGN_IN_FAILURE_URL =
   'https://developers.google.com/gemini-code-assist/auth_failure_gemini';
 
-const SPRTSCLTR_DIR = '.sprtscltr';
+const GEMINI_DIR = '.gemini';
 const CREDENTIAL_FILENAME = 'oauth_creds.json';
 
 /**
@@ -318,35 +318,9 @@ async function cacheCredentials(credentials: Credentials) {
 }
 
 function getCachedCredentialPath(): string {
-  return path.join(os.homedir(), SPRTSCLTR_DIR, CREDENTIAL_FILENAME);
+  return path.join(os.homedir(), GEMINI_DIR, CREDENTIAL_FILENAME);
 }
 
-<<<<<<< HEAD
-function getGoogleAccountIdCachePath(): string {
-  return path.join(os.homedir(), SPRTSCLTR_DIR, GOOGLE_ACCOUNT_ID_FILENAME);
-}
-
-async function cacheGoogleAccountId(googleAccountId: string): Promise<void> {
-  const filePath = getGoogleAccountIdCachePath();
-  await fs.mkdir(path.dirname(filePath), { recursive: true });
-  await fs.writeFile(filePath, googleAccountId, 'utf-8');
-}
-
-export function getCachedGoogleAccountId(): string | null {
-  try {
-    const filePath = getGoogleAccountIdCachePath();
-    if (existsSync(filePath)) {
-      return readFileSync(filePath, 'utf-8').trim() || null;
-    }
-    return null;
-  } catch (error) {
-    console.debug('Error reading cached Google Account ID:', error);
-    return null;
-  }
-}
-
-=======
->>>>>>> upstream/main
 export async function clearCachedCredentialFile() {
   try {
     await fs.rm(getCachedCredentialPath(), { force: true });
