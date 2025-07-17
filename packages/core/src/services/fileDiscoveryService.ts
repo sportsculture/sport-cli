@@ -8,7 +8,7 @@ import { GitIgnoreParser, GitIgnoreFilter } from '../utils/gitIgnoreParser.js';
 import { isGitRepository } from '../utils/gitUtils.js';
 import * as path from 'path';
 
-const GEMINI_IGNORE_FILE_NAME = '.sprtscltrignore';
+const GEMINI_IGNORE_FILE_NAME = '.geminiignore';
 
 export interface FilterFilesOptions {
   respectGitIgnore?: boolean;
@@ -17,7 +17,7 @@ export interface FilterFilesOptions {
 
 export class FileDiscoveryService {
   private gitIgnoreFilter: GitIgnoreFilter | null = null;
-  private sprtscltrIgnoreFilter: GitIgnoreFilter | null = null;
+  private geminiIgnoreFilter: GitIgnoreFilter | null = null;
   private projectRoot: string;
 
   constructor(projectRoot: string) {
@@ -37,7 +37,7 @@ export class FileDiscoveryService {
     } catch (_error) {
       // ignore file not found
     }
-    this.sprtscltrIgnoreFilter = gParser;
+    this.geminiIgnoreFilter = gParser;
   }
 
   /**
@@ -78,16 +78,34 @@ export class FileDiscoveryService {
    * Checks if a single file should be gemini-ignored
    */
   shouldGeminiIgnoreFile(filePath: string): boolean {
-    if (this.sprtscltrIgnoreFilter) {
-      return this.sprtscltrIgnoreFilter.isIgnored(filePath);
+    if (this.geminiIgnoreFilter) {
+      return this.geminiIgnoreFilter.isIgnored(filePath);
     }
     return false;
   }
 
   /**
-   * Returns loaded patterns from .sprtscltrignore
+   * Unified method to check if a file should be ignored based on filtering options
+   */
+  shouldIgnoreFile(
+    filePath: string,
+    options: FilterFilesOptions = {},
+  ): boolean {
+    const { respectGitIgnore = true, respectGeminiIgnore = true } = options;
+
+    if (respectGitIgnore && this.shouldGitIgnoreFile(filePath)) {
+      return true;
+    }
+    if (respectGeminiIgnore && this.shouldGeminiIgnoreFile(filePath)) {
+      return true;
+    }
+    return false;
+  }
+
+  /**
+   * Returns loaded patterns from .geminiignore
    */
   getGeminiIgnorePatterns(): string[] {
-    return this.sprtscltrIgnoreFilter?.getPatterns() ?? [];
+    return this.geminiIgnoreFilter?.getPatterns() ?? [];
   }
 }

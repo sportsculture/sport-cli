@@ -112,7 +112,12 @@ describe('sprtscltr.tsx main function', () => {
       path: '/workspace/.sprtscltr/settings.json',
       settings: {},
     };
+    const systemSettingsFile: SettingsFile = {
+      path: '/system/settings.json',
+      settings: {},
+    };
     const mockLoadedSettings = new LoadedSettings(
+      systemSettingsFile,
       userSettingsFile,
       workspaceSettingsFile,
       [settingsError],

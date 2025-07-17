@@ -49,7 +49,7 @@ if (!geminiSandbox) {
 if (!geminiSandbox) {
   let currentDir = process.cwd();
   while (currentDir !== '/') {
-    const geminiEnv = join(currentDir, '.sprtscltr', '.env');
+    const geminiEnv = join(currentDir, '.gemini', '.env');
     const regularEnv = join(currentDir, '.env');
     if (existsSync(geminiEnv)) {
       dotenv.config({ path: geminiEnv, quiet: true });
@@ -58,7 +58,11 @@ if (!geminiSandbox) {
       dotenv.config({ path: regularEnv, quiet: true });
       break;
     }
-    currentDir = dirname(currentDir);
+    const parentDir = dirname(currentDir);
+    if (parentDir === currentDir) {
+      break;
+    }
+    currentDir = parentDir;
   }
   geminiSandbox = process.env.GEMINI_SANDBOX;
 }

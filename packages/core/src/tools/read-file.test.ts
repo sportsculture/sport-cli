@@ -36,14 +36,15 @@ describe('ReadFileTool', () => {
       path.join(os.tmpdir(), 'read-file-tool-root-'),
     );
     fs.writeFileSync(
-      path.join(tempRootDir, '.sprtscltrignore'),
+      path.join(tempRootDir, '.geminiignore'),
       ['foo.*'].join('\n'),
     );
     const fileService = new FileDiscoveryService(tempRootDir);
     const mockConfigInstance = {
       getFileService: () => fileService,
+      getTargetDir: () => tempRootDir,
     } as unknown as Config;
-    tool = new ReadFileTool(tempRootDir, mockConfigInstance);
+    tool = new ReadFileTool(mockConfigInstance);
     mockProcessSingleFileContent.mockReset();
   });
 
@@ -73,8 +74,8 @@ describe('ReadFileTool', () => {
 
     it('should return error for relative path', () => {
       const params: ReadFileToolParams = { absolute_path: 'test.txt' };
-      expect(tool.validateToolParams(params)).toMatch(
-        /File path must be absolute/,
+      expect(tool.validateToolParams(params)).toBe(
+        `File path must be absolute, but was relative: test.txt. You must provide an absolute path.`,
       );
     });
 
@@ -119,7 +120,7 @@ describe('ReadFileTool', () => {
     it('should return error for schema validation failure (e.g. missing path)', () => {
       const params = { offset: 0 } as unknown as ReadFileToolParams;
       expect(tool.validateToolParams(params)).toBe(
-        'Parameters failed schema validation.',
+        `params must have required property 'absolute_path'`,
       );
     });
   });
@@ -143,8 +144,12 @@ describe('ReadFileTool', () => {
     it('should return validation error if params are invalid', async () => {
       const params: ReadFileToolParams = { absolute_path: 'relative/path.txt' };
       const result = await tool.execute(params, abortSignal);
-      expect(result.llmContent).toMatch(/Error: Invalid parameters provided/);
-      expect(result.returnDisplay).toMatch(/File path must be absolute/);
+      expect(result.llmContent).toBe(
+        'Error: Invalid parameters provided. Reason: File path must be absolute, but was relative: relative/path.txt. You must provide an absolute path.',
+      );
+      expect(result.returnDisplay).toBe(
+        'File path must be absolute, but was relative: relative/path.txt. You must provide an absolute path.',
+      );
     });
 
     it('should return error from processSingleFileContent if it fails', async () => {
@@ -235,7 +240,7 @@ describe('ReadFileTool', () => {
       );
     });
 
-    it('should return error if path is ignored by a .sprtscltrignore pattern', async () => {
+    it('should return error if path is ignored by a .geminiignore pattern', async () => {
       const params: ReadFileToolParams = {
         absolute_path: path.join(tempRootDir, 'foo.bar'),
       };

@@ -7,10 +7,13 @@ This document provides a guide to sandboxing in the Gemini CLI, including prereq
 Before using sandboxing, you need to install and set up the Gemini CLI:
 
 ```bash
-# install sprtscltr-cli with npm
-npm install -g @google/sprtscltr-cli
+# install gemini-cli with npm
+npm install -g @google/gemini-cli
+```
 
-# Verify installation
+To verify the installation
+
+```bash
 gemini --version
 ```
 

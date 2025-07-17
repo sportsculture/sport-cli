@@ -6,10 +6,11 @@
 
 import { describe, it, expect, vi, beforeEach, Mock, afterEach } from 'vitest';
 import { Content, GoogleGenAI, Models } from '@google/genai';
+import { DEFAULT_GEMINI_FLASH_MODEL } from '../config/models.js';
 import { GeminiClient } from '../core/client.js';
 import { Config } from '../config/config.js';
 import { checkNextSpeaker, NextSpeakerResponse } from './nextSpeakerChecker.js';
-import { SprtscltrChat } from '../core/sprtscltrChat.js';
+import { GeminiChat } from '../core/geminiChat.js';
 
 // Mock GeminiClient and Config constructor
 vi.mock('../core/client.js');
@@ -26,7 +27,7 @@ const mockModelsInstance = {
 
 const mockGoogleGenAIInstance = {
   getGenerativeModel: vi.fn().mockReturnValue(mockModelsInstance),
-  // Add other methods of GoogleGenAI if they are directly used by SprtscltrChat constructor or its methods
+  // Add other methods of GoogleGenAI if they are directly used by GeminiChat constructor or its methods
 } as unknown as GoogleGenAI;
 
 vi.mock('@google/genai', async () => {
@@ -35,13 +36,13 @@ vi.mock('@google/genai', async () => {
   return {
     ...actualGenAI,
     GoogleGenAI: vi.fn(() => mockGoogleGenAIInstance), // Mock constructor to return the predefined instance
-    // If Models is instantiated directly in SprtscltrChat, mock its constructor too
+    // If Models is instantiated directly in GeminiChat, mock its constructor too
     // For now, assuming Models instance is obtained via getGenerativeModel
   };
 });
 
 describe('checkNextSpeaker', () => {
-  let chatInstance: SprtscltrChat;
+  let chatInstance: GeminiChat;
   let mockGeminiClient: GeminiClient;
   let MockConfig: Mock;
   const abortSignal = new AbortController().signal;
@@ -67,8 +68,8 @@ describe('checkNextSpeaker', () => {
     vi.mocked(mockModelsInstance.generateContent).mockReset();
     vi.mocked(mockModelsInstance.generateContentStream).mockReset();
 
-    // SprtscltrChat will receive the mocked instances via the mocked GoogleGenAI constructor
-    chatInstance = new SprtscltrChat(
+    // GeminiChat will receive the mocked instances via the mocked GoogleGenAI constructor
+    chatInstance = new GeminiChat(
       mockConfigInstance,
       mockModelsInstance, // This is the instance returned by mockGoogleGenAIInstance.getGenerativeModel
       {},
@@ -230,5 +231,23 @@ describe('checkNextSpeaker', () => {
       abortSignal,
     );
     expect(result).toBeNull();
+  });
+
+  it('should call generateJson with DEFAULT_GEMINI_FLASH_MODEL', async () => {
+    (chatInstance.getHistory as Mock).mockReturnValue([
+      { role: 'model', parts: [{ text: 'Some model output.' }] },
+    ] as Content[]);
+    const mockApiResponse: NextSpeakerResponse = {
+      reasoning: 'Model made a statement, awaiting user input.',
+      next_speaker: 'user',
+    };
+    (mockGeminiClient.generateJson as Mock).mockResolvedValue(mockApiResponse);
+
+    await checkNextSpeaker(chatInstance, mockGeminiClient, abortSignal);
+
+    expect(mockGeminiClient.generateJson).toHaveBeenCalled();
+    const generateJsonCall = (mockGeminiClient.generateJson as Mock).mock
+      .calls[0];
+    expect(generateJsonCall[3]).toBe(DEFAULT_GEMINI_FLASH_MODEL);
   });
 });

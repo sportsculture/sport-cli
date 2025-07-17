@@ -154,14 +154,6 @@ describe('GitService', () => {
   });
 
   describe('initialize', () => {
-    it('should throw an error if projectRoot is not a Git repository', async () => {
-      hoistedIsGitRepositoryMock.mockReturnValue(false);
-      const service = new GitService(mockProjectRoot);
-      await expect(service.initialize()).rejects.toThrow(
-        'GitService requires a Git repository',
-      );
-    });
-
     it('should throw an error if Git is not available', async () => {
       hoistedMockExec.mockImplementation((command, callback) => {
         callback(new Error('git not found'));
@@ -169,7 +161,7 @@ describe('GitService', () => {
       });
       const service = new GitService(mockProjectRoot);
       await expect(service.initialize()).rejects.toThrow(
-        'GitService requires Git to be installed',
+        'Checkpointing is enabled, but Git is not installed. Please install Git or disable checkpointing to continue.',
       );
     });
 
@@ -185,7 +177,7 @@ describe('GitService', () => {
   });
 
   describe('setupShadowGitRepository', () => {
-    const repoDir = path.join(mockHomedir, '.sprtscltr', 'history', mockHash);
+    const repoDir = path.join(mockHomedir, '.gemini', 'history', mockHash);
     const hiddenGitIgnorePath = path.join(repoDir, '.gitignore');
     const visibleGitIgnorePath = path.join(mockProjectRoot, '.gitignore');
     const gitConfigPath = path.join(repoDir, '.gitconfig');
@@ -194,7 +186,7 @@ describe('GitService', () => {
       const service = new GitService(mockProjectRoot);
       await service.setupShadowGitRepository();
       const expectedConfigContent =
-        '[user]\n  name = sprtscltr CLI\n  email = gemini-cli@google.com\n[commit]\n  gpgsign = false\n';
+        '[user]\n  name = gemini CLI\n  email = gemini-cli@google.com\n[commit]\n  gpgsign = false\n';
       expect(hoistedMockWriteFile).toHaveBeenCalledWith(
         gitConfigPath,
         expectedConfigContent,

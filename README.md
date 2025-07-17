@@ -1,8 +1,10 @@
-# sprtscltr CLI
+# gemini-cli (Enhanced Multi-Provider Fork)
 
-[![Gemini CLI CI](https://github.com/google-gemini/sprtscltr-cli/actions/workflows/ci.yml/badge.svg)](https://github.com/google-gemini/sprtscltr-cli/actions/workflows/ci.yml)
+[![Gemini CLI CI](https://github.com/google-gemini/gemini-cli/actions/workflows/ci.yml/badge.svg)](https://github.com/google-gemini/gemini-cli/actions/workflows/ci.yml)
 
 ![Gemini CLI Screenshot](./docs/assets/gemini-screenshot.png)
+
+> **Note:** This is an enhanced fork of Google's official gemini-cli with support for multiple AI providers including OpenRouter and custom API endpoints.
 
 This repository contains the Gemini CLI, a command-line AI workflow tool that connects to your
 tools, understands your code and accelerates your workflows.
@@ -23,13 +25,18 @@ With the Gemini CLI you can:
 2. **Run the CLI:** Execute the following command in your terminal:
 
    ```bash
-   npx https://github.com/google-gemini/sprtscltr-cli
+   npx https://github.com/google-gemini/gemini-cli
    ```
 
    Or install it with:
 
    ```bash
-   npm install -g @google/sprtscltr-cli
+   npm install -g @google/gemini-cli
+   ```
+
+   Then, run the CLI from anywhere:
+
+   ```bash
    gemini
    ```
 
@@ -50,6 +57,20 @@ The Gemini API provides a free tier with [100 requests per day](https://ai.googl
    ```
 
 3. (Optionally) Upgrade your Gemini API project to a paid plan on the API key page (will automatically unlock [Tier 1 rate limits](https://ai.google.dev/gemini-api/docs/rate-limits#tier-1))
+
+### Use a Vertex AI API key:
+
+The Vertex AI API provides a [free tier](https://cloud.google.com/vertex-ai/generative-ai/docs/start/express-mode/overview) using express mode for Gemini 2.5 Pro, control over which model you use, and access to higher rate limits with a billing account:
+
+1. Generate a key from [Google Cloud](https://cloud.google.com/vertex-ai/generative-ai/docs/start/api-keys).
+2. Set it as an environment variable in your terminal. Replace `YOUR_API_KEY` with your generated key and set GOOGLE_GENAI_USE_VERTEXAI to true
+
+   ```bash
+   export GOOGLE_API_KEY="YOUR_API_KEY"
+   export GOOGLE_GENAI_USE_VERTEXAI=true
+   ```
+
+3. (Optionally) Add a billing account on your project to get access to [higher usage limits](https://cloud.google.com/vertex-ai/generative-ai/docs/quotas)
 
 For other authentication methods, including Google Workspace accounts, see the [authentication](./docs/cli/authentication.md) guide.
 
@@ -78,13 +99,14 @@ gemini
 
 - Learn how to [contribute to or build from the source](./CONTRIBUTING.md).
 - Explore the available **[CLI Commands](./docs/cli/commands.md)**.
-- If you encounter any issues, review the **[Troubleshooting guide](./docs/troubleshooting.md)**.
+- If you encounter any issues, review the **[troubleshooting guide](./docs/troubleshooting.md)**.
 - For more comprehensive documentation, see the [full documentation](./docs/index.md).
 - Take a look at some [popular tasks](#popular-tasks) for more inspiration.
+- Check out our **[Official Roadmap](./ROADMAP.md)**
 
 ### Troubleshooting
 
-Head over to the [troubleshooting](docs/troubleshooting.md) guide if you're
+Head over to the [troubleshooting guide](docs/troubleshooting.md) if you're
 having issues.
 
 ## Popular tasks
