@@ -1,0 +1,11 @@
+# Task ID: 5
+# Title: Display Current Model in UI
+# Status: pending
+# Dependencies: 4
+# Priority: medium
+# Description: Show the currently selected OpenRouter model in the status bar or header.
+# Details:
+Update /packages/cli/src/ui/App.tsx to display the current model. Use context or state management (e.g., Zustand v4+ or React Context) to share model state across components. Ensure display updates on model switch.
+
+# Test Strategy:
+Test that current model is displayed and updates on switch. Manual and automated UI tests.

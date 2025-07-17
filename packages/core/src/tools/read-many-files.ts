@@ -124,7 +124,6 @@ export class ReadManyFilesTool extends BaseTool<
   ToolResult
 > {
   static readonly Name: string = 'read_many_files';
-
   private readonly geminiIgnorePatterns: string[] = [];
 
   constructor(private config: Config) {
@@ -228,7 +227,7 @@ Use this tool when the user's query implies needing the content of several files
 
     // Add a note if .geminiignore patterns contributed to the final list of exclusions
     if (this.geminiIgnorePatterns.length > 0) {
-      const geminiPatternsInEffect = this.geminiIgnorePatterns.filter((p) =>
+      const geminiPatternsInEffect = this.geminiIgnorePatterns.filter((p: string) =>
         finalExclusionPatternsForDescription.includes(p),
       ).length;
       if (geminiPatternsInEffect > 0) {

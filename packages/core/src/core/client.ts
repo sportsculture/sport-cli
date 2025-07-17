@@ -170,7 +170,7 @@ export class GeminiClient {
       fileService: this.config.getFileService(),
     });
     const context = `
-  This is the Gemini CLI. We are setting up the context for our chat.
+  This is the gemini CLI. We are setting up the context for our chat.
   Today's date is ${today}.
   My operating system is: ${platform}
   I'm currently working in the directory: ${cwd}
@@ -413,7 +413,14 @@ This is the cursor position in the file:
         throw error;
       }
       try {
-        return JSON.parse(text);
+        // Strip markdown code blocks if present
+        let cleanText = text.trim();
+        if (cleanText.startsWith('```json') && cleanText.endsWith('```')) {
+          cleanText = cleanText.slice(7, -3).trim();
+        } else if (cleanText.startsWith('```') && cleanText.endsWith('```')) {
+          cleanText = cleanText.slice(3, -3).trim();
+        }
+        return JSON.parse(cleanText);
       } catch (parseError) {
         await reportError(
           parseError,

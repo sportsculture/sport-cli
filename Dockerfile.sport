@@ -1,0 +1,136 @@
+# Sport-CLI Docker Image
+# Based on the original Gemini CLI Dockerfile with enhancements
+
+FROM docker.io/library/node:20-slim AS builder
+
+# Build arguments
+ARG SPORT_VERSION
+
+# Install build dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+  python3 \
+  make \
+  g++ \
+  && apt-get clean \
+  && rm -rf /var/lib/apt/lists/*
+
+# Set working directory
+WORKDIR /build
+
+# Copy package files for dependency installation
+COPY package*.json ./
+COPY packages/cli/package*.json ./packages/cli/
+COPY packages/core/package*.json ./packages/core/
+
+# Install dependencies
+RUN npm ci
+
+# Copy source code
+COPY . .
+
+# Build the project
+RUN npm run build
+
+# Create tarballs for sport-cli packages
+RUN cd packages/cli && npm pack && mv *.tgz /tmp/sport-cli.tgz
+RUN cd packages/core && npm pack && mv *.tgz /tmp/sport-cli-core.tgz
+
+# Runtime stage
+FROM docker.io/library/node:20-slim
+
+ARG SPORT_VERSION
+ENV SPORT_VERSION=$SPORT_VERSION
+ENV SPORT_CLI_DOCKER=true
+
+# Install runtime dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+  python3 \
+  make \
+  g++ \
+  man-db \
+  curl \
+  dnsutils \
+  less \
+  jq \
+  bc \
+  gh \
+  git \
+  unzip \
+  rsync \
+  ripgrep \
+  procps \
+  psmisc \
+  lsof \
+  socat \
+  ca-certificates \
+  && apt-get clean \
+  && rm -rf /var/lib/apt/lists/*
+
+# Set up npm global package folder
+RUN mkdir -p /usr/local/share/npm-global \
+  && chown -R node:node /usr/local/share/npm-global
+ENV NPM_CONFIG_PREFIX=/usr/local/share/npm-global
+ENV PATH=$PATH:/usr/local/share/npm-global/bin
+
+# Create sport-cli directories
+RUN mkdir -p /home/node/.sport/plugins \
+  && mkdir -p /home/node/.sport/config \
+  && mkdir -p /home/node/.sport/history \
+  && chown -R node:node /home/node/.sport
+
+# Switch to non-root user
+USER node
+
+# Copy and install sport-cli packages
+COPY --from=builder /tmp/sport-cli.tgz /tmp/sport-cli-core.tgz /tmp/
+RUN npm install -g /tmp/sport-cli.tgz /tmp/sport-cli-core.tgz \
+  && npm cache clean --force \
+  && rm -f /tmp/sport-*.tgz
+
+# Create sport symlink (if package is still named gemini-cli)
+RUN if [ -f /usr/local/share/npm-global/bin/gemini ]; then \
+    ln -s /usr/local/share/npm-global/bin/gemini /usr/local/share/npm-global/bin/sport; \
+  fi
+
+# Set working directory
+WORKDIR /workspace
+
+# Default configuration
+COPY --chown=node:node <<EOF /home/node/.sport/config/default.json
+{
+  "features": {
+    "transparentBash": {
+      "enabled": true,
+      "confirm": false,
+      "verboseOutput": true
+    },
+    "persistentHistory": {
+      "enabled": true,
+      "maxEntries": 1000
+    },
+    "configurablePaths": {
+      "enabled": true
+    },
+    "plugins": {
+      "enabled": true,
+      "paths": [
+        "/home/node/.sport/plugins",
+        "/usr/local/share/sport-cli/plugins"
+      ]
+    }
+  }
+}
+EOF
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+  CMD sport --version || exit 1
+
+# Labels
+LABEL org.opencontainers.image.source="https://github.com/sportsculture/sport-cli"
+LABEL org.opencontainers.image.description="Sport-CLI: Enhanced AI workflow tool with plugin support"
+LABEL org.opencontainers.image.version="${SPORT_VERSION}"
+
+# Default entrypoint
+ENTRYPOINT ["sport"]
+CMD ["--help"]

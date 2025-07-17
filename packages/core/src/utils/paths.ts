@@ -9,6 +9,7 @@ import os from 'os';
 import * as crypto from 'crypto';
 
 export const GEMINI_DIR = '.gemini';
+export const SPRTSCLTR_DIR = GEMINI_DIR; // Alias for compatibility
 export const GOOGLE_ACCOUNTS_FILENAME = 'google_accounts.json';
 const TMP_DIR_NAME = 'tmp';
 
@@ -156,5 +157,5 @@ export function getProjectHash(projectRoot: string): string {
  */
 export function getProjectTempDir(projectRoot: string): string {
   const hash = getProjectHash(projectRoot);
-  return path.join(os.homedir(), GEMINI_DIR, TMP_DIR_NAME, hash);
+  return path.join(os.homedir(), SPRTSCLTR_DIR, TMP_DIR_NAME, hash);
 }

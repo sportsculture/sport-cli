@@ -99,18 +99,26 @@ export async function checkNextSpeaker(
     };
   }
 
-  if (
-    lastComprehensiveMessage &&
-    lastComprehensiveMessage.role === 'model' &&
-    lastComprehensiveMessage.parts &&
-    lastComprehensiveMessage.parts.length === 0
-  ) {
-    lastComprehensiveMessage.parts.push({ text: '' });
-    return {
-      reasoning:
-        'The last message was a filler model message with no content (nothing for user to act on), model should speak next.',
-      next_speaker: 'model',
-    };
+  if (lastComprehensiveMessage?.role === 'model') {
+    const modelText = (lastComprehensiveMessage.parts || [])
+      .map((part) => ('text' in part && part.text ? part.text : ''))
+      .join('')
+      .trim();
+
+    if (modelText.length === 0) {
+      // To prevent an invalid history state, ensure there's at least one part.
+      if (
+        !lastComprehensiveMessage.parts ||
+        lastComprehensiveMessage.parts.length === 0
+      ) {
+        lastComprehensiveMessage.parts = [{ text: '' }];
+      }
+      return {
+        reasoning:
+          'The last message from the model was empty or contained no text, so the model should continue.',
+        next_speaker: 'model',
+      };
+    }
   }
 
   // Things checked out. Let's proceed to potentially making an LLM request.

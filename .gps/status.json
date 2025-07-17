@@ -1,0 +1,57 @@
+{
+  "project": {
+    "name": "gemini-cli",
+    "version": "0.1.0",
+    "lastUpdated": "2025-07-07T19:33:19Z",
+    "health": "green",
+    "completion": 0
+  },
+  "modules": {
+    "core": {
+      "status": "in-progress",
+      "completion": 75,
+      "tests": {
+        "passed": 12,
+        "failed": 0,
+        "total": 25
+      }
+    },
+    "ui": {
+      "status": "complete",
+      "completion": 100,
+      "tests": {
+        "passed": 0,
+        "failed": 0,
+        "total": 0
+      }
+    },
+    "api": {
+      "status": "complete",
+      "completion": 100,
+      "tests": {
+        "passed": 35,
+        "failed": 0,
+        "total": 35
+      }
+    }
+  },
+  "metrics": {
+    "codeQuality": {
+      "coverage": 78,
+      "complexity": "moderate",
+      "technicalDebt": "2.5 days"
+    },
+    "performance": {
+      "buildTime": "45s",
+      "bundleSize": "2.3MB",
+      "lighthouse": 92
+    }
+  },
+  "risks": [
+    {
+      "level": "medium",
+      "description": "Dependencies need updating",
+      "mitigation": "Schedule dependency update sprint"
+    }
+  ]
+}

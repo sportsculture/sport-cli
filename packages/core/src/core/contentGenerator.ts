@@ -14,10 +14,12 @@ import {
   GoogleGenAI,
 } from '@google/genai';
 import { createCodeAssistContentGenerator } from '../code_assist/codeAssist.js';
-import { DEFAULT_GEMINI_MODEL } from '../config/models.js';
+import { DEFAULT_GEMINI_MODEL, DEFAULT_OPENROUTER_MODEL, DEFAULT_CUSTOM_API_MODEL } from '../config/models.js';
 import { Config } from '../config/config.js';
 import { getEffectiveModel } from './modelCheck.js';
 import { UserTierId } from '../code_assist/types.js';
+import { OpenRouterContentGenerator } from '../providers/openRouterContentGenerator.js';
+import { CustomApiContentGenerator } from '../providers/customApiContentGenerator.js';
 
 /**
  * Interface abstracting the core functionalities for generating content and counting tokens.
@@ -43,6 +45,10 @@ export enum AuthType {
   USE_GEMINI = 'gemini-api-key',
   USE_VERTEX_AI = 'vertex-ai',
   CLOUD_SHELL = 'cloud-shell',
+  USE_OPENROUTER = 'openrouter',
+  USE_CUSTOM_API = 'custom-api',
+  USE_ZEN_MCP = 'zen-mcp',
+  USE_TASK_MASTER_MCP = 'task-master-mcp',
 }
 
 export type ContentGeneratorConfig = {
@@ -50,6 +56,8 @@ export type ContentGeneratorConfig = {
   apiKey?: string;
   vertexai?: boolean;
   authType?: AuthType | undefined;
+  customEndpoint?: string;
+  customHeaders?: Record<string, string>;
 };
 
 export function createContentGeneratorConfig(
@@ -60,9 +68,20 @@ export function createContentGeneratorConfig(
   const googleApiKey = process.env.GOOGLE_API_KEY || undefined;
   const googleCloudProject = process.env.GOOGLE_CLOUD_PROJECT || undefined;
   const googleCloudLocation = process.env.GOOGLE_CLOUD_LOCATION || undefined;
+  const openRouterApiKey = process.env.OPENROUTER_API_KEY;
+  const customApiKey = process.env.CUSTOM_API_KEY;
+  const customApiEndpoint = process.env.CUSTOM_API_ENDPOINT;
 
-  // Use runtime model from config if available, otherwise fallback to parameter or default
-  const effectiveModel = config.getModel() || DEFAULT_GEMINI_MODEL;
+  // Determine the default model based on auth type
+  let defaultModel = DEFAULT_GEMINI_MODEL;
+  if (authType === AuthType.USE_OPENROUTER) {
+    defaultModel = DEFAULT_OPENROUTER_MODEL;
+  } else if (authType === AuthType.USE_CUSTOM_API) {
+    defaultModel = DEFAULT_CUSTOM_API_MODEL;
+  }
+  
+  // Use runtime model from config if available, otherwise fallback to default
+  const effectiveModel = config.getModel() || defaultModel;
 
   const contentGeneratorConfig: ContentGeneratorConfig = {
     model: effectiveModel,
@@ -99,6 +118,19 @@ export function createContentGeneratorConfig(
     contentGeneratorConfig.apiKey = googleApiKey;
     contentGeneratorConfig.vertexai = true;
 
+    return contentGeneratorConfig;
+  }
+
+  if (authType === AuthType.USE_OPENROUTER && openRouterApiKey) {
+    contentGeneratorConfig.apiKey = openRouterApiKey;
+    // OpenRouter models don't need validation
+    return contentGeneratorConfig;
+  }
+
+  if (authType === AuthType.USE_CUSTOM_API && customApiKey && customApiEndpoint) {
+    contentGeneratorConfig.apiKey = customApiKey;
+    contentGeneratorConfig.customEndpoint = customApiEndpoint;
+    // Custom API models don't need validation
     return contentGeneratorConfig;
   }
 
@@ -139,6 +171,14 @@ export async function createContentGenerator(
     });
 
     return googleGenAI.models;
+  }
+
+  if (config.authType === AuthType.USE_OPENROUTER) {
+    return new OpenRouterContentGenerator(config);
+  }
+
+  if (config.authType === AuthType.USE_CUSTOM_API) {
+    return new CustomApiContentGenerator(config);
   }
 
   throw new Error(

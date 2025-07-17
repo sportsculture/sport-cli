@@ -6,7 +6,22 @@
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { describe, it, expect, vi, beforeEach, Mock } from 'vitest';
-import { renderHook, act, waitFor } from '@testing-library/react';
+import { renderHook, act } from '@testing-library/react';
+
+// Simple waitFor replacement for testing
+const waitFor = async (callback: () => void | boolean, timeout = 1000) => {
+  const start = Date.now();
+  while (Date.now() - start < timeout) {
+    try {
+      const result = callback();
+      if (result !== false) return;
+    } catch (e) {
+      // Continue waiting
+    }
+    await new Promise(resolve => setTimeout(resolve, 10));
+  }
+  throw new Error('waitFor timeout');
+};
 import { useGeminiStream, mergePartListUnions } from './useGeminiStream.js';
 import { useInput } from 'ink';
 import {
@@ -338,7 +353,7 @@ describe('useGeminiStream', () => {
     // The GeminiClient constructor itself is mocked at the module level.
     mockStartChat.mockClear().mockResolvedValue({
       sendMessageStream: mockSendMessageStream,
-    } as unknown as any); // GeminiChat -> any
+    } as unknown as any); // SprtscltrChat -> any
     mockSendMessageStream
       .mockClear()
       .mockReturnValue((async function* () {})());
@@ -347,7 +362,7 @@ describe('useGeminiStream', () => {
   const mockLoadedSettings: LoadedSettings = {
     merged: { preferredEditor: 'vscode' },
     user: { path: '/user/settings.json', settings: {} },
-    workspace: { path: '/workspace/.gemini/settings.json', settings: {} },
+    workspace: { path: '/workspace/.sprtscltr/settings.json', settings: {} },
     errors: [],
     forScope: vi.fn(),
     setValue: vi.fn(),

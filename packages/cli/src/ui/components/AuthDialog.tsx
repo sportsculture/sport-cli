@@ -77,6 +77,8 @@ export function AuthDialog({
       value: AuthType.USE_GEMINI,
     },
     { label: 'Vertex AI', value: AuthType.USE_VERTEX_AI },
+    { label: 'OpenRouter', value: AuthType.USE_OPENROUTER },
+    { label: 'Custom API', value: AuthType.USE_CUSTOM_API },
   ];
 
   const initialAuthIndex = items.findIndex((item) => {
@@ -155,7 +157,7 @@ export function AuthDialog({
         <Text color={Colors.Gray}>(Use Enter to select)</Text>
       </Box>
       <Box marginTop={1}>
-        <Text>Terms of Services and Privacy Notice for Gemini CLI</Text>
+        <Text>Terms of Services and Privacy Notice for sprtscltr CLI</Text>
       </Box>
       <Box marginTop={1}>
         <Text color={Colors.AccentBlue}>

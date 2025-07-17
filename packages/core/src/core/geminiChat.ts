@@ -521,8 +521,13 @@ export class GeminiChat {
 
     try {
       for await (const chunk of streamResponse) {
-        if (isValidResponse(chunk)) {
+        // Always add chunks with usage metadata to the array, even if they don't have valid content
+        // This ensures usage tracking works for providers like OpenRouter that send usage data in the final chunk
+        if (isValidResponse(chunk) || chunk.usageMetadata) {
           chunks.push(chunk);
+        }
+        
+        if (isValidResponse(chunk)) {
           const content = chunk.candidates?.[0]?.content;
           if (content !== undefined) {
             if (this.isThoughtContent(content)) {
@@ -532,6 +537,7 @@ export class GeminiChat {
             outputContent.push(content);
           }
         }
+        
         yield chunk;
       }
     } catch (error) {

@@ -1,4 +1,4 @@
-# Gemini CLI Execution and Deployment
+# sprtscltr CLI Execution and Deployment
 
 This document describes how to run Gemini CLI and explains the deployment architecture that Gemini CLI uses.
 
@@ -15,6 +15,7 @@ This is the recommended way for end-users to install Gemini CLI. It involves dow
 - **Global install:**
 
   ```bash
+  # Install the CLI globally
   npm install -g @google/gemini-cli
   ```
 
@@ -28,7 +29,7 @@ This is the recommended way for end-users to install Gemini CLI. It involves dow
 
   ```bash
   # Execute the latest version from NPM without a global install
-  npx @google/gemini-cli
+  npx @google/sprtscltr-cli
   ```
 
 ---
@@ -41,7 +42,7 @@ For security and isolation, Gemini CLI can be run inside a container. This is th
   You can run the published sandbox image directly. This is useful for environments where you only have Docker and want to run the CLI.
   ```bash
   # Run the published sandbox image
-  docker run --rm -it us-docker.pkg.dev/gemini-code-dev/gemini-cli/sandbox:0.1.1
+  docker run --rm -it us-docker.pkg.dev/gemini-code-dev/sprtscltr-cli/sandbox:0.1.1
   ```
 - **Using the `--sandbox` flag:**
   If you have Gemini CLI installed locally (using the standard installation described above), you can instruct it to run inside the sandbox container.
@@ -80,7 +81,7 @@ You can run the most recently committed version of Gemini CLI directly from the 
 
 ```bash
 # Execute the CLI directly from the main branch on GitHub
-npx https://github.com/google-gemini/gemini-cli
+npx https://github.com/google-gemini/sprtscltr-cli
 ```
 
 ## Deployment architecture
@@ -91,8 +92,8 @@ The execution methods described above are made possible by the following archite
 
 Gemini CLI project is a monorepo that publishes two core packages to the NPM registry:
 
-- `@google/gemini-cli-core`: The backend, handling logic and tool execution.
-- `@google/gemini-cli`: The user-facing frontend.
+- `@google/sprtscltr-cli-core`: The backend, handling logic and tool execution.
+- `@google/sprtscltr-cli`: The user-facing frontend.
 
 These packages are used when performing the standard installation and when running Gemini CLI from the source.
 
@@ -100,18 +101,29 @@ These packages are used when performing the standard installation and when runni
 
 There are two distinct build processes used, depending on the distribution channel:
 
-- **NPM publication:** For publishing to the NPM registry, the TypeScript source code in `@google/gemini-cli-core` and `@google/gemini-cli` is transpiled into standard JavaScript using the TypeScript Compiler (`tsc`). The resulting `dist/` directory is what gets published in the NPM package. This is a standard approach for TypeScript libraries.
+- **NPM publication:** For publishing to the NPM registry, the TypeScript source code in `@google/sprtscltr-cli-core` and `@google/sprtscltr-cli` is transpiled into standard JavaScript using the TypeScript Compiler (`tsc`). The resulting `dist/` directory is what gets published in the NPM package. This is a standard approach for TypeScript libraries.
 
 - **GitHub `npx` execution:** When running the latest version of Gemini CLI directly from GitHub, a different process is triggered by the `prepare` script in `package.json`. This script uses `esbuild` to bundle the entire application and its dependencies into a single, self-contained JavaScript file. This bundle is created on-the-fly on the user's machine and is not checked into the repository.
 
 **Docker sandbox image**
 
+<<<<<<< HEAD
+The Docker-based execution method is supported by the `sprtscltr-cli-sandbox` container image. This image is published to a container registry and contains a pre-installed, global version of Gemini CLI. The `scripts/prepare-cli-packagejson.js` script dynamically injects the URI of this image into the CLI's `package.json` before publishing, so the CLI knows which image to pull when the `--sandbox` flag is used.
+=======
 The Docker-based execution method is supported by the `gemini-cli-sandbox` container image. This image is published to a container registry and contains a pre-installed, global version of Gemini CLI.
+>>>>>>> upstream/main
 
 ## Release process
 
 The release process is automated through GitHub Actions. The release workflow performs the following actions:
 
 1.  Build the NPM packages using `tsc`.
+<<<<<<< HEAD
+2.  Update the CLI's `package.json` with the Docker image URI.
+3.  Build and tag the `sprtscltr-cli-sandbox` Docker image.
+4.  Push the Docker image to the container registry.
+5.  Publish the NPM packages to the artifact registry.
+=======
 2.  Publish the NPM packages to the artifact registry.
 3.  Create GitHub releases with bundled assets.
+>>>>>>> upstream/main

@@ -1,8 +1,10 @@
-# Gemini CLI
+# gemini-cli (Enhanced Multi-Provider Fork)
 
 [![Gemini CLI CI](https://github.com/google-gemini/gemini-cli/actions/workflows/ci.yml/badge.svg)](https://github.com/google-gemini/gemini-cli/actions/workflows/ci.yml)
 
 ![Gemini CLI Screenshot](./docs/assets/gemini-screenshot.png)
+
+> **Note:** This is an enhanced fork of Google's official gemini-cli with support for multiple AI providers including OpenRouter and custom API endpoints.
 
 This repository contains the Gemini CLI, a command-line AI workflow tool that connects to your
 tools, understands your code and accelerates your workflows.
@@ -72,6 +74,72 @@ The Vertex AI API provides a [free tier](https://cloud.google.com/vertex-ai/gene
 
 For other authentication methods, including Google Workspace accounts, see the [authentication](./docs/cli/authentication.md) guide.
 
+### Connecting to Zen MCP Server
+
+The Zen MCP server is a powerful tool that extends the capabilities of the Gemini CLI by providing access to a wider range of models and services. To connect to the Zen MCP server, you need to configure it in your Gemini CLI settings.
+
+**Prerequisites:**
+
+*   You need to have `jq` installed on your system. You can install it using your system's package manager (e.g., `brew install jq` on macOS, `sudo apt-get install jq` on Linux).
+*   You need to have an `OPENAI_API_KEY` defined in a `.env` file in your project's root directory.
+
+**Configuration:**
+
+To configure the Zen MCP server, run the following command in your terminal. This command will create a shell script and execute it to update your `~/.gemini/settings.json` file.
+
+```bash
+#!/bin/bash
+
+# This script configures the Zen MCP server in your Gemini CLI settings.
+# It adds the necessary server configuration and uses your OpenAI API key
+# from the .env file.
+
+# --- Configuration ---
+OPENAI_KEY=$(grep OPENAI_API_KEY .env | cut -d '=' -f2)
+
+JSON_CONFIG='{
+  "mcpServers": {
+    "zen": {
+      "command": "sh",
+      "args": [
+        "-c",
+        "exec $(which uvx || echo uvx) --from git+https://github.com/BeehiveInnovations/zen-mcp-server.git zen-mcp-server"
+      ],
+      "env": {
+        "PATH": "/usr/local/bin:/usr/bin:/bin:/opt/homebrew/bin:~/.local/bin",
+        "OPENAI_API_KEY": "'"$OPENAI_KEY"'"
+      }
+    }
+  }
+}'
+
+SETTINGS_FILE="$HOME/.gemini/settings.json"
+
+# --- Script ---
+
+# Create settings directory and file if they don't exist
+if [ ! -f "$SETTINGS_FILE" ]; then
+  mkdir -p "$(dirname "$SETTINGS_FILE")"
+  echo "{}" > "$SETTINGS_FILE"
+fi
+
+# Check if jq is installed
+if ! command -v jq &> /dev/null
+then
+    echo "jq could not be found, please install it to continue"
+    exit 1
+fi
+
+# Merge the JSON configuration
+TEMP_FILE=$(mktemp)
+jq -s '.[0] * .[1]' "$SETTINGS_FILE" <(echo "$JSON_CONFIG") > "$TEMP_FILE" && mv "$TEMP_FILE" "$SETTINGS_FILE"
+
+echo "Zen MCP server configured successfully."
+
+```
+
+After running this script, the Zen MCP server will be available as a provider in the Gemini CLI.
+
 ## Examples
 
 Once the CLI is running, you can start interacting with Gemini from your shell.
@@ -87,8 +155,8 @@ gemini
 Or work with an existing project:
 
 ```sh
-git clone https://github.com/google-gemini/gemini-cli
-cd gemini-cli
+git clone https://github.com/google-gemini/sprtscltr-cli
+cd sprtscltr-cli
 gemini
 > Give me a summary of all of the changes that went in yesterday
 ```

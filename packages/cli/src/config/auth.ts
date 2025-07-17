@@ -38,5 +38,19 @@ export const validateAuthMethod = (authMethod: string): string | null => {
     return null;
   }
 
+  if (authMethod === AuthType.USE_OPENROUTER) {
+    if (!process.env.OPENROUTER_API_KEY) {
+      return 'OPENROUTER_API_KEY environment variable not found. Add that to your .env and try again, no reload needed!';
+    }
+    return null;
+  }
+
+  if (authMethod === AuthType.USE_CUSTOM_API) {
+    if (!process.env.CUSTOM_API_KEY || !process.env.CUSTOM_API_ENDPOINT) {
+      return 'CUSTOM_API_KEY and CUSTOM_API_ENDPOINT environment variables are required for custom API. Add them to your .env and try again, no reload needed!';
+    }
+    return null;
+  }
+
   return 'Invalid auth method selected.';
 };

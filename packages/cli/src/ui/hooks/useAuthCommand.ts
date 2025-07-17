@@ -22,6 +22,8 @@ export const useAuthCommand = (
   const [isAuthDialogOpen, setIsAuthDialogOpen] = useState(
     settings.merged.selectedAuthType === undefined,
   );
+  const [pendingAuthType, setPendingAuthType] = useState<AuthType | null>(null);
+  const [needsApiKey, setNeedsApiKey] = useState(false);
 
   const openAuthDialog = useCallback(() => {
     setIsAuthDialogOpen(true);
@@ -32,7 +34,17 @@ export const useAuthCommand = (
   useEffect(() => {
     const authFlow = async () => {
       const authType = settings.merged.selectedAuthType;
-      if (isAuthDialogOpen || !authType) {
+      if (isAuthDialogOpen || !authType || needsApiKey) {
+        return;
+      }
+
+      // Check if we need API key for OpenRouter or Custom API
+      if (
+        (authType === AuthType.USE_OPENROUTER && !process.env.OPENROUTER_API_KEY) ||
+        (authType === AuthType.USE_CUSTOM_API && !process.env.CUSTOM_API_KEY)
+      ) {
+        setPendingAuthType(authType);
+        setNeedsApiKey(true);
         return;
       }
 
@@ -49,7 +61,7 @@ export const useAuthCommand = (
     };
 
     void authFlow();
-  }, [isAuthDialogOpen, settings, config, setAuthError, openAuthDialog]);
+  }, [isAuthDialogOpen, settings, config, setAuthError, openAuthDialog, needsApiKey]);
 
   const handleAuthSelect = useCallback(
     async (authType: AuthType | undefined, scope: SettingScope) => {
@@ -78,11 +90,50 @@ Logging in with Google... Please restart Gemini CLI to continue.
     setIsAuthenticating(false);
   }, []);
 
+  const handleApiKeySubmit = useCallback(
+    async (apiKey: string) => {
+      if (!pendingAuthType) return;
+
+      // Set the API key in environment
+      if (pendingAuthType === AuthType.USE_OPENROUTER) {
+        process.env.OPENROUTER_API_KEY = apiKey;
+      } else if (pendingAuthType === AuthType.USE_CUSTOM_API) {
+        process.env.CUSTOM_API_KEY = apiKey;
+      }
+
+      setNeedsApiKey(false);
+      setPendingAuthType(null);
+
+      // Now proceed with authentication
+      try {
+        setIsAuthenticating(true);
+        await config.refreshAuth(pendingAuthType);
+        console.log(`Authenticated via "${pendingAuthType}".`);
+      } catch (e) {
+        setAuthError(`Failed to login. Message: ${getErrorMessage(e)}`);
+        openAuthDialog();
+      } finally {
+        setIsAuthenticating(false);
+      }
+    },
+    [pendingAuthType, config, openAuthDialog, setAuthError],
+  );
+
+  const handleApiKeyCancel = useCallback(() => {
+    setNeedsApiKey(false);
+    setPendingAuthType(null);
+    openAuthDialog();
+  }, [openAuthDialog]);
+
   return {
     isAuthDialogOpen,
     openAuthDialog,
     handleAuthSelect,
     isAuthenticating,
     cancelAuthentication,
+    needsApiKey,
+    pendingAuthType,
+    handleApiKeySubmit,
+    handleApiKeyCancel,
   };
 };
