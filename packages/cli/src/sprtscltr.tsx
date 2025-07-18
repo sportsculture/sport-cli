@@ -131,10 +131,17 @@ export async function main() {
     const { createContentGenerator, createContentGeneratorConfig } = await import('@google/gemini-cli-core');
     const { isProvider } = await import('@google/gemini-cli-core');
     
-    console.log('Available AI Models:\n');
+    console.log('🔍 Discovering available AI models...\n');
+    
+    // Check if user wants to see all models
+    const showAll = process.argv.includes('--all');
     
     // Create content generators for each possible auth type
     const authTypes = [AuthType.USE_GEMINI, AuthType.USE_OPENROUTER, AuthType.USE_CUSTOM_API];
+    
+    const allModels: Array<{model: any; provider: string; configured: boolean; configInstructions?: string}> = [];
+    let totalConfigured = 0;
+    let totalProviders = 0;
     
     for (const checkAuthType of authTypes) {
       try {
@@ -144,32 +151,24 @@ export async function main() {
         const generator = await createContentGenerator(generatorConfig, config);
         
         if (isProvider(generator)) {
+          totalProviders++;
           const status = await generator.checkConfiguration();
           const providerName = generator.getProviderName();
-          const statusIcon = status.isConfigured ? '✓' : '✗';
-          
-          console.log(`${providerName} (${statusIcon})`);
           
           if (status.isConfigured) {
+            totalConfigured++;
             const models = await generator.getAvailableModels();
-            for (const model of models) {
-              const defaultLabel = model.isDefault ? ' (default)' : '';
-              const description = model.description ? ` - ${model.description}` : '';
-              console.log(`  - ${model.id}${defaultLabel}${description}`);
-              
-              if (model.capabilities?.contextWindow) {
-                console.log(`    Context: ${model.capabilities.contextWindow.toLocaleString()} tokens`);
-              }
-              
-              if (model.capabilities?.strengths && model.capabilities.strengths.length > 0) {
-                console.log(`    Strengths: ${model.capabilities.strengths.join(', ')}`);
-              }
-            }
+            models.forEach(model => {
+              allModels.push({ model, provider: providerName, configured: true });
+            });
           } else {
-            console.log(`  ${status.configInstructions || 'Not configured'}`);
+            allModels.push({ 
+              model: null, 
+              provider: providerName, 
+              configured: false,
+              configInstructions: status.configInstructions 
+            });
           }
-          
-          console.log();
         }
       } catch (error) {
         // Skip providers that can't be instantiated
@@ -177,6 +176,93 @@ export async function main() {
           console.error(`Failed to check ${checkAuthType}:`, error);
         }
       }
+    }
+    
+    if (!showAll) {
+      // Show curated recommendations
+      console.log('Recommended Models:\n');
+      console.log('  Model ID                          Recommended For         Context   Cost (per 1M tokens, In/Out)');
+      console.log('  --------------------------------- ----------------------- --------- --------------------------');
+      
+      // Define curated recommendations
+      const recommendations = [
+        { id: 'openai/gpt-4o', recommendedFor: 'Advanced Reasoning', provider: 'OpenRouter' },
+        { id: 'anthropic/claude-3-haiku', recommendedFor: 'Fast & Cheap Chat', provider: 'OpenRouter' },
+        { id: 'gemini-2.5-flash', recommendedFor: 'Balanced Performance', provider: 'Gemini' },
+        { id: 'deepseek/deepseek-coder', recommendedFor: 'Code Generation', provider: 'OpenRouter' },
+        { id: 'mistralai/mistral-large', recommendedFor: 'Creative Writing', provider: 'OpenRouter' },
+        { id: 'deepseek/deepseek-chat', recommendedFor: 'Cost-effective Chat', provider: 'OpenRouter' },
+      ];
+      
+      for (const rec of recommendations) {
+        const found = allModels.find(m => 
+          m.model && m.model.id === rec.id && m.configured
+        );
+        
+        if (found && found.model) {
+          const model = found.model;
+          const context = model.capabilities?.contextWindow ? 
+            `${(model.capabilities.contextWindow / 1000).toFixed(0)}k` : 'N/A';
+          
+          let pricing = 'N/A';
+          if (model.pricing?.inputPer1k && model.pricing?.outputPer1k) {
+            const inputCost = (model.pricing.inputPer1k * 1000).toFixed(2);
+            const outputCost = (model.pricing.outputPer1k * 1000).toFixed(2);
+            pricing = `$${inputCost} / $${outputCost}`;
+          }
+          
+          console.log(`  ${model.id.padEnd(33)} ${rec.recommendedFor.padEnd(23)} ${context.padEnd(9)} ${pricing}`);
+        }
+      }
+      
+      console.log(`\n📊 Summary: ${totalConfigured} of ${totalProviders} providers configured`);
+      console.log('\nTo see all available models grouped by provider, run: sport --models --all\n');
+    } else {
+      // Show all models grouped by provider
+      const providers = ['Gemini', 'OpenRouter', 'Custom API'];
+      
+      for (const providerName of providers) {
+        const providerModels = allModels.filter(m => m.provider === providerName);
+        if (providerModels.length === 0) continue;
+        
+        const configured = providerModels[0].configured;
+        const statusIcon = configured ? '✓' : '✗';
+        
+        console.log(`--- ${providerName} (${statusIcon}) ---`);
+        
+        if (!configured) {
+          console.log(`  ${providerModels[0].configInstructions || 'Not configured'}`);
+        } else {
+          const models = providerModels
+            .filter(m => m.model)
+            .slice(0, 20); // Limit to first 20 models per provider
+          
+          console.log('  Model ID                          Context   Cost (per 1M tokens, In/Out)');
+          console.log('  --------------------------------- --------- --------------------------');
+          
+          for (const { model } of models) {
+            const context = model.capabilities?.contextWindow ? 
+              `${(model.capabilities.contextWindow / 1000).toFixed(0)}k` : 'N/A';
+            
+            let pricing = 'N/A';
+            if (model.pricing?.inputPer1k && model.pricing?.outputPer1k) {
+              const inputCost = (model.pricing.inputPer1k * 1000).toFixed(2);
+              const outputCost = (model.pricing.outputPer1k * 1000).toFixed(2);
+              pricing = `$${inputCost} / $${outputCost}`;
+            }
+            
+            console.log(`  ${model.id.padEnd(33)} ${context.padEnd(9)} ${pricing}`);
+          }
+          
+          if (providerModels.filter(m => m.model).length > 20) {
+            console.log(`  ...and ${providerModels.filter(m => m.model).length - 20} more models`);
+          }
+        }
+        
+        console.log();
+      }
+      
+      console.log(`📊 Total: ${allModels.filter(m => m.model).length} models available across ${totalConfigured} configured providers\n`);
     }
     
     process.exit(0);

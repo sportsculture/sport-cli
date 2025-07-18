@@ -25,6 +25,12 @@ export interface ModelInfo {
   /** Whether this is the default model for the provider */
   isDefault?: boolean;
   
+  /** Whether this model is recommended in the curated list */
+  isRecommended?: boolean;
+  
+  /** What this model is recommended for (e.g., 'Code Generation', 'Creative Writing') */
+  recommendedFor?: string;
+  
   /** Model capabilities */
   capabilities?: {
     /** Maximum context window in tokens */
