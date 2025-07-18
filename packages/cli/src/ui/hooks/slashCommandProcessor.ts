@@ -427,6 +427,19 @@ export const useSlashCommandProcessor = (
                   case 'privacy':
                     openPrivacyNotice();
                     return { type: 'handled' };
+                  case 'model':
+                    if (openModelSelector) {
+                      openModelSelector();
+                    } else {
+                      addItem(
+                        {
+                          type: MessageType.ERROR,
+                          text: 'Model selector not available',
+                        },
+                        Date.now(),
+                      );
+                    }
+                    return { type: 'handled' };
                   default: {
                     const unhandled: never = result.dialog;
                     throw new Error(

@@ -28,8 +28,8 @@ export const ContextSummaryDisplay: React.FC<ContextSummaryDisplayProps> = ({
 }) => {
   const mcpServerCount = Object.keys(mcpServers || {}).length;
 
-  // Show model info if using OpenRouter
-  const showModel = authType === AuthType.USE_OPENROUTER && currentModel;
+  // Show model info for all providers
+  const showModel = currentModel;
 
   if (geminiMdFileCount === 0 && mcpServerCount === 0 && !showModel) {
     return <Text> </Text>; // Render an empty space to reserve height
@@ -53,10 +53,13 @@ export const ContextSummaryDisplay: React.FC<ContextSummaryDisplayProps> = ({
 
   let summaryText = '';
   
-  // Add model info if using OpenRouter
+  // Add model info
   if (showModel) {
-    // Extract just the model name after the provider
-    const modelName = currentModel?.split('/').pop() || currentModel;
+    // For OpenRouter models, extract just the model name after the provider
+    // For other providers, show the full model name
+    const modelName = currentModel?.includes('/') 
+      ? currentModel.split('/').pop() 
+      : currentModel;
     summaryText = `Model: ${modelName}`;
   }
   
