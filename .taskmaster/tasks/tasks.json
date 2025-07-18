@@ -178,11 +178,190 @@
         ],
         "priority": "medium",
         "subtasks": []
+      },
+      {
+        "id": 9,
+        "title": "Implement Model Discovery Feature",
+        "description": "Add --models CLI flag and /models slash command to display available AI models grouped by provider, showing configuration status and model capabilities",
+        "details": "",
+        "testStrategy": "",
+        "status": "pending",
+        "dependencies": [
+          6
+        ],
+        "priority": "high",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Define IProvider Interface with get_available_models()",
+            "description": "Create a new IProvider interface that standardizes model discovery by requiring a get_available_models() method for all providers.",
+            "dependencies": [],
+            "details": "Design the IProvider interface in the shared provider module. The interface should specify a get_available_models() method that returns a list of model metadata objects, including model name, capabilities, and configuration status.",
+            "status": "done",
+            "testStrategy": "Write unit tests to ensure that any class implementing IProvider must define get_available_models()."
+          },
+          {
+            "id": 2,
+            "title": "Implement get_available_models() for Gemini Provider",
+            "description": "Add the get_available_models() method to the Gemini provider, returning all supported models with their metadata and configuration status.",
+            "dependencies": [
+              1
+            ],
+            "details": "In the Gemini provider implementation, fetch or define the list of available models. For each model, include metadata such as description, context window, pricing, and configuration status (e.g., API key present).",
+            "status": "done",
+            "testStrategy": "Test that get_available_models() returns accurate model data and correct status based on configuration."
+          },
+          {
+            "id": 3,
+            "title": "Implement get_available_models() for OpenRouter Provider",
+            "description": "Add the get_available_models() method to the OpenRouter provider, returning all supported models with their metadata and configuration status.",
+            "dependencies": [
+              1
+            ],
+            "details": "In the OpenRouter provider, fetch the model list via API or static config. Include metadata (description, context window, pricing) and check for valid API key to set configuration status.",
+            "status": "done",
+            "testStrategy": "Test with valid and invalid API keys to verify correct model listing and status reporting."
+          },
+          {
+            "id": 4,
+            "title": "Implement get_available_models() for Custom API Provider",
+            "description": "Add the get_available_models() method to the Custom API provider, returning all supported models with their metadata and configuration status.",
+            "dependencies": [
+              1
+            ],
+            "details": "For the Custom API provider, define how models are discovered (e.g., static config or API call). Return model metadata and indicate if required configuration (e.g., endpoint, key) is present.",
+            "status": "done",
+            "testStrategy": "Test with various custom API configurations to ensure correct model discovery and status."
+          },
+          {
+            "id": 5,
+            "title": "Add --models CLI Argument Parsing",
+            "description": "Extend the CLI parser to recognize the --models flag and trigger model discovery logic.",
+            "dependencies": [
+              2,
+              3,
+              4
+            ],
+            "details": "Update the CLI argument parser to handle --models. When invoked, aggregate model lists from all providers using their get_available_models() methods.",
+            "status": "pending",
+            "testStrategy": "Test CLI with --models flag to ensure it triggers model discovery and handles errors gracefully."
+          },
+          {
+            "id": 6,
+            "title": "Create Model Listing Output Formatter",
+            "description": "Develop a formatter to display models grouped by provider, showing configuration status, capabilities, and metadata.",
+            "dependencies": [
+              5
+            ],
+            "details": "Implement a function to format the aggregated model data. Group models by provider, display configuration status (e.g., ✅/❌), and show metadata such as description, context window, and pricing. Ensure output is readable in both CLI and interactive modes.",
+            "status": "pending",
+            "testStrategy": "Test output formatting with various provider/model combinations and missing configurations."
+          },
+          {
+            "id": 7,
+            "title": "Implement /models Slash Command for Interactive Mode",
+            "description": "Add a /models command to the interactive CLI that invokes the model discovery logic and displays formatted output.",
+            "dependencies": [],
+            "details": "Register the /models command in the interactive CLI. When triggered, call the model discovery logic and display the formatted model list to the user.",
+            "status": "pending",
+            "testStrategy": "Test /models command in interactive mode for correct output and error handling."
+          },
+          {
+            "id": 8,
+            "title": "Add Model Aliases Configuration and Comprehensive Tests",
+            "description": "Support model aliases in configuration and create tests covering all aspects of the model discovery feature.",
+            "dependencies": [],
+            "details": "Allow users to define aliases for models in the config. Update model discovery logic to display aliases. Write tests for interface, provider implementations, CLI flag, slash command, output formatting, and alias handling.",
+            "status": "pending",
+            "testStrategy": "Write unit and integration tests for alias resolution, model listing, and all user-facing features."
+          }
+        ]
+      },
+      {
+        "id": 10,
+        "title": "Enhance Shell Tool Transparency",
+        "description": "Improve ShellTool output to show executed command, exit code, full stdout/stderr, and execution duration for better debugging and user confidence",
+        "details": "",
+        "testStrategy": "",
+        "status": "pending",
+        "dependencies": [
+          9
+        ],
+        "priority": "medium",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Modify ShellTool Return Structure",
+            "description": "Update the ShellTool's return structure to include the executed command, exit code, full stdout, and stderr outputs.",
+            "dependencies": [],
+            "details": "Refactor the ShellTool's execution logic so that every run returns a structured object containing the command string, its exit code, and the complete standard output and error streams.",
+            "status": "pending",
+            "testStrategy": "Write unit tests to verify that the returned object always includes all required fields with accurate values for various command scenarios."
+          },
+          {
+            "id": 2,
+            "title": "Implement Execution Duration Tracking",
+            "description": "Add logic to measure and record the duration of each command execution within the ShellTool.",
+            "dependencies": [
+              1
+            ],
+            "details": "Integrate timing functionality to capture the start and end time of each command, calculating the total execution duration and including it in the return structure.",
+            "status": "pending",
+            "testStrategy": "Test with commands of varying lengths to ensure the duration is measured accurately and consistently included in the output."
+          },
+          {
+            "id": 3,
+            "title": "Update Output Formatting",
+            "description": "Revise the ShellTool's output formatting to clearly display the executed command, exit code, stdout, stderr, and execution duration.",
+            "dependencies": [
+              2
+            ],
+            "details": "Design and implement a user-friendly output format that presents all transparency details in a readable and organized manner, suitable for both CLI and potential UI consumption.",
+            "status": "pending",
+            "testStrategy": "Verify output formatting through snapshot and integration tests, ensuring all fields are present and clearly labeled."
+          },
+          {
+            "id": 4,
+            "title": "Add Verbosity Settings",
+            "description": "Introduce verbosity settings to allow users to control the level of detail shown in ShellTool output.",
+            "dependencies": [
+              3
+            ],
+            "details": "Implement configuration options or command-line flags that let users toggle between minimal and detailed output, affecting which fields are displayed.",
+            "status": "pending",
+            "testStrategy": "Test all verbosity levels to confirm that output detail matches user settings and that toggling works as expected."
+          },
+          {
+            "id": 5,
+            "title": "Create Tests for Enhanced Transparency Features",
+            "description": "Develop comprehensive tests to validate all new transparency features and ensure robust, reliable behavior.",
+            "dependencies": [
+              4
+            ],
+            "details": "Write unit, integration, and regression tests covering all aspects of the enhanced output, including edge cases and error conditions.",
+            "status": "pending",
+            "testStrategy": "Automate test execution and require all tests to pass before merging changes, ensuring ongoing reliability."
+          }
+        ]
+      },
+      {
+        "id": 11,
+        "title": "Improve Model Listing with Loading Indicators, Intelligent Organization, and Metadata-Based Summaries",
+        "description": "Enhance the model listing feature to display loading indicators, organize models intelligently, and provide helpful summaries and recommendations using OpenRouter's model metadata such as pricing, performance, and use cases.",
+        "details": "1. Refactor the model listing UI to show a clear loading indicator while fetching models from OpenRouter, ensuring users are informed of data loading states.\n2. Implement intelligent grouping and sorting of models based on key metadata (e.g., provider, pricing tier, performance benchmarks, recommended use cases). Consider using sections or tabs for major providers or categories.\n3. For each model, display a concise summary panel that highlights pricing, performance metrics, and ideal use cases, leveraging metadata from the OpenRouter API. Use badges or icons for quick visual cues (e.g., 'Best for Coding', 'Low Cost', 'High Accuracy').\n4. Add a recommendation engine that suggests models based on user context or common usage patterns (e.g., if the user often selects coding models, highlight those first).\n5. Ensure accessibility and responsiveness in the updated UI, following existing design patterns.\n6. Update data fetching logic to handle errors gracefully and display appropriate messages if metadata is missing or incomplete.\n7. Refactor or extend the existing ModelSelection component (from Task 3) to incorporate these enhancements, ensuring compatibility with the current model selection and state management flows.",
+        "testStrategy": "- Verify that the loading indicator appears during model fetch and disappears once data is loaded.\n- Confirm that models are grouped and sorted as intended, with clear visual separation and accurate metadata display.\n- Check that each model's summary includes pricing, performance, and use case information, and that recommendations are contextually relevant.\n- Test error handling by simulating API failures or missing metadata.\n- Ensure the UI remains accessible and responsive across devices.\n- Perform regression testing to confirm that model selection and configuration continue to work as before.",
+        "status": "pending",
+        "dependencies": [
+          3,
+          9
+        ],
+        "priority": "high",
+        "subtasks": []
       }
     ],
     "metadata": {
       "created": "2025-07-07T18:56:28.419Z",
-      "updated": "2025-07-08T05:50:16.832Z",
+      "updated": "2025-07-17T23:33:24.917Z",
       "description": "Tasks for master context"
     }
   }

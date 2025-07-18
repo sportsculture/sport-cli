@@ -1,6 +1,6 @@
 # Task ID: 8
 # Title: Fix Token Usage Tracking for OpenRouter/DeepSeek Models
-# Status: pending
+# Status: done
 # Dependencies: 1, 7
 # Priority: medium
 # Description: Update the system to accurately track and display token usage for OpenRouter/DeepSeek models, ensuring usage stats reflect actual tokens consumed.

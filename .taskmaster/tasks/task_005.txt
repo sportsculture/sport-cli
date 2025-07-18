@@ -1,6 +1,6 @@
 # Task ID: 5
 # Title: Display Current Model in UI
-# Status: pending
+# Status: done
 # Dependencies: 4
 # Priority: medium
 # Description: Show the currently selected OpenRouter model in the status bar or header.

@@ -1,0 +1,61 @@
+# Task ID: 9
+# Title: Implement Model Discovery Feature
+# Status: pending
+# Dependencies: 6
+# Priority: high
+# Description: Add --models CLI flag and /models slash command to display available AI models grouped by provider, showing configuration status and model capabilities
+# Details:
+
+
+# Test Strategy:
+
+
+# Subtasks:
+## 1. Define IProvider Interface with get_available_models() [pending]
+### Dependencies: None
+### Description: Create a new IProvider interface that standardizes model discovery by requiring a get_available_models() method for all providers.
+### Details:
+Design the IProvider interface in the shared provider module. The interface should specify a get_available_models() method that returns a list of model metadata objects, including model name, capabilities, and configuration status.
+
+## 2. Implement get_available_models() for Gemini Provider [pending]
+### Dependencies: 9.1
+### Description: Add the get_available_models() method to the Gemini provider, returning all supported models with their metadata and configuration status.
+### Details:
+In the Gemini provider implementation, fetch or define the list of available models. For each model, include metadata such as description, context window, pricing, and configuration status (e.g., API key present).
+
+## 3. Implement get_available_models() for OpenRouter Provider [pending]
+### Dependencies: 9.1
+### Description: Add the get_available_models() method to the OpenRouter provider, returning all supported models with their metadata and configuration status.
+### Details:
+In the OpenRouter provider, fetch the model list via API or static config. Include metadata (description, context window, pricing) and check for valid API key to set configuration status.
+
+## 4. Implement get_available_models() for Custom API Provider [pending]
+### Dependencies: 9.1
+### Description: Add the get_available_models() method to the Custom API provider, returning all supported models with their metadata and configuration status.
+### Details:
+For the Custom API provider, define how models are discovered (e.g., static config or API call). Return model metadata and indicate if required configuration (e.g., endpoint, key) is present.
+
+## 5. Add --models CLI Argument Parsing [pending]
+### Dependencies: 9.2, 9.3, 9.4
+### Description: Extend the CLI parser to recognize the --models flag and trigger model discovery logic.
+### Details:
+Update the CLI argument parser to handle --models. When invoked, aggregate model lists from all providers using their get_available_models() methods.
+
+## 6. Create Model Listing Output Formatter [pending]
+### Dependencies: 9.5
+### Description: Develop a formatter to display models grouped by provider, showing configuration status, capabilities, and metadata.
+### Details:
+Implement a function to format the aggregated model data. Group models by provider, display configuration status (e.g., ✅/❌), and show metadata such as description, context window, and pricing. Ensure output is readable in both CLI and interactive modes.
+
+## 7. Implement /models Slash Command for Interactive Mode [pending]
+### Dependencies: None
+### Description: Add a /models command to the interactive CLI that invokes the model discovery logic and displays formatted output.
+### Details:
+Register the /models command in the interactive CLI. When triggered, call the model discovery logic and display the formatted model list to the user.
+
+## 8. Add Model Aliases Configuration and Comprehensive Tests [pending]
+### Dependencies: None
+### Description: Support model aliases in configuration and create tests covering all aspects of the model discovery feature.
+### Details:
+Allow users to define aliases for models in the config. Update model discovery logic to display aliases. Write tests for interface, provider implementations, CLI flag, slash command, output formatting, and alias handling.
+
