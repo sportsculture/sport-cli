@@ -28,6 +28,14 @@ export interface SessionStatsState {
   metrics: SessionMetrics;
   lastPromptTokenCount: number;
   promptCount: number;
+  costTracking: {
+    totalCost: number;
+    byModel: Record<string, {
+      cost: number;
+      inputTokens: number;
+      outputTokens: number;
+    }>;
+  };
 }
 
 export interface ComputedSessionStats {
@@ -50,6 +58,7 @@ interface SessionStatsContextValue {
   stats: SessionStatsState;
   startNewPrompt: () => void;
   getPromptCount: () => number;
+  updateCosts: (modelId: string, cost: number, inputTokens: number, outputTokens: number) => void;
 }
 
 // --- Context Definition ---
@@ -68,6 +77,10 @@ export const SessionStatsProvider: React.FC<{ children: React.ReactNode }> = ({
     metrics: uiTelemetryService.getMetrics(),
     lastPromptTokenCount: 0,
     promptCount: 0,
+    costTracking: {
+      totalCost: 0,
+      byModel: {},
+    },
   });
 
   useEffect(() => {
@@ -109,13 +122,42 @@ export const SessionStatsProvider: React.FC<{ children: React.ReactNode }> = ({
     [stats.promptCount],
   );
 
+  const updateCosts = useCallback(
+    (modelId: string, cost: number, inputTokens: number, outputTokens: number) => {
+      setStats((prevState) => {
+        const modelCosts = prevState.costTracking.byModel[modelId] || {
+          cost: 0,
+          inputTokens: 0,
+          outputTokens: 0,
+        };
+
+        return {
+          ...prevState,
+          costTracking: {
+            totalCost: prevState.costTracking.totalCost + cost,
+            byModel: {
+              ...prevState.costTracking.byModel,
+              [modelId]: {
+                cost: modelCosts.cost + cost,
+                inputTokens: modelCosts.inputTokens + inputTokens,
+                outputTokens: modelCosts.outputTokens + outputTokens,
+              },
+            },
+          },
+        };
+      });
+    },
+    [],
+  );
+
   const value = useMemo(
     () => ({
       stats,
       startNewPrompt,
       getPromptCount,
+      updateCosts,
     }),
-    [stats, startNewPrompt, getPromptCount],
+    [stats, startNewPrompt, getPromptCount, updateCosts],
   );
 
   return (

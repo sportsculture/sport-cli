@@ -4,10 +4,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Repository Overview
 
-gemini-cli is an enhanced fork of Google's official Gemini CLI with multi-provider AI support. It's a command-line AI workflow tool built as a monorepo with:
+sport-cli is an enhanced fork of Google's official Gemini CLI with multi-provider AI support. It's a command-line AI workflow tool built as a monorepo with:
 - **Frontend**: React-based CLI using Ink for terminal UI
-- **Backend**: TypeScript/Node.js handling multi-provider AI interactions
+- **Backend**: TypeScript/Node.js handling multi-provider AI interactions  
 - **VSCode Extension**: IDE companion for integration
+- **Origin**: Forked from [google-gemini/gemini-cli](https://github.com/google-gemini/gemini-cli)
 
 ## Essential Development Commands
 
@@ -59,10 +60,10 @@ Tools are the primary way the AI interacts with the system:
 
 1. **Environment Variables** (`.env`): API keys for providers
 2. **Settings Files** (searched in order):
-   - Project: `.gemini/settings.json`
-   - User: `~/.gemini/settings.json`
-   - System: `/etc/gemini-cli/settings.json`
-3. **GEMINI.md**: Instructional context files (hierarchical)
+   - Project: `.sport/settings.json` (with fallback to `.gemini/settings.json` for compatibility)
+   - User: `~/.sport/settings.json` (with fallback to `~/.gemini/settings.json`)
+   - System: `/etc/sport-cli/settings.json`
+3. **SPORT.md**: Instructional context files (hierarchical, with fallback to GEMINI.md)
 4. **MCP Configuration**: `.mcp.json` for external tool servers
 
 ## Testing Guidelines
@@ -120,6 +121,71 @@ Tools are the primary way the AI interacts with the system:
   npm run worktree:sync
   ```
 - Commit format: `feat:`, `fix:`, `docs:`, `chore:`, etc.
+
+## Fork Maintenance Guidelines
+
+### Upstream Synchronization
+
+This project is a fork that needs to stay synchronized with Google's gemini-cli:
+
+```bash
+# One-time setup
+git remote add upstream https://github.com/google-gemini/gemini-cli.git
+
+# Regular sync process
+git fetch upstream
+git checkout main
+git rebase upstream/main  # Preferred for clean history
+# Resolve conflicts carefully
+git push origin main --force-with-lease
+```
+
+### Code Isolation Strategy
+
+To minimize merge conflicts:
+
+1. **Provider System**: All multi-provider logic is isolated in `packages/core/src/providers/`
+   - `provider.interface.ts` - Common interface all providers implement
+   - `gemini.provider.ts` - Original Gemini logic refactored as a provider
+   - `openrouter.provider.ts` - OpenRouter integration
+   - `provider.factory.ts` - Provider selection logic
+
+2. **Minimal Injection Points**: We modify original code in as few places as possible
+   - Look for comments like `// sport-cli: provider injection`
+   - Keep these modifications surgical and well-documented
+
+3. **Configuration Over Code**: Use configuration files for branding
+   - `src/config/branding.ts` - Centralized branding configuration
+   - Avoid hardcoding "sport" or package names throughout the codebase
+
+### Adding New Features
+
+When adding sport-cli specific features:
+
+1. **Isolate in dedicated directories** whenever possible
+2. **Use feature flags** for experimental features
+3. **Document injection points** where you must modify original code
+4. **Write comprehensive tests** to catch regressions during merges
+
+### Handling Conflicts
+
+When conflicts arise during upstream sync:
+
+1. **Provider code**: Always keep our version (it's our added value)
+2. **Core gemini code**: Generally take upstream unless we have critical fixes
+3. **Tests**: Merge both sets of tests
+4. **Dependencies**: Carefully merge, ensuring our added dependencies remain
+
+### Contributing Back Upstream
+
+Consider contributing these improvements back to Google:
+
+1. **Provider abstraction layer** (without specific providers)
+2. **General architectural improvements**
+3. **Bug fixes that affect original functionality**
+4. **Test improvements**
+
+Open an issue first to discuss before creating PRs.
 
 ## Important Files to Know
 

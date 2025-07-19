@@ -1,13 +1,13 @@
 {
-  "name": "gemini-cli-vscode-ide-companion",
-  "displayName": "Gemini CLI VSCode IDE Companion",
+  "name": "sport-cli-vscode-ide-companion",
+  "displayName": "sport-cli VSCode IDE Companion",
   "description": "",
   "version": "0.0.1",
   "publisher": "google",
   "icon": "assets/icon.png",
   "repository": {
     "type": "git",
-    "url": "https://github.com/google-gemini/gemini-cli.git",
+    "url": "https://github.com/sportsculture/gemini-cli.git",
     "directory": "packages/vscode-ide-companion"
   },
   "engines": {

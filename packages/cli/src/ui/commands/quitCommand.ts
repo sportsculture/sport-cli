@@ -13,7 +13,7 @@ export const quitCommand: SlashCommand = {
   description: 'exit the cli',
   action: (context) => {
     const now = Date.now();
-    const { sessionStartTime } = context.session.stats;
+    const { sessionStartTime, costTracking } = context.session.stats;
     const wallDuration = now - sessionStartTime.getTime();
 
     return {
@@ -27,6 +27,8 @@ export const quitCommand: SlashCommand = {
         {
           type: 'quit',
           duration: formatDuration(wallDuration),
+          totalCost: costTracking.totalCost,
+          costBreakdown: costTracking.byModel,
           id: now,
         },
       ],

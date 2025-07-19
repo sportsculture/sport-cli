@@ -27,13 +27,47 @@ const renderWithMockedStats = (metrics: SessionMetrics) => {
       metrics,
       lastPromptTokenCount: 0,
       promptCount: 5,
+      costTracking: {
+        totalCost: 0,
+        byModel: {},
+      },
     },
 
     getPromptCount: () => 5,
     startNewPrompt: vi.fn(),
+    updateCosts: vi.fn(),
   });
 
   return render(<SessionSummaryDisplay duration="1h 23m 45s" />);
+};
+
+const renderWithMockedStatsAndCost = (
+  metrics: SessionMetrics,
+  totalCost?: number,
+  costBreakdown?: Record<string, { cost: number; inputTokens: number; outputTokens: number }>
+) => {
+  useSessionStatsMock.mockReturnValue({
+    stats: {
+      sessionStartTime: new Date(),
+      metrics,
+      lastPromptTokenCount: 0,
+      promptCount: 5,
+      costTracking: {
+        totalCost: totalCost || 0,
+        byModel: costBreakdown || {},
+      },
+    },
+
+    getPromptCount: () => 5,
+    startNewPrompt: vi.fn(),
+    updateCosts: vi.fn(),
+  });
+
+  return render(<SessionSummaryDisplay 
+    duration="1h 23m 45s" 
+    totalCost={totalCost}
+    costBreakdown={costBreakdown}
+  />);
 };
 
 describe('<SessionSummaryDisplay />', () => {
@@ -67,5 +101,47 @@ describe('<SessionSummaryDisplay />', () => {
 
     expect(output).toContain('Agent powering down. Goodbye!');
     expect(output).toMatchSnapshot();
+  });
+
+  it('renders cost information when provided', () => {
+    const metrics: SessionMetrics = {
+      models: {
+        'openai/gpt-4o': {
+          api: { totalRequests: 5, totalErrors: 0, totalLatencyMs: 25000 },
+          tokens: {
+            prompt: 5000,
+            candidates: 3000,
+            total: 8000,
+            cached: 0,
+            thoughts: 0,
+            tool: 0,
+          },
+        },
+      },
+      tools: {
+        totalCalls: 0,
+        totalSuccess: 0,
+        totalFail: 0,
+        totalDurationMs: 0,
+        totalDecisions: { accept: 0, reject: 0, modify: 0 },
+        byName: {},
+      },
+    };
+
+    const totalCost = 0.0425;
+    const costBreakdown = {
+      'openai/gpt-4o': {
+        cost: 0.0425,
+        inputTokens: 5000,
+        outputTokens: 3000,
+      },
+    };
+
+    const { lastFrame } = renderWithMockedStatsAndCost(metrics, totalCost, costBreakdown);
+    const output = lastFrame();
+
+    expect(output).toContain('Session Cost');
+    expect(output).toContain('Total cost: $0.043');
+    expect(output).toContain('openai/gpt-4o: $0.043');
   });
 });

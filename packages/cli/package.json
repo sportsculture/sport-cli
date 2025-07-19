@@ -1,15 +1,17 @@
 {
-  "name": "@google/gemini-cli",
+  "name": "@sport/cli",
   "version": "0.1.12",
-  "description": "Gemini CLI (Enhanced Multi-Provider Fork)",
+  "description": "sport-cli - Multi-Provider AI CLI",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/google-gemini/gemini-cli.git"
+    "url": "git+https://github.com/sportsculture/gemini-cli.git"
   },
   "type": "module",
   "main": "dist/index.js",
   "bin": {
-    "sprtscltr": "dist/index.js"
+    "sport": "dist/index.js",
+    "sprtscltr": "dist/index.js",
+    "gemini": "dist/src/bin/gemini-wrapper.js"
   },
   "scripts": {
     "build": "node ../../scripts/build_package.js",
@@ -28,7 +30,7 @@
     "sandboxImageUri": "us-docker.pkg.dev/gemini-code-dev/gemini-cli/sandbox:0.1.12"
   },
   "dependencies": {
-    "@google/gemini-cli-core": "file:../core",
+    "@sport/core": "file:../core",
     "@types/update-notifier": "^6.0.8",
     "command-exists": "^1.2.9",
     "diff": "^7.0.0",

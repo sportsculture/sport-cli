@@ -40,6 +40,7 @@ export const useSlashCommandProcessor = (
   toggleCorgiMode: () => void,
   setQuittingMessages: (message: HistoryItem[]) => void,
   openPrivacyNotice: () => void,
+  openModelSelector: () => void,
 ) => {
   const session = useSessionStats();
   const [commands, setCommands] = useState<SlashCommand[]>([]);
@@ -257,6 +258,9 @@ export const useSlashCommandProcessor = (
                     return { type: 'handled' };
                   case 'privacy':
                     openPrivacyNotice();
+                    return { type: 'handled' };
+                  case 'model':
+                    openModelSelector();
                     return { type: 'handled' };
                   default: {
                     const unhandled: never = result.dialog;

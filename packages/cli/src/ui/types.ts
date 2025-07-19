@@ -113,6 +113,12 @@ export type HistoryItemToolStats = HistoryItemBase & {
 export type HistoryItemQuit = HistoryItemBase & {
   type: 'quit';
   duration: string;
+  totalCost?: number;
+  costBreakdown?: Record<string, {
+    cost: number;
+    inputTokens: number;
+    outputTokens: number;
+  }>;
 };
 
 export type HistoryItemToolGroup = HistoryItemBase & {

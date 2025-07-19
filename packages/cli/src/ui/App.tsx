@@ -87,6 +87,7 @@ import ansiEscapes from 'ansi-escapes';
 import { OverflowProvider } from './contexts/OverflowContext.js';
 import { ShowMoreLines } from './components/ShowMoreLines.js';
 import { PrivacyNotice } from './privacy/PrivacyNotice.js';
+import { CostTracker } from './components/CostTracker.js';
 
 const CTRL_EXIT_PROMPT_DURATION_MS = 1000;
 
@@ -109,6 +110,19 @@ const App = ({ config, settings, startupWarnings = [], version }: AppProps) => {
   const [updateMessage, setUpdateMessage] = useState<string | null>(null);
   const { stdout } = useStdout();
   const nightly = version.includes('nightly');
+
+  // Check for legacy command usage and add deprecation warning
+  const allWarnings = useMemo(() => {
+    const warnings = [...startupWarnings];
+    if (process.env.IS_LEGACY_COMMAND === 'true') {
+      const legacyCommand = process.env.LEGACY_COMMAND_NAME || 'gemini';
+      warnings.unshift(
+        `⚠️  The '${legacyCommand}' command is deprecated and will be removed in v1.0.0.`,
+        `   Please use 'sport' instead. Run 'sport --help' for more information.`
+      );
+    }
+    return warnings;
+  }, [startupWarnings]);
 
   useEffect(() => {
     checkForUpdates().then(setUpdateMessage);
@@ -721,6 +735,7 @@ const App = ({ config, settings, startupWarnings = [], version }: AppProps) => {
   const staticAreaMaxItemHeight = Math.max(terminalHeight * 4, 100);
   return (
     <StreamingContext.Provider value={streamingState}>
+      <CostTracker />
       <Box flexDirection="column" marginBottom={1} width="90%">
         {/* Move UpdateNotification outside Static so it can re-render when updateMessage changes */}
         {updateMessage && <UpdateNotification message={updateMessage} />}
@@ -787,7 +802,7 @@ const App = ({ config, settings, startupWarnings = [], version }: AppProps) => {
         {showHelp && <Help commands={slashCommands} />}
 
         <Box flexDirection="column" ref={mainControlsRef}>
-          {startupWarnings.length > 0 && (
+          {allWarnings.length > 0 && (
             <Box
               borderStyle="round"
               borderColor={Colors.AccentYellow}
@@ -795,7 +810,7 @@ const App = ({ config, settings, startupWarnings = [], version }: AppProps) => {
               marginY={1}
               flexDirection="column"
             >
-              {startupWarnings.map((warning, index) => (
+              {allWarnings.map((warning, index) => (
                 <Text key={index} color={Colors.AccentYellow}>
                   {warning}
                 </Text>

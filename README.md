@@ -1,23 +1,25 @@
-# gemini-cli (Enhanced Multi-Provider Fork)
+# sport-cli - Multi-Provider AI CLI
 
-[![Gemini CLI CI](https://github.com/google-gemini/gemini-cli/actions/workflows/ci.yml/badge.svg)](https://github.com/google-gemini/gemini-cli/actions/workflows/ci.yml)
+[![sport-cli CI](https://github.com/sportsculture/gemini-cli/actions/workflows/ci.yml/badge.svg)](https://github.com/sportsculture/gemini-cli/actions/workflows/ci.yml)
 
-![Gemini CLI Screenshot](./docs/assets/gemini-screenshot.png)
+![sport-cli Screenshot](./docs/assets/gemini-screenshot.png)
 
-> **Note:** This is an enhanced fork of Google's official gemini-cli with support for multiple AI providers including OpenRouter and custom API endpoints.
+> **Origin:** sport-cli is a fork of [Google's gemini-cli](https://github.com/google-gemini/gemini-cli), extended with multi-provider AI support and enhanced features. We maintain an upstream remote to incorporate Google's ongoing improvements while adding our own innovations.
 
-This repository contains the Gemini CLI, a command-line AI workflow tool that connects to your
-tools, understands your code and accelerates your workflows.
+This repository contains sport-cli, a multi-provider command-line AI workflow tool that connects to your
+tools, understands your code and accelerates your workflows with support for various AI providers.
 
-With the Gemini CLI you can:
+With sport-cli you can:
 
-- Query and edit large codebases in and beyond Gemini's 1M token context window.
-- Generate new apps from PDFs or sketches, using Gemini's multimodal capabilities.
-- Automate operational tasks, like querying pull requests or handling complex rebases.
+- Query and edit large codebases using multiple AI providers (Gemini, OpenRouter, DeepSeek, and more)
+- Generate new apps from PDFs or sketches, using multimodal AI capabilities
+- Automate operational tasks, like querying pull requests or handling complex rebases
 - Use tools and MCP servers to connect new capabilities, including [media generation with Imagen,
   Veo or Lyria](https://github.com/GoogleCloudPlatform/vertex-ai-creative-studio/tree/main/experiments/mcp-genmedia)
 - Ground your queries with the [Google Search](https://ai.google.dev/gemini-api/docs/grounding)
-  tool, built in to Gemini.
+  tool when using Gemini
+- Switch between AI providers seamlessly with the `/model` command
+- Track token usage and costs across different providers
 
 ## Quickstart
 
@@ -25,20 +27,22 @@ With the Gemini CLI you can:
 2. **Run the CLI:** Execute the following command in your terminal:
 
    ```bash
-   npx https://github.com/google-gemini/gemini-cli
+   npx https://github.com/sportsculture/gemini-cli
    ```
 
    Or install it with:
 
    ```bash
-   npm install -g @google/gemini-cli
+   npm install -g @sport/sport-cli
    ```
 
    Then, run the CLI from anywhere:
 
    ```bash
-   gemini
+   sport
    ```
+   
+   > **Backward compatibility:** The `gemini` command is still available as an alias for existing users.
 
 3. **Pick a color theme**
 4. **Authenticate:** When prompted, sign in with your personal Google account. This will grant you up to 60 model requests per minute and 1,000 model requests per day using Gemini.
@@ -142,22 +146,22 @@ After running this script, the Zen MCP server will be available as a provider in
 
 ## Examples
 
-Once the CLI is running, you can start interacting with Gemini from your shell.
+Once the CLI is running, you can start interacting with your chosen AI provider from your shell.
 
 You can start a project from a new directory:
 
 ```sh
 cd new-project/
-gemini
-> Write me a Gemini Discord bot that answers questions using a FAQ.md file I will provide
+sport
+> Write me a Discord bot that answers questions using a FAQ.md file I will provide
 ```
 
 Or work with an existing project:
 
 ```sh
-git clone https://github.com/google-gemini/sprtscltr-cli
-cd sprtscltr-cli
-gemini
+git clone https://github.com/sportsculture/sport-cli
+cd sport-cli
+sport
 > Give me a summary of all of the changes that went in yesterday
 ```
 
@@ -224,6 +228,46 @@ Use MCP servers to integrate your local system tools with your enterprise collab
 ### Uninstall
 
 Head over to the [Uninstall](docs/Uninstall.md) guide for uninstallation instructions.
+
+## Fork Maintenance
+
+sport-cli maintains synchronization with the upstream Google gemini-cli repository to benefit from their ongoing improvements while adding our multi-provider enhancements. This section is for developers who want to contribute or understand how we manage the fork.
+
+### Key Principles
+
+1. **Minimize Divergence**: We keep our changes isolated in specific modules (e.g., `providers/` directory) to avoid conflicts
+2. **Clean Git History**: We use rebasing to maintain a linear history when syncing with upstream
+3. **Configurable Branding**: Branding is treated as a configuration layer, not hardcoded changes
+4. **Proper Attribution**: We maintain Google's copyright and clearly acknowledge the fork origin
+
+### Syncing with Upstream
+
+To sync with the latest changes from Google's gemini-cli:
+
+```bash
+# Add upstream remote (one-time setup)
+git remote add upstream https://github.com/google-gemini/gemini-cli.git
+
+# Sync with upstream
+git fetch upstream
+git checkout main
+git rebase upstream/main  # or 'git merge upstream/main' for merge commits
+# Resolve any conflicts, focusing on keeping our provider abstractions intact
+git push origin main
+```
+
+### Development Guidelines
+
+When adding new features:
+1. Create feature branches: `git checkout -b feature/your-feature`
+2. Keep commits atomic and well-described
+3. Isolate sport-cli specific features in dedicated directories
+4. Rebase frequently against main to incorporate upstream changes
+5. Submit PRs for review before merging
+
+### Contributing Back
+
+We aim to contribute architectural improvements back to upstream when they benefit the broader community. For example, our provider abstraction layer could enhance testability for the original project.
 
 ## Terms of Service and Privacy Notice
 

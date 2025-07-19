@@ -357,11 +357,170 @@
         ],
         "priority": "high",
         "subtasks": []
+      },
+      {
+        "id": 12,
+        "title": "Update Branding from Google Gemini CLI to Multi-Provider CLI",
+        "description": "Rebrand the entire codebase from \"Google Gemini CLI\" to a multi-provider CLI, updating all references in package.json files, README, documentation, CLI output, and hardcoded strings while maintaining backward compatibility where appropriate.",
+        "details": "1. **Package.json Updates**: Update all package.json files across the monorepo to reflect the new multi-provider branding. Change package names, descriptions, and metadata. Consider using a neutral name like \"AI CLI\" or \"Multi-AI CLI\" instead of provider-specific branding.\n\n2. **README and Documentation**: \n   - Update the main README.md and all package-specific READMEs to reflect multi-provider support\n   - Change project title, descriptions, and examples to be provider-agnostic\n   - Update installation instructions and usage examples to showcase multiple providers\n   - Ensure OpenRouter, DeepSeek, and other supported providers are prominently mentioned\n\n3. **CLI Output and Messages**:\n   - Search for all hardcoded strings containing \"Gemini\", \"Google Gemini CLI\", or similar references\n   - Update welcome messages, help text, and error messages to reflect multi-provider nature\n   - Update the CLI banner/logo if present to be provider-neutral\n   - Ensure model selection prompts clearly indicate multiple provider support\n\n4. **Code Comments and Internal References**:\n   - Update code comments that reference Gemini-specific functionality\n   - Rename variables, functions, or classes that have \"gemini\" in their names to be provider-agnostic\n   - Update TypeScript interfaces and types to use generic naming conventions\n\n5. **Backward Compatibility Considerations**:\n   - If the CLI was published under a Gemini-specific package name, consider publishing under a new name while deprecating the old one\n   - Maintain any Gemini-specific environment variables (e.g., GEMINI_API_KEY) alongside new generic ones\n   - Add migration guide for users upgrading from the Gemini-specific version\n   - Consider adding aliases for old commands if command names are changing\n\n6. **Configuration Files**:\n   - Update any default configuration files to reflect multi-provider support\n   - Ensure configuration schemas support multiple providers without bias toward Gemini\n\n7. **Build and CI/CD**:\n   - Update build scripts, GitHub Actions workflows, and other CI/CD configurations\n   - Change repository description and topics on GitHub to reflect multi-provider support",
+        "testStrategy": "1. **Comprehensive Text Search**: Use grep or similar tools to search for all instances of \"Gemini\", \"Google Gemini\", and related terms across the entire codebase. Verify no references remain after updates.\n\n2. **Package Installation Test**: Test that the package can be installed under its new name and that all functionality works as expected. If maintaining the old package name for compatibility, test that both work correctly.\n\n3. **CLI Output Verification**: Run all CLI commands and verify that output messages, help text, and error messages reflect the multi-provider branding. Take screenshots of key outputs for documentation.\n\n4. **Documentation Review**: Manually review all documentation files to ensure consistent branding and that examples work with multiple providers, not just Gemini.\n\n5. **Backward Compatibility Tests**: \n   - Test that existing Gemini API key environment variables still work\n   - Verify that any deprecated commands show appropriate warnings\n   - Test migration path from old to new configuration format\n\n6. **Integration Tests**: Run the full test suite to ensure no functionality is broken by the rebranding. Pay special attention to provider selection and authentication flows.\n\n7. **Build and Deploy Test**: Verify that the project builds successfully with new branding and that CI/CD pipelines execute without errors. Test package publishing if applicable.",
+        "status": "pending",
+        "dependencies": [
+          6,
+          9
+        ],
+        "priority": "high",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Update package.json files across monorepo",
+            "description": "Update all package.json files to rebrand from 'gemini-cli' to 'sport-cli', including package names, descriptions, bin commands, and metadata",
+            "dependencies": [],
+            "details": "Search for all package.json files in the monorepo and update: 1) 'name' field from any variation of 'gemini-cli' to 'sport-cli' or '@sport/[package-name]' for scoped packages, 2) 'description' field to reflect multi-provider AI CLI capabilities, 3) 'bin' field to change command from 'gemini' to 'sport', 4) 'keywords' array to include 'multi-provider', 'ai-cli', 'openrouter', 'deepseek' etc., 5) 'homepage', 'repository', and 'bugs' URLs if they contain 'gemini' references",
+            "status": "done",
+            "testStrategy": "Run 'npm install' and 'npm run build' in each package to ensure package.json changes don't break the build. Verify 'npm link' works correctly with new package names"
+          },
+          {
+            "id": 2,
+            "title": "Update CLI command with backward compatibility",
+            "description": "Change the main CLI command from 'gemini' to 'sport' while maintaining 'gemini' as a deprecated alias for backward compatibility",
+            "dependencies": [
+              1
+            ],
+            "details": "In the main CLI entry point (likely in packages/cli/src/index.ts or similar): 1) Update the primary command registration to use 'sport', 2) Add 'gemini' as an alias that shows a deprecation warning before executing the same functionality, 3) Update commander or yargs configuration to reflect the new command name, 4) Add a deprecation notice that appears when using 'gemini' command suggesting users switch to 'sport'",
+            "status": "done",
+            "testStrategy": "Test both 'sport' and 'gemini' commands work correctly. Verify deprecation warning appears only for 'gemini' command. Test all subcommands work with both aliases"
+          },
+          {
+            "id": 3,
+            "title": "Update all README.md files",
+            "description": "Replace all references to 'Gemini CLI' with 'sport-cli' in README files throughout the repository",
+            "dependencies": [
+              1
+            ],
+            "details": "Update: 1) Main README.md in repository root - change title, badges, installation instructions, usage examples, 2) Package-specific README files in each package directory, 3) Replace 'Google Gemini CLI' with 'sport-cli - Multi-Provider AI CLI', 4) Update installation commands from 'npm install -g gemini-cli' to 'npm install -g sport-cli', 5) Update all usage examples to use 'sport' command instead of 'gemini', 6) Add section highlighting multi-provider support (OpenRouter, DeepSeek, etc.)",
+            "status": "pending",
+            "testStrategy": "Use grep to ensure no 'Gemini CLI' or 'gemini-cli' references remain in README files. Manually review formatting and ensure all examples are updated"
+          },
+          {
+            "id": 4,
+            "title": "Update documentation in docs/ folder",
+            "description": "Update all documentation files to reflect the rebranding from Gemini CLI to sport-cli",
+            "dependencies": [
+              3
+            ],
+            "details": "Search docs/ folder for all .md, .mdx, or other documentation files and update: 1) Replace 'Gemini CLI' with 'sport-cli' in all text content, 2) Update code examples to use 'sport' command, 3) Update configuration examples to use new paths and environment variables, 4) Update any diagrams or images that contain 'Gemini' branding, 5) Ensure API documentation reflects multi-provider support, 6) Update any provider-specific guides to be provider-agnostic",
+            "status": "pending",
+            "testStrategy": "Build documentation site (if applicable) and verify all links work. Search for remaining 'gemini' references. Review generated documentation for consistency"
+          },
+          {
+            "id": 5,
+            "title": "Update hardcoded strings in source code",
+            "description": "Find and replace all hardcoded 'Gemini CLI' references in TypeScript/JavaScript source files",
+            "dependencies": [
+              2
+            ],
+            "details": "Search all .ts, .tsx, .js, .jsx files for: 1) String literals containing 'Gemini CLI', 'Google Gemini CLI', or similar, 2) Update CLI welcome messages, help text, error messages to use 'sport-cli', 3) Update any console.log statements, 4) Update error messages to be provider-agnostic, 5) Search for 'gemini' in variable names, function names, and class names - rename to generic terms like 'provider', 'ai', or 'sport', 6) Update any hardcoded URLs or API endpoints that reference Gemini",
+            "status": "pending",
+            "testStrategy": "Run the CLI and verify all user-facing text is updated. Use automated tests to check error messages. Grep for remaining 'gemini' references in source code"
+          },
+          {
+            "id": 6,
+            "title": "Migrate configuration directory with backward compatibility",
+            "description": "Change configuration directory from .gemini to .sport while providing automatic migration for existing users",
+            "dependencies": [
+              5
+            ],
+            "details": "Implement configuration migration: 1) Update default config directory path from '~/.gemini' to '~/.sport', 2) On startup, check if .gemini exists but .sport doesn't - if so, copy/migrate configuration, 3) Update all file I/O operations to use new path, 4) Create migration function that preserves user settings, API keys, and preferences, 5) Log migration status to inform users, 6) Update config file names if they contain 'gemini' (e.g., gemini-config.json to sport-config.json)",
+            "status": "pending",
+            "testStrategy": "Test fresh installation creates .sport directory. Test existing .gemini directory is migrated correctly. Verify all settings are preserved after migration"
+          },
+          {
+            "id": 7,
+            "title": "Update environment variables with backward compatibility",
+            "description": "Change environment variable prefixes from GEMINI_ to SPORT_ while maintaining support for old variables",
+            "dependencies": [
+              6
+            ],
+            "details": "Update environment variable handling: 1) Change all GEMINI_ prefixed variables to SPORT_ (e.g., GEMINI_API_KEY to SPORT_API_KEY), 2) Implement fallback logic that checks for old variables if new ones aren't set, 3) Add deprecation warnings when old variables are used, 4) Update .env.example files with new variable names, 5) Document both old and new variables in configuration guide, 6) Consider generic names like SPORT_OPENROUTER_API_KEY for provider-specific keys",
+            "status": "pending",
+            "testStrategy": "Test both old and new environment variables work. Verify deprecation warnings appear for old variables. Test precedence when both are set"
+          },
+          {
+            "id": 8,
+            "title": "Update CLI help text and command descriptions",
+            "description": "Update all help text, command descriptions, and usage information to reflect sport-cli branding",
+            "dependencies": [
+              5,
+              7
+            ],
+            "details": "Update command help text: 1) Main help banner should show 'sport-cli' and describe multi-provider capabilities, 2) Update all command descriptions to be provider-agnostic, 3) Update examples in help text to use 'sport' command, 4) Ensure --help output for all subcommands is updated, 5) Update version command output to show 'sport-cli', 6) Add provider list to help text showing supported providers (OpenRouter, DeepSeek, etc.)",
+            "status": "pending",
+            "testStrategy": "Run 'sport --help' and all subcommand help options. Verify all text is updated and no 'gemini' references remain. Check help text formatting is correct"
+          },
+          {
+            "id": 9,
+            "title": "Update license headers and copyright notices",
+            "description": "Update any license headers, copyright notices, and legal text to reflect the new sport-cli branding if needed",
+            "dependencies": [
+              8
+            ],
+            "details": "Review and update: 1) File headers in source code files that mention 'Gemini CLI', 2) LICENSE file if it contains specific product references, 3) Copyright notices in documentation, 4) Any third-party attribution files, 5) Update author/maintainer information if needed, 6) Ensure open source compliance for multi-provider support",
+            "status": "pending",
+            "testStrategy": "Grep for copyright notices and license headers. Verify LICENSE file is appropriate for multi-provider CLI. Check all legal requirements are met"
+          },
+          {
+            "id": 10,
+            "title": "Create comprehensive migration guide",
+            "description": "Create a migration guide for users upgrading from the Gemini-specific version to sport-cli",
+            "dependencies": [
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8,
+              9
+            ],
+            "details": "Create MIGRATION.md file containing: 1) Overview of changes from gemini-cli to sport-cli, 2) Step-by-step upgrade instructions, 3) Command mapping table (gemini -> sport), 4) Environment variable mapping (GEMINI_* -> SPORT_*), 5) Configuration directory migration (.gemini -> .sport), 6) Breaking changes and how to address them, 7) Benefits of multi-provider support, 8) FAQ section for common migration issues, 9) Rollback instructions if needed, 10) Timeline for deprecation of old commands/variables",
+            "status": "pending",
+            "testStrategy": "Follow the migration guide on a system with old gemini-cli installed. Verify all steps work correctly. Have team members review for clarity and completeness"
+          }
+        ]
+      },
+      {
+        "id": 13,
+        "title": "Fix CLI Test Failures for Slash Commands and Compression",
+        "description": "Resolve test failures in the CLI package specifically related to slash command processing and compression functionality, excluding any failures caused by branding changes.",
+        "details": "1. **Identify Failing Tests**: Run the test suite for the CLI package and identify all failing tests related to slash command processing and compression. Filter out any failures that are due to branding changes (Task #12).\n\n2. **Slash Command Processing Fixes**:\n   - Review test files in `/packages/cli/src/commands/` and `/packages/cli/src/ui/hooks/` directories\n   - Common issues to check:\n     - Command parsing logic expecting specific formats or delimiters\n     - Command handler registration and routing\n     - Async command execution and promise handling\n     - Input validation and error handling for malformed commands\n   - Update command processors to handle edge cases like empty commands, special characters, or concurrent command execution\n\n3. **Compression-Related Fixes**:\n   - Locate compression-related tests (likely in utilities or middleware)\n   - Common compression issues:\n     - Incorrect compression/decompression of command outputs\n     - Buffer handling for large outputs\n     - Encoding issues with compressed data\n     - Stream processing for real-time compression\n   - Ensure compression works correctly with various data types (text, JSON, binary)\n\n4. **Test Environment Setup**:\n   - Verify test environment configuration matches production settings\n   - Check for missing mock implementations or stubs\n   - Ensure test fixtures are up-to-date with current data structures\n   - Review test timeouts for async operations\n\n5. **Code Updates**:\n   - Fix implementation code based on test expectations\n   - Update deprecated API calls or library methods\n   - Ensure proper error handling and edge case coverage\n   - Add missing type definitions if using TypeScript\n\n6. **Test Refactoring** (if needed):\n   - Update outdated test assertions\n   - Fix flaky tests by adding proper wait conditions\n   - Improve test isolation to prevent cross-test contamination\n   - Add missing test cases discovered during debugging",
+        "testStrategy": "1. **Baseline Test Run**: Execute `npm test` or `yarn test` in the CLI package directory and document all failing tests related to slash commands and compression. Create a checklist of failures to track progress.\n\n2. **Isolated Test Execution**: Run failing tests individually using test runners' focused mode (e.g., `test.only()` or `--testNamePattern`) to isolate issues and reduce noise from other tests.\n\n3. **Debug Mode Testing**: Run tests with verbose logging or debug flags to capture detailed error messages and stack traces. Use debugger breakpoints in both test and implementation code.\n\n4. **Regression Testing**: After fixing each test, run the entire test suite to ensure no new failures are introduced. Pay special attention to related functionality that might be affected.\n\n5. **Edge Case Verification**:\n   - Test slash commands with special characters: `/test!@#$`, `/cmd with spaces`\n   - Test compression with various data sizes: empty, small (< 1KB), medium (1MB), large (> 10MB)\n   - Test error scenarios: invalid commands, compression failures, timeout conditions\n\n6. **Integration Testing**: Verify that fixed functionality works correctly in the actual CLI environment, not just in unit tests. Manually test key slash commands and compression features.\n\n7. **Performance Testing**: Ensure that fixes don't introduce performance regressions, especially for compression operations on large datasets.\n\n8. **CI/CD Verification**: Confirm all tests pass in the continuous integration environment, which may have different configurations than local development.",
+        "status": "pending",
+        "dependencies": [
+          9
+        ],
+        "priority": "medium",
+        "subtasks": []
+      },
+      {
+        "id": 14,
+        "title": "Fix OpenRouter API Error for Invalid Model ID",
+        "description": "Resolve the error where 'gemini-2.5-pro' is not recognized as a valid model ID by OpenRouter, and update the default model configuration to use a valid OpenRouter-supported model.",
+        "details": "1. **Identify the Issue Location**: Search the codebase for hardcoded references to 'gemini-2.5-pro' model ID, particularly in:\n   - Default configuration files (config.json, .env.example, etc.)\n   - Model selection logic in provider-specific implementations\n   - CLI initialization code where default models are set\n   - Any fallback model configurations\n\n2. **Verify Valid OpenRouter Models**: \n   - Check OpenRouter's API documentation or use their models endpoint to get a list of valid model IDs\n   - Common valid OpenRouter models include: 'openai/gpt-4', 'anthropic/claude-2', 'meta-llama/llama-2-70b-chat', 'google/palm-2-chat-bison', etc.\n   - Choose an appropriate default model that balances capability and cost\n\n3. **Update Default Configuration**:\n   - Replace 'gemini-2.5-pro' with a valid OpenRouter model ID (e.g., 'openai/gpt-3.5-turbo' for a cost-effective default)\n   - Ensure the replacement model is consistently available and well-supported\n   - Update any configuration schemas or TypeScript interfaces that define model IDs\n\n4. **Implement Model Validation**:\n   - Add a validation function that checks if a model ID is valid for the selected provider\n   - Consider caching the list of valid models from OpenRouter to avoid repeated API calls\n   - Provide helpful error messages when an invalid model is specified\n\n5. **Update Documentation**:\n   - Update any documentation that references the old default model\n   - Add notes about OpenRouter's model naming convention (provider/model-name format)\n   - Include examples of valid OpenRouter model IDs in configuration documentation\n\n6. **Consider Provider-Specific Defaults**:\n   - Implement a mapping of provider-specific default models\n   - For OpenRouter, use a widely available model like 'openai/gpt-3.5-turbo'\n   - For direct provider connections, use their native model IDs",
+        "testStrategy": "1. **Unit Tests for Model Validation**:\n   - Create tests that verify the model validation function correctly identifies valid and invalid OpenRouter model IDs\n   - Test that appropriate error messages are returned for invalid models\n   - Mock the OpenRouter API response for model listing to ensure consistent testing\n\n2. **Integration Tests with OpenRouter**:\n   - Test making actual API calls with the new default model to ensure it works correctly\n   - Verify that the model switch from 'gemini-2.5-pro' to the new default doesn't break existing functionality\n   - Test error handling when an invalid model is specified in configuration\n\n3. **Configuration Tests**:\n   - Verify that the default configuration loads the correct OpenRouter model\n   - Test that environment variable overrides work correctly with the new model ID\n   - Ensure backward compatibility for users who might have custom configurations\n\n4. **CLI Flow Testing**:\n   - Manually test the CLI with OpenRouter provider to ensure no 'invalid model' errors occur\n   - Test model selection flow to verify users can see and select valid OpenRouter models\n   - Verify that helpful error messages appear if users try to use incompatible model IDs\n\n5. **Regression Testing**:\n   - Run the full test suite to ensure the model change doesn't break other functionality\n   - Pay special attention to any tests that might have hardcoded the old model ID\n   - Test with multiple providers to ensure the fix doesn't affect non-OpenRouter providers",
+        "status": "pending",
+        "dependencies": [
+          1,
+          6
+        ],
+        "priority": "high",
+        "subtasks": []
       }
     ],
     "metadata": {
       "created": "2025-07-07T18:56:28.419Z",
-      "updated": "2025-07-17T23:33:24.917Z",
+      "updated": "2025-07-19T15:23:51.247Z",
       "description": "Tasks for master context"
     }
   }

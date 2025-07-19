@@ -23,6 +23,7 @@ import {
 import { retryWithBackoff } from '../utils/retry.js';
 import { IProvider, ModelInfo, ProviderStatus } from './types.js';
 import { DEFAULT_CUSTOM_API_MODEL } from '../config/models.js';
+import { ModelCacheService } from './modelCache.js';
 
 interface CustomApiMessage {
   role: 'system' | 'user' | 'assistant' | 'function';
@@ -578,6 +579,15 @@ export class CustomApiContentGenerator implements IProvider {
 
   // IProvider implementation
   async getAvailableModels(): Promise<ModelInfo[]> {
+    const cache = ModelCacheService.getInstance();
+    const providerId = `custom-api-${this.baseUrl}`;
+    
+    // Check cache first
+    const cachedModels = cache.getCachedModels(providerId);
+    if (cachedModels) {
+      return cachedModels;
+    }
+    
     // Try to fetch models from the custom API
     try {
       const response = await fetch(`${this.baseUrl}/v1/models`, {
@@ -592,7 +602,7 @@ export class CustomApiContentGenerator implements IProvider {
         const data = await response.json();
         const models = data.data || data.models || [];
         
-        return models.map((model: any) => ({
+        const modelInfos = models.map((model: any) => ({
           id: model.id || model.name,
           name: model.name || model.id,
           provider: 'Custom API',
@@ -605,13 +615,18 @@ export class CustomApiContentGenerator implements IProvider {
             strengths: model.strengths || ['General purpose'],
           },
         }));
+        
+        // Cache the models
+        cache.setCachedModels(providerId, modelInfos);
+        
+        return modelInfos;
       }
     } catch (error) {
       console.error('Error fetching custom API models:', error);
     }
 
     // Fallback to showing the configured model
-    return [{
+    const fallbackModels = [{
       id: this.model,
       name: this.model,
       provider: 'Custom API',
@@ -623,6 +638,11 @@ export class CustomApiContentGenerator implements IProvider {
         strengths: ['General purpose'],
       },
     }];
+    
+    // Cache the fallback
+    cache.setCachedModels(providerId, fallbackModels);
+    
+    return fallbackModels;
   }
 
   async checkConfiguration(): Promise<ProviderStatus> {

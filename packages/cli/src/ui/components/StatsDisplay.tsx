@@ -142,11 +142,13 @@ const ModelUsageTable: React.FC<{
 interface StatsDisplayProps {
   duration: string;
   title?: string;
+  additionalInfo?: string;
 }
 
 export const StatsDisplay: React.FC<StatsDisplayProps> = ({
   duration,
   title,
+  additionalInfo,
 }) => {
   const { stats } = useSessionStats();
   const { metrics } = stats;
@@ -253,6 +255,15 @@ export const StatsDisplay: React.FC<StatsDisplayProps> = ({
           totalCachedTokens={computed.totalCachedTokens}
           cacheEfficiency={computed.cacheEfficiency}
         />
+      )}
+
+      {additionalInfo && (
+        <>
+          <Box height={1} />
+          <Section title="Session Cost">
+            <Text>{additionalInfo}</Text>
+          </Section>
+        </>
       )}
     </Box>
   );

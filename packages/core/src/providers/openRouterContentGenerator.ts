@@ -23,6 +23,7 @@ import {
 import { retryWithBackoff } from '../utils/retry.js';
 import { IProvider, ModelInfo, ProviderStatus } from './types.js';
 import { OPENROUTER_MODELS } from '../config/models.js';
+import { ModelCacheService } from './modelCache.js';
 
 interface OpenRouterMessage {
   role: 'system' | 'user' | 'assistant' | 'tool';
@@ -612,9 +613,18 @@ export class OpenRouterContentGenerator implements IProvider {
 
   // IProvider implementation
   async getAvailableModels(): Promise<ModelInfo[]> {
+    const cache = ModelCacheService.getInstance();
+    const providerId = 'openrouter';
+    
+    // Check cache first
+    const cachedModels = cache.getCachedModels(providerId);
+    if (cachedModels) {
+      return cachedModels;
+    }
+    
     const models = await this.fetchModels();
     
-    return models.map(model => {
+    const modelInfos = models.map(model => {
       // Check if this is a known model from our predefined list
       const knownModel = Object.entries(OPENROUTER_MODELS).find(([_, id]) => id === model.id);
       const isDefault = model.id === 'deepseek/deepseek-chat';
@@ -643,6 +653,11 @@ export class OpenRouterContentGenerator implements IProvider {
 
       return modelInfo;
     });
+    
+    // Cache the models  
+    cache.setCachedModels(providerId, modelInfos);
+    
+    return modelInfos;
   }
 
   async checkConfiguration(): Promise<ProviderStatus> {

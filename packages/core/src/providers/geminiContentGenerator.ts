@@ -8,6 +8,7 @@ import { GoogleGenAI, Models } from '@google/genai';
 import { ContentGeneratorConfig } from '../core/contentGenerator.js';
 import { IProvider, ModelInfo, ProviderStatus } from './types.js';
 import { DEFAULT_GEMINI_MODEL, DEFAULT_GEMINI_FLASH_MODEL } from '../config/models.js';
+import { ModelCacheService } from './modelCache.js';
 
 /**
  * Wrapper for GoogleGenAI that implements IProvider interface
@@ -53,6 +54,15 @@ export class GeminiContentGenerator implements IProvider {
 
   // IProvider implementation
   async getAvailableModels(): Promise<ModelInfo[]> {
+    const cache = ModelCacheService.getInstance();
+    const providerId = 'gemini';
+    
+    // Check cache first
+    const cachedModels = cache.getCachedModels(providerId);
+    if (cachedModels) {
+      return cachedModels;
+    }
+    
     // Gemini doesn't have an API to list models dynamically, so we return a static list
     const models: ModelInfo[] = [
       {
@@ -109,6 +119,9 @@ export class GeminiContentGenerator implements IProvider {
       },
     ];
 
+    // Cache the models
+    cache.setCachedModels(providerId, models);
+    
     return models;
   }
 
