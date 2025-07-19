@@ -63,7 +63,7 @@ import {
   AuthType,
   type ActiveFile,
   ideContext,
-} from '@google/gemini-cli-core';
+} from '@sport/core';
 import { validateAuthMethod } from '../config/auth.js';
 import { useLogger } from './hooks/useLogger.js';
 import { StreamingContext } from './contexts/StreamingContext.js';
@@ -81,7 +81,7 @@ import {
   isProQuotaExceededError,
   isGenericQuotaExceededError,
   UserTierId,
-} from '@google/gemini-cli-core';
+} from '@sport/core';
 import { checkForUpdates } from './utils/updateCheck.js';
 import ansiEscapes from 'ansi-escapes';
 import { OverflowProvider } from './contexts/OverflowContext.js';
@@ -118,7 +118,7 @@ const App = ({ config, settings, startupWarnings = [], version }: AppProps) => {
       const legacyCommand = process.env.LEGACY_COMMAND_NAME || 'gemini';
       warnings.unshift(
         `⚠️  The '${legacyCommand}' command is deprecated and will be removed in v1.0.0.`,
-        `   Please use 'sport' instead. Run 'sport --help' for more information.`
+        `   Please use 'sport' instead. Run 'sport --help' for more information.`,
       );
     }
     return warnings;

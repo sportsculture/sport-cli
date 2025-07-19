@@ -19,7 +19,7 @@ import {
   TelemetryTarget,
   MCPServerConfig,
   IDE_SERVER_NAME,
-} from '@google/gemini-cli-core';
+} from '@sport/core';
 import { Settings } from './settings.js';
 
 import { Extension, annotateActiveExtensions } from './extension.js';

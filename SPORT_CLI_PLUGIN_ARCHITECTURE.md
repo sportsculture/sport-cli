@@ -14,20 +14,26 @@ interface SportCliPlugin {
   description?: string;
   author?: string;
   dependencies?: PluginDependency[];
-  
+
   // Lifecycle
   onLoad?: () => Promise<void>;
   onUnload?: () => Promise<void>;
-  
+
   // Hooks with error boundaries
   hooks: {
     beforeShellExecute?: (cmd: string, context: HookContext) => Promise<string>;
-    afterShellExecute?: (result: ShellResult, context: HookContext) => Promise<ShellResult>;
+    afterShellExecute?: (
+      result: ShellResult,
+      context: HookContext,
+    ) => Promise<ShellResult>;
     onConfigLoad?: (config: Config, context: HookContext) => Promise<Config>;
-    onHistoryWrite?: (entry: HistoryEntry, context: HookContext) => Promise<HistoryEntry>;
+    onHistoryWrite?: (
+      entry: HistoryEntry,
+      context: HookContext,
+    ) => Promise<HistoryEntry>;
     onError?: (error: Error, context: ErrorContext) => Promise<void>;
   };
-  
+
   // Security
   permissions?: PluginPermission[];
   sandbox?: boolean;
@@ -44,28 +50,30 @@ Every hook execution is wrapped in an error boundary:
 class PluginExecutor {
   async executeHook(plugin: SportCliPlugin, hookName: string, ...args: any[]) {
     const timeout = this.config.pluginTimeout || 5000;
-    
+
     try {
       return await Promise.race([
         plugin.hooks[hookName](...args),
-        new Promise((_, reject) => 
-          setTimeout(() => reject(new Error('Plugin timeout')), timeout)
-        )
+        new Promise((_, reject) =>
+          setTimeout(() => reject(new Error('Plugin timeout')), timeout),
+        ),
       ]);
     } catch (error) {
       // Log error
-      this.logger.warn(`Plugin ${plugin.name} failed in ${hookName}: ${error.message}`);
-      
+      this.logger.warn(
+        `Plugin ${plugin.name} failed in ${hookName}: ${error.message}`,
+      );
+
       // Call plugin's error handler if available
       if (plugin.hooks.onError) {
         await plugin.hooks.onError(error, { hookName, args });
       }
-      
+
       // Check if error is fatal
       if (error instanceof SportCliFatalError) {
         throw error; // Propagate fatal errors
       }
-      
+
       // Return original input for non-fatal errors
       return args[0];
     }
@@ -78,14 +86,21 @@ class PluginExecutor {
 ```typescript
 // Non-fatal: Plugin fails but CLI continues
 class PluginError extends Error {
-  constructor(message: string, public plugin: string, public hook: string) {
+  constructor(
+    message: string,
+    public plugin: string,
+    public hook: string,
+  ) {
     super(message);
   }
 }
 
 // Fatal: Stop execution
 class SportCliFatalError extends Error {
-  constructor(message: string, public plugin: string) {
+  constructor(
+    message: string,
+    public plugin: string,
+  ) {
     super(message);
   }
 }
@@ -109,12 +124,12 @@ Plugins are loaded in this sequence:
 {
   "plugins": {
     "load": [
-      "transparent-bash",      // Priority 1
-      "security-scanner",      // Priority 2
-      "history-logger"         // Priority 3
+      "transparent-bash", // Priority 1
+      "security-scanner", // Priority 2
+      "history-logger" // Priority 3
     ],
     "priority": {
-      "security-scanner": 100,  // Override default order
+      "security-scanner": 100, // Override default order
       "transparent-bash": 90
     }
   }
@@ -140,10 +155,10 @@ export default {
   name: 'advanced-history',
   dependencies: [
     { name: 'persistent-history', version: '^1.0.0' },
-    { name: 'event-bus', version: '^2.0.0', optional: true }
+    { name: 'event-bus', version: '^2.0.0', optional: true },
   ],
   // ...
-}
+};
 ```
 
 ### Dependency Resolution
@@ -153,11 +168,11 @@ class PluginManager {
   async resolveDependencies(plugin: SportCliPlugin) {
     for (const dep of plugin.dependencies || []) {
       const loaded = this.plugins.get(dep.name);
-      
+
       if (!loaded && !dep.optional) {
         throw new Error(`Missing required dependency: ${dep.name}`);
       }
-      
+
       if (loaded && !semver.satisfies(loaded.version, dep.version)) {
         throw new Error(`Incompatible version for ${dep.name}`);
       }
@@ -177,7 +192,7 @@ enum PluginPermission {
   NETWORK = 'network',
   SHELL_EXECUTE = 'shell:execute',
   CONFIG_MODIFY = 'config:modify',
-  HISTORY_ACCESS = 'history:access'
+  HISTORY_ACCESS = 'history:access',
 }
 
 // Plugin declares required permissions
@@ -185,10 +200,10 @@ export default {
   name: 'file-manager',
   permissions: [
     PluginPermission.FILESYSTEM_READ,
-    PluginPermission.FILESYSTEM_WRITE
+    PluginPermission.FILESYSTEM_WRITE,
   ],
   // ...
-}
+};
 ```
 
 ### Sandbox Execution
@@ -198,12 +213,12 @@ export default {
 class PluginSandbox {
   async execute(plugin: SportCliPlugin, hook: string, args: any[]) {
     const worker = new Worker('./plugin-worker.js');
-    
+
     return new Promise((resolve, reject) => {
       worker.postMessage({ plugin: plugin.name, hook, args });
       worker.on('message', resolve);
       worker.on('error', reject);
-      
+
       // Timeout protection
       setTimeout(() => {
         worker.terminate();
@@ -237,7 +252,7 @@ const metrics = new Map<string, PluginMetrics>();
     "maxPlugins": 20,
     "hookTimeout": 5000,
     "totalTimeout": 30000,
-    "warnThreshold": 100  // ms per hook
+    "warnThreshold": 100 // ms per hook
   }
 }
 ```
@@ -254,12 +269,12 @@ export default class MyFeaturePlugin implements SportCliPlugin {
   name = 'my-feature';
   version = '1.0.0';
   description = 'Adds amazing functionality';
-  
+
   async onLoad() {
     // Initialize resources
     console.log(`${this.name} loaded`);
   }
-  
+
   hooks = {
     async beforeShellExecute(cmd: string, context: HookContext) {
       // Your logic here
@@ -267,14 +282,14 @@ export default class MyFeaturePlugin implements SportCliPlugin {
         return this.enhanceCommand(cmd);
       }
       return cmd;
-    }
+    },
   };
-  
+
   private shouldModifyCommand(cmd: string): boolean {
     // Implementation
     return cmd.includes('npm');
   }
-  
+
   private enhanceCommand(cmd: string): string {
     // Implementation
     return `echo "Running: ${cmd}" && ${cmd}`;
@@ -291,18 +306,18 @@ import MyFeaturePlugin from './index';
 
 describe('MyFeaturePlugin', () => {
   let harness: PluginTestHarness;
-  
+
   beforeEach(() => {
     harness = new PluginTestHarness();
     harness.loadPlugin(new MyFeaturePlugin());
   });
-  
+
   it('should enhance npm commands', async () => {
     const result = await harness.executeHook(
       'beforeShellExecute',
-      'npm install'
+      'npm install',
     );
-    
+
     expect(result).toContain('echo "Running: npm install"');
   });
 });
@@ -399,7 +414,7 @@ If you have existing core modifications:
 // Before: Modified shell.ts directly
 class ShellTool {
   execute(cmd) {
-    console.log("Executing:", cmd); // Your modification
+    console.log('Executing:', cmd); // Your modification
     return super.execute(cmd);
   }
 }
@@ -409,10 +424,10 @@ export default {
   name: 'shell-logger',
   hooks: {
     beforeShellExecute: (cmd) => {
-      console.log("Executing:", cmd);
+      console.log('Executing:', cmd);
       return cmd;
-    }
-  }
+    },
+  },
 };
 ```
 
@@ -421,18 +436,21 @@ export default {
 ### Common Issues
 
 **Plugin not loading:**
+
 ```bash
 sport plugin diagnose my-plugin
 # Checks: file exists, valid syntax, permissions, dependencies
 ```
 
 **Hook not firing:**
+
 ```bash
 sport --trace-hooks shell "ls"
 # Shows: which plugins are called, in what order
 ```
 
 **Performance degradation:**
+
 ```bash
 sport plugin profile --threshold 50ms
 # Lists slow plugins exceeding threshold

@@ -21,7 +21,7 @@ let globalPluginManager: PluginManager | null = null;
  */
 export async function initializePlugins(
   config: Config,
-  options?: PluginLoadOptions
+  options?: PluginLoadOptions,
 ): Promise<PluginManager> {
   if (!globalPluginManager) {
     globalPluginManager = new PluginManager(config);
@@ -42,7 +42,7 @@ export function getPluginManager(): PluginManager | null {
  */
 export async function loadAll(
   config: Config,
-  options?: PluginLoadOptions
+  options?: PluginLoadOptions,
 ): Promise<PluginManager> {
   return initializePlugins(config, options);
 }

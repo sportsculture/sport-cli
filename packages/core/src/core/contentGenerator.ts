@@ -13,7 +13,11 @@ import {
   EmbedContentParameters,
 } from '@google/genai';
 import { createCodeAssistContentGenerator } from '../code_assist/codeAssist.js';
-import { DEFAULT_GEMINI_MODEL, DEFAULT_OPENROUTER_MODEL, DEFAULT_CUSTOM_API_MODEL } from '../config/models.js';
+import {
+  DEFAULT_GEMINI_MODEL,
+  DEFAULT_OPENROUTER_MODEL,
+  DEFAULT_CUSTOM_API_MODEL,
+} from '../config/models.js';
 import { Config } from '../config/config.js';
 import { getEffectiveModel } from './modelCheck.js';
 import { UserTierId } from '../code_assist/types.js';
@@ -81,7 +85,7 @@ export function createContentGeneratorConfig(
   } else if (authType === AuthType.USE_CUSTOM_API) {
     defaultModel = DEFAULT_CUSTOM_API_MODEL;
   }
-  
+
   // Use runtime model from config if available, otherwise fallback to default
   const effectiveModel = config.getModel() || defaultModel;
 
@@ -127,7 +131,11 @@ export function createContentGeneratorConfig(
     return contentGeneratorConfig;
   }
 
-  if (authType === AuthType.USE_CUSTOM_API && customApiKey && customApiEndpoint) {
+  if (
+    authType === AuthType.USE_CUSTOM_API &&
+    customApiKey &&
+    customApiEndpoint
+  ) {
     contentGeneratorConfig.apiKey = customApiKey;
     contentGeneratorConfig.customEndpoint = customApiEndpoint;
     // Custom API models don't need validation
@@ -180,7 +188,9 @@ export async function createContentGenerator(
   );
 }
 
-export function isProvider(generator: ContentGenerator): generator is IProvider {
+export function isProvider(
+  generator: ContentGenerator,
+): generator is IProvider {
   return (
     'getAvailableModels' in generator &&
     'checkConfiguration' in generator &&

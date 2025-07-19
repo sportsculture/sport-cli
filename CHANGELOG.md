@@ -8,13 +8,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+
 - **Session Cost Tracking**: Real-time tracking of AI model costs during sessions
   - Displays total session cost when quitting
   - Shows cost breakdown by model when switching between providers
   - Tracks costs across model switches within a session
   - Handles free tier (Gemini) vs paid models appropriately
   - Smart cost formatting based on amount (e.g., "Free", "<$0.0001", "$0.043")
-  
 - **Model Caching (24-hour)**: Centralized caching system for model listings
   - Reduces API calls to provider endpoints
   - 24-hour cache duration for all providers (Gemini, OpenRouter, Custom API)
@@ -34,6 +34,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Seamless switching between providers during active sessions
 
 ### Changed
+
 - Rebranded from `gemini-cli` to `sport-cli` with backward compatibility
   - Main command changed from `gemini` to `sport`
   - `gemini` command still works but shows deprecation warning
@@ -41,7 +42,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Changed copyright to SportsCulture LLC while maintaining Apache-2.0 license
 
 ### Fixed
+
 - Token counting now correctly accumulates conversation history in input tokens
 
 ## [0.1.12] - Previous releases
+
 See git history for changes in previous versions.

@@ -7,7 +7,10 @@
 import { GoogleGenAI, Models } from '@google/genai';
 import { ContentGeneratorConfig } from '../core/contentGenerator.js';
 import { IProvider, ModelInfo, ProviderStatus } from './types.js';
-import { DEFAULT_GEMINI_MODEL, DEFAULT_GEMINI_FLASH_MODEL } from '../config/models.js';
+import {
+  DEFAULT_GEMINI_MODEL,
+  DEFAULT_GEMINI_FLASH_MODEL,
+} from '../config/models.js';
 import { ModelCacheService } from './modelCache.js';
 
 /**
@@ -32,7 +35,9 @@ export class GeminiContentGenerator implements IProvider {
     return this.models.generateContent(...args);
   }
 
-  async generateContentStream(...args: Parameters<Models['generateContentStream']>) {
+  async generateContentStream(
+    ...args: Parameters<Models['generateContentStream']>
+  ) {
     return this.models.generateContentStream(...args);
   }
 
@@ -56,13 +61,13 @@ export class GeminiContentGenerator implements IProvider {
   async getAvailableModels(): Promise<ModelInfo[]> {
     const cache = ModelCacheService.getInstance();
     const providerId = 'gemini';
-    
+
     // Check cache first
     const cachedModels = cache.getCachedModels(providerId);
     if (cachedModels) {
       return cachedModels;
     }
-    
+
     // Gemini doesn't have an API to list models dynamically, so we return a static list
     const models: ModelInfo[] = [
       {
@@ -121,7 +126,7 @@ export class GeminiContentGenerator implements IProvider {
 
     // Cache the models
     cache.setCachedModels(providerId, models);
-    
+
     return models;
   }
 
@@ -130,7 +135,8 @@ export class GeminiContentGenerator implements IProvider {
       return {
         isConfigured: false,
         errorMessage: 'No API key configured',
-        configInstructions: 'Set GEMINI_API_KEY environment variable with your Gemini API key from https://aistudio.google.com/apikey',
+        configInstructions:
+          'Set GEMINI_API_KEY environment variable with your Gemini API key from https://aistudio.google.com/apikey',
       };
     }
 
@@ -149,7 +155,8 @@ export class GeminiContentGenerator implements IProvider {
         return {
           isConfigured: false,
           errorMessage: 'Invalid API key',
-          configInstructions: 'Check your GEMINI_API_KEY is valid at https://aistudio.google.com/apikey',
+          configInstructions:
+            'Check your GEMINI_API_KEY is valid at https://aistudio.google.com/apikey',
         };
       }
 

@@ -228,8 +228,8 @@ Use this tool when the user's query implies needing the content of several files
 
     // Add a note if .geminiignore patterns contributed to the final list of exclusions
     if (this.geminiIgnorePatterns.length > 0) {
-      const geminiPatternsInEffect = this.geminiIgnorePatterns.filter((p: string) =>
-        finalExclusionPatternsForDescription.includes(p),
+      const geminiPatternsInEffect = this.geminiIgnorePatterns.filter(
+        (p: string) => finalExclusionPatternsForDescription.includes(p),
       ).length;
       if (geminiPatternsInEffect > 0) {
         excludeDesc += ` (includes ${geminiPatternsInEffect} from .geminiignore)`;

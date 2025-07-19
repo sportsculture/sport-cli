@@ -13,11 +13,7 @@ import React, {
   useEffect,
 } from 'react';
 
-import {
-  uiTelemetryService,
-  SessionMetrics,
-  ModelMetrics,
-} from '@google/gemini-cli-core';
+import { uiTelemetryService, SessionMetrics, ModelMetrics } from '@sport/core';
 
 // --- Interface Definitions ---
 
@@ -30,11 +26,14 @@ export interface SessionStatsState {
   promptCount: number;
   costTracking: {
     totalCost: number;
-    byModel: Record<string, {
-      cost: number;
-      inputTokens: number;
-      outputTokens: number;
-    }>;
+    byModel: Record<
+      string,
+      {
+        cost: number;
+        inputTokens: number;
+        outputTokens: number;
+      }
+    >;
   };
 }
 
@@ -58,7 +57,12 @@ interface SessionStatsContextValue {
   stats: SessionStatsState;
   startNewPrompt: () => void;
   getPromptCount: () => number;
-  updateCosts: (modelId: string, cost: number, inputTokens: number, outputTokens: number) => void;
+  updateCosts: (
+    modelId: string,
+    cost: number,
+    inputTokens: number,
+    outputTokens: number,
+  ) => void;
 }
 
 // --- Context Definition ---
@@ -123,7 +127,12 @@ export const SessionStatsProvider: React.FC<{ children: React.ReactNode }> = ({
   );
 
   const updateCosts = useCallback(
-    (modelId: string, cost: number, inputTokens: number, outputTokens: number) => {
+    (
+      modelId: string,
+      cost: number,
+      inputTokens: number,
+      outputTokens: number,
+    ) => {
       setStats((prevState) => {
         const modelCosts = prevState.costTracking.byModel[modelId] || {
           cost: 0,

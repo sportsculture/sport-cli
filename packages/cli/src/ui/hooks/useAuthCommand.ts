@@ -12,7 +12,7 @@ import {
   clearCachedCredentialFile,
   getErrorMessage,
   shouldAttemptBrowserLaunch,
-} from '@google/gemini-cli-core';
+} from '@sport/core';
 import { runExitCleanup } from '../../utils/cleanup.js';
 
 export const useAuthCommand = (
@@ -41,7 +41,8 @@ export const useAuthCommand = (
 
       // Check if we need API key for OpenRouter or Custom API
       if (
-        (authType === AuthType.USE_OPENROUTER && !process.env.OPENROUTER_API_KEY) ||
+        (authType === AuthType.USE_OPENROUTER &&
+          !process.env.OPENROUTER_API_KEY) ||
         (authType === AuthType.USE_CUSTOM_API && !process.env.CUSTOM_API_KEY)
       ) {
         setPendingAuthType(authType);
@@ -62,7 +63,14 @@ export const useAuthCommand = (
     };
 
     void authFlow();
-  }, [isAuthDialogOpen, settings, config, setAuthError, openAuthDialog, needsApiKey]);
+  }, [
+    isAuthDialogOpen,
+    settings,
+    config,
+    setAuthError,
+    openAuthDialog,
+    needsApiKey,
+  ]);
 
   const handleAuthSelect = useCallback(
     async (authType: AuthType | undefined, scope: SettingScope) => {

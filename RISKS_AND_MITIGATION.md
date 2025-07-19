@@ -2,13 +2,13 @@
 
 ## Risk Matrix
 
-| Risk | Probability | Impact | Mitigation | Owner |
-|------|-------------|---------|------------|--------|
-| Upstream breaking changes | High | High | Plugin architecture, version pinning | Tech Lead |
-| Plugin security vulnerabilities | Medium | High | Sandboxing, permissions, scanning | Security |
-| Performance degradation | Medium | Medium | Budgets, profiling, lazy loading | Performance |
-| Legal/licensing issues | Low | High | Compliance checks, attribution | Legal |
-| Community fragmentation | Medium | Medium | Clear communication, compatibility | Community |
+| Risk                            | Probability | Impact | Mitigation                           | Owner       |
+| ------------------------------- | ----------- | ------ | ------------------------------------ | ----------- |
+| Upstream breaking changes       | High        | High   | Plugin architecture, version pinning | Tech Lead   |
+| Plugin security vulnerabilities | Medium      | High   | Sandboxing, permissions, scanning    | Security    |
+| Performance degradation         | Medium      | Medium | Budgets, profiling, lazy loading     | Performance |
+| Legal/licensing issues          | Low         | High   | Compliance checks, attribution       | Legal       |
+| Community fragmentation         | Medium      | Medium | Clear communication, compatibility   | Community   |
 
 ## Detailed Risk Analysis
 
@@ -17,12 +17,14 @@
 **Risk:** Google restructures gemini-cli architecture, making our plugins incompatible
 
 **Scenarios:**
+
 - Complete rewrite in different language
 - Removal of extension points we depend on
 - Fundamental architecture changes
 - Abandonment of project
 
 **Mitigation:**
+
 ```typescript
 // Version pinning strategy
 {
@@ -37,6 +39,7 @@
 ```
 
 **Contingency Plan:**
+
 1. Freeze at last compatible version
 2. Fork permanently with full maintenance
 3. Gradually replace core components
@@ -47,12 +50,14 @@
 **Risk:** Malicious or vulnerable plugins compromise user systems
 
 **Attack Vectors:**
+
 - Code injection through plugins
 - Privilege escalation
 - Data exfiltration
 - Supply chain attacks
 
 **Mitigation:**
+
 ```typescript
 // Plugin security scanner
 class PluginSecurityScanner {
@@ -61,17 +66,17 @@ class PluginSecurityScanner {
       this.checkPermissions(plugin),
       this.scanDependencies(plugin),
       this.analyzeCodePatterns(plugin),
-      this.verifySignature(plugin)
+      this.verifySignature(plugin),
     ];
-    
+
     return Promise.all(checks);
   }
-  
+
   private checkPermissions(plugin: Plugin) {
     // Verify declared vs actual permissions
     const declaredPerms = plugin.permissions || [];
     const detectedPerms = this.detectPermissions(plugin.code);
-    
+
     if (!declaredPerms.includes('filesystem') && detectedPerms.includes('fs')) {
       throw new SecurityError('Undeclared filesystem access');
     }
@@ -80,6 +85,7 @@ class PluginSecurityScanner {
 ```
 
 **Security Measures:**
+
 - Mandatory code signing for official plugins
 - Automated vulnerability scanning
 - Sandboxed execution environment
@@ -91,26 +97,28 @@ class PluginSecurityScanner {
 **Risk:** Too many plugins or inefficient code slows CLI to unusable levels
 
 **Symptoms:**
+
 - Startup time > 2 seconds
 - Command latency > 500ms
 - Memory usage > 200MB
 - CPU spikes
 
 **Mitigation:**
+
 ```typescript
 // Performance monitoring
 class PerformanceMonitor {
   private budgets = {
-    startup: 1000,      // ms
-    hookExecution: 50,  // ms per hook
-    memory: 150 * 1024 * 1024  // 150MB
+    startup: 1000, // ms
+    hookExecution: 50, // ms per hook
+    memory: 150 * 1024 * 1024, // 150MB
   };
-  
+
   async measureStartup() {
     const start = process.hrtime.bigint();
     await this.loadPlugins();
     const end = process.hrtime.bigint();
-    
+
     const duration = Number(end - start) / 1e6;
     if (duration > this.budgets.startup) {
       this.warn(`Startup exceeded budget: ${duration}ms`);
@@ -121,6 +129,7 @@ class PerformanceMonitor {
 ```
 
 **Optimization Strategies:**
+
 - Lazy loading plugins
 - Parallel plugin initialization
 - Command-specific plugin loading
@@ -132,18 +141,20 @@ class PerformanceMonitor {
 **Risk:** sport-cli becomes too large for quick installation/updates
 
 **Current Limits:**
+
 - npm package: < 50MB
 - Installed size: < 150MB
 - Docker image: < 500MB
 
 **Mitigation:**
+
 ```bash
 # Size tracking in CI
 - name: Check Binary Size
   run: |
     SIZE=$(du -sh dist/ | cut -f1)
     echo "Binary size: $SIZE"
-    
+
     # Fail if over limit
     if [ $(du -s dist/ | cut -f1) -gt 51200 ]; then
       echo "Binary too large!"
@@ -152,6 +163,7 @@ class PerformanceMonitor {
 ```
 
 **Size Reduction:**
+
 - Tree shaking unused code
 - Separate optional features
 - CDN for large assets
@@ -162,6 +174,7 @@ class PerformanceMonitor {
 **Risk:** Deprecated features trigger chain reaction of breaking changes
 
 **Example Cascade:**
+
 ```
 Google deprecates shell tool
   → Our transparent-bash plugin breaks
@@ -171,13 +184,14 @@ Google deprecates shell tool
 ```
 
 **Mitigation:**
+
 ```typescript
 // Deprecation management
 interface DeprecationPolicy {
   feature: string;
-  deprecated: string;  // Version when deprecated
-  removal: string;     // Version when removed
-  migration: string;   // Migration guide URL
+  deprecated: string; // Version when deprecated
+  removal: string; // Version when removed
+  migration: string; // Migration guide URL
   alternative?: string;
 }
 
@@ -198,6 +212,7 @@ class DeprecationManager {
 **Risk:** Merge conflicts become unmanageable as fork diverges
 
 **Tracking Divergence:**
+
 ```bash
 # Divergence metrics
 git rev-list --count upstream/main..main  # Commits ahead
@@ -205,6 +220,7 @@ git diff --stat upstream/main..main       # Files changed
 ```
 
 **Mitigation:**
+
 - Modular architecture
 - Minimal core patches
 - Abstract interfaces
@@ -216,12 +232,14 @@ git diff --stat upstream/main..main       # Files changed
 **Risk:** Inheriting or introducing privacy concerns
 
 **Concerns:**
+
 - Upstream telemetry
 - Plugin data collection
 - Command history exposure
 - API key leakage
 
 **Mitigation:**
+
 ```typescript
 // Telemetry control
 export class TelemetryManager {
@@ -230,17 +248,17 @@ export class TelemetryManager {
     this.disableUpstreamTelemetry();
     this.initializePrivacyMode();
   }
-  
+
   private disableUpstreamTelemetry() {
     process.env.GEMINI_TELEMETRY_DISABLED = '1';
     process.env.DO_NOT_TRACK = '1';
   }
-  
+
   async logEvent(event: string, data?: any) {
     if (!this.config.get('telemetry.enabled')) {
       return; // No-op when disabled
     }
-    
+
     // Sanitize sensitive data
     const sanitized = this.sanitize(data);
     await this.send(event, sanitized);
@@ -253,11 +271,13 @@ export class TelemetryManager {
 **Risk:** Frequent updates frustrate users or break workflows
 
 **User Impact:**
+
 - CI/CD pipelines breaking
 - Muscle memory disrupted
 - Configuration migration burden
 
 **Mitigation:**
+
 - Stable release channel
 - LTS versions
 - Backward compatibility
@@ -269,11 +289,13 @@ export class TelemetryManager {
 **Risk:** Incompatible plugins create confusing ecosystem
 
 **Problems:**
+
 - Plugin A requires Plugin B v1
 - Plugin C requires Plugin B v2
 - User can't use A and C together
 
 **Mitigation:**
+
 ```json
 // Plugin compatibility matrix
 {
@@ -291,11 +313,13 @@ export class TelemetryManager {
 **Risk:** Users confuse sport-cli with official Google tool
 
 **Issues:**
+
 - Support requests to Google
 - Reputation damage
 - Legal concerns
 
 **Mitigation:**
+
 - Clear branding
 - Prominent "NOT GOOGLE" disclaimer
 - Different visual identity
@@ -306,16 +330,19 @@ export class TelemetryManager {
 ### Severity Levels
 
 **P0 - Critical:** Data loss, security breach, complete breakage
+
 - Response time: 1 hour
 - Fix timeline: 24 hours
 - Communication: Immediate
 
 **P1 - Major:** Key features broken, performance severely degraded
+
 - Response time: 4 hours
 - Fix timeline: 48 hours
 - Communication: Within 12 hours
 
 **P2 - Minor:** Non-critical bugs, minor incompatibilities
+
 - Response time: 24 hours
 - Fix timeline: 1 week
 - Communication: In release notes
@@ -359,27 +386,29 @@ git checkout -b hotfix/$SEVERITY-$(date +%Y%m%d)
 ## Monitoring and Alerts
 
 ### Key Metrics
+
 ```yaml
 # monitoring/alerts.yml
 alerts:
   - name: upstream_divergence_high
     condition: commits_ahead > 100
     severity: warning
-    
+
   - name: plugin_errors_spike
-    condition: error_rate > 0.05  # 5%
+    condition: error_rate > 0.05 # 5%
     severity: critical
-    
+
   - name: performance_degradation
     condition: p95_latency > 500ms
     severity: warning
-    
+
   - name: binary_size_exceeded
     condition: package_size > 50MB
     severity: warning
 ```
 
 ### Dashboard
+
 - Upstream sync status
 - Plugin health metrics
 - Performance trends
@@ -389,6 +418,7 @@ alerts:
 ## Review Schedule
 
 This risk assessment should be reviewed:
+
 - **Quarterly:** Regular review
 - **After major releases:** Post-mortem
 - **After incidents:** Lessons learned

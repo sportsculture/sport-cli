@@ -16,17 +16,17 @@ export interface SportCliPlugin {
   version: string;
   description?: string;
   author?: string;
-  
+
   // Dependencies
   dependencies?: PluginDependency[];
-  
+
   // Lifecycle hooks
   onLoad?: () => Promise<void>;
   onUnload?: () => Promise<void>;
-  
+
   // Execution hooks
   hooks: PluginHooks;
-  
+
   // Security
   permissions?: PluginPermission[];
   sandbox?: boolean;
@@ -45,10 +45,22 @@ export interface PluginDependency {
  * Available plugin hooks
  */
 export interface PluginHooks {
-  beforeShellExecute?: (cmd: string, context: HookContext) => Promise<string> | string;
-  afterShellExecute?: (result: ShellResult, context: HookContext) => Promise<ShellResult> | ShellResult;
-  onConfigLoad?: (config: Config, context: HookContext) => Promise<Config> | Config;
-  onHistoryWrite?: (entry: HistoryEntry, context: HookContext) => Promise<HistoryEntry> | HistoryEntry;
+  beforeShellExecute?: (
+    cmd: string,
+    context: HookContext,
+  ) => Promise<string> | string;
+  afterShellExecute?: (
+    result: ShellResult,
+    context: HookContext,
+  ) => Promise<ShellResult> | ShellResult;
+  onConfigLoad?: (
+    config: Config,
+    context: HookContext,
+  ) => Promise<Config> | Config;
+  onHistoryWrite?: (
+    entry: HistoryEntry,
+    context: HookContext,
+  ) => Promise<HistoryEntry> | HistoryEntry;
   onError?: (error: Error, context: ErrorContext) => Promise<void> | void;
 }
 
@@ -101,7 +113,7 @@ export enum PluginPermission {
   NETWORK = 'network',
   SHELL_EXECUTE = 'shell:execute',
   CONFIG_MODIFY = 'config:modify',
-  HISTORY_ACCESS = 'history:access'
+  HISTORY_ACCESS = 'history:access',
 }
 
 /**
@@ -132,7 +144,7 @@ export class PluginError extends Error {
   constructor(
     message: string,
     public plugin: string,
-    public hook?: string
+    public hook?: string,
   ) {
     super(message);
     this.name = 'PluginError';
@@ -142,7 +154,7 @@ export class PluginError extends Error {
 export class SportCliFatalError extends Error {
   constructor(
     message: string,
-    public plugin: string
+    public plugin: string,
   ) {
     super(message);
     this.name = 'SportCliFatalError';

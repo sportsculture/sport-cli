@@ -11,7 +11,7 @@ import {
   type SlashCommand,
   type SlashCommandActionReturn,
 } from './types.js';
-import { Config } from '@google/gemini-cli-core';
+import { Config } from '@sport/core';
 
 async function restoreAction(
   context: CommandContext,

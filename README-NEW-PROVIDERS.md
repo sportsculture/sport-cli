@@ -117,6 +117,7 @@ For the custom API to work, your server should:
 4. Return responses in OpenAI format
 
 Example server setup for DeepSeek or other models can use frameworks like:
+
 - vLLM
 - TGI (Text Generation Inference)
 - Ollama
@@ -125,6 +126,7 @@ Example server setup for DeepSeek or other models can use frameworks like:
 ## Error Handling
 
 The implementation includes proper error handling for:
+
 - Invalid API keys
 - Network connectivity issues
 - Model availability

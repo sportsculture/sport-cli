@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { ModelInfo } from '@google/gemini-cli-core';
+import { ModelInfo } from '@sport/core';
 
 interface ModelPricing {
   inputPer1k: number;
@@ -24,13 +24,16 @@ export class PricingService {
   private readonly CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 hours
 
   // Fallback pricing for common models (in dollars per 1k tokens)
-  private readonly fallbackPricing: Record<string, Omit<ModelPricing, 'lastUpdated'>> = {
+  private readonly fallbackPricing: Record<
+    string,
+    Omit<ModelPricing, 'lastUpdated'>
+  > = {
     // Gemini models (typically free or very low cost)
     'gemini-2.5-pro': { inputPer1k: 0, outputPer1k: 0 },
     'gemini-2.5-flash': { inputPer1k: 0, outputPer1k: 0 },
     'gemini-1.5-pro': { inputPer1k: 0, outputPer1k: 0 },
     'gemini-1.5-flash': { inputPer1k: 0, outputPer1k: 0 },
-    
+
     // OpenRouter models
     'openai/gpt-4o': { inputPer1k: 0.0025, outputPer1k: 0.01 },
     'openai/gpt-4': { inputPer1k: 0.03, outputPer1k: 0.06 },
@@ -57,7 +60,10 @@ export class PricingService {
    */
   updatePricing(models: ModelInfo[]): void {
     for (const model of models) {
-      if (model.pricing?.inputPer1k !== undefined && model.pricing?.outputPer1k !== undefined) {
+      if (
+        model.pricing?.inputPer1k !== undefined &&
+        model.pricing?.outputPer1k !== undefined
+      ) {
         this.pricingCache.set(model.id, {
           inputPer1k: model.pricing.inputPer1k,
           outputPer1k: model.pricing.outputPer1k,
@@ -96,7 +102,7 @@ export class PricingService {
   calculateCost(
     modelId: string,
     inputTokens: number,
-    outputTokens: number
+    outputTokens: number,
   ): CostCalculation | null {
     const pricing = this.getPricing(modelId);
     if (!pricing) {

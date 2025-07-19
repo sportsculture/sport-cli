@@ -3,6 +3,7 @@
 ## What is sport-cli?
 
 A developer-friendly fork of Google's Gemini CLI that adds:
+
 - 🎯 **Transparent command execution** - See what's actually running
 - 📁 **Configurable paths** - Control where files go
 - 📜 **Persistent history** - Search and replay commands
@@ -17,20 +18,21 @@ Instead of modifying Google's code directly, we wrap everything in plugins:
 // ❌ BAD: Modifying core files
 class ShellTool {
   execute(cmd) {
-    console.log("Executing:", cmd); // Our change
+    console.log('Executing:', cmd); // Our change
     return super.execute(cmd);
   }
 }
 
 // ✅ GOOD: Plugin approach
 export const transparentBashPlugin = {
-  beforeShellExecute: (cmd) => console.log("Executing:", cmd)
+  beforeShellExecute: (cmd) => console.log('Executing:', cmd),
 };
 ```
 
 ## 3-Step Rebranding
 
 1. **Update package.json**
+
    ```json
    {
      "name": "@sportsculture/sport-cli",
@@ -39,6 +41,7 @@ export const transparentBashPlugin = {
    ```
 
 2. **Run rebrand script**
+
    ```bash
    ./scripts/rebrand.sh
    ```
@@ -50,16 +53,19 @@ export const transparentBashPlugin = {
 ## Implementation Priority
 
 ### Week 1: Foundation
+
 - [ ] Set up plugin system
 - [ ] Complete rebranding
 - [ ] Create upstream sync workflow
 
 ### Week 2-3: Core Features
+
 - [ ] Configurable paths
 - [ ] Transparent bash execution
 - [ ] Directory context tracking
 
 ### Week 4-5: Advanced
+
 - [ ] Persistent history with search/replay
 - [ ] Image file management
 - [ ] Event bus for external tools
@@ -129,8 +135,8 @@ export default {
     beforeShellExecute: (cmd) => {
       // Your code here
       return cmd;
-    }
-  }
+    },
+  },
 };
 ```
 

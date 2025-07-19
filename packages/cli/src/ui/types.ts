@@ -4,10 +4,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import {
-  ToolCallConfirmationDetails,
-  ToolResultDisplay,
-} from '@google/gemini-cli-core';
+import { ToolCallConfirmationDetails, ToolResultDisplay } from '@sport/core';
 
 // Only defining the state enum needed by the UI
 export enum StreamingState {
@@ -114,11 +111,14 @@ export type HistoryItemQuit = HistoryItemBase & {
   type: 'quit';
   duration: string;
   totalCost?: number;
-  costBreakdown?: Record<string, {
-    cost: number;
-    inputTokens: number;
-    outputTokens: number;
-  }>;
+  costBreakdown?: Record<
+    string,
+    {
+      cost: number;
+      inputTokens: number;
+      outputTokens: number;
+    }
+  >;
 };
 
 export type HistoryItemToolGroup = HistoryItemBase & {

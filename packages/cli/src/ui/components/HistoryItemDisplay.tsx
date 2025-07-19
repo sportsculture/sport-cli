@@ -20,7 +20,7 @@ import { StatsDisplay } from './StatsDisplay.js';
 import { ModelStatsDisplay } from './ModelStatsDisplay.js';
 import { ToolStatsDisplay } from './ToolStatsDisplay.js';
 import { SessionSummaryDisplay } from './SessionSummaryDisplay.js';
-import { Config } from '@google/gemini-cli-core';
+import { Config } from '@sport/core';
 
 interface HistoryItemDisplayProps {
   item: HistoryItem;
@@ -75,8 +75,8 @@ export const HistoryItemDisplay: React.FC<HistoryItemDisplayProps> = ({
     {item.type === 'model_stats' && <ModelStatsDisplay />}
     {item.type === 'tool_stats' && <ToolStatsDisplay />}
     {item.type === 'quit' && (
-      <SessionSummaryDisplay 
-        duration={item.duration} 
+      <SessionSummaryDisplay
+        duration={item.duration}
         totalCost={item.totalCost}
         costBreakdown={item.costBreakdown}
       />

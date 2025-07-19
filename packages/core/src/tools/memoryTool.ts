@@ -83,7 +83,11 @@ interface SaveMemoryParams {
 }
 
 function getGlobalMemoryFilePath(): string {
-  return path.join(homedir(), SPRTSCLTR_CONFIG_DIR, getCurrentGeminiMdFilename());
+  return path.join(
+    homedir(),
+    SPRTSCLTR_CONFIG_DIR,
+    getCurrentGeminiMdFilename(),
+  );
 }
 
 /**

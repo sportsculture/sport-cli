@@ -57,7 +57,7 @@ import { vi, describe, it, expect, beforeEach, beforeAll, Mock } from 'vitest';
 import open from 'open';
 import { useSlashCommandProcessor } from './slashCommandProcessor.js';
 import { SlashCommandProcessorResult } from '../types.js';
-import { Config, GeminiClient } from '@google/gemini-cli-core';
+import { Config, GeminiClient } from '@sport/core';
 import { useSessionStats } from '../contexts/SessionContext.js';
 import { LoadedSettings } from '../../config/settings.js';
 import * as ShowMemoryCommandModule from './useShowMemoryCommand.js';
@@ -79,9 +79,8 @@ vi.mock('open', () => ({
   default: vi.fn(),
 }));
 
-vi.mock('@google/gemini-cli-core', async (importOriginal) => {
-  const actual =
-    await importOriginal<typeof import('@google/gemini-cli-core')>();
+vi.mock('@sport/core', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@sport/core')>();
   return {
     ...actual,
   };
@@ -767,7 +766,7 @@ describe('useSlashCommandProcessor', () => {
   describe('/mcp command', () => {
     beforeEach(() => {
       // Mock the core module with getMCPServerStatus and getMCPDiscoveryState
-      vi.mock('@google/gemini-cli-core', async (importOriginal) => {
+      vi.mock('@sport/core', async (importOriginal) => {
         const actual = await importOriginal();
         return {
           ...actual,

@@ -9,7 +9,7 @@ import { Box, Text, useInput } from 'ink';
 import { Colors } from '../colors.js';
 import { RadioButtonSelect } from './shared/RadioButtonSelect.js';
 import { useOpenRouterModels } from '../hooks/useOpenRouterModels.js';
-import { ContentGeneratorConfig } from '@google/gemini-cli-core';
+import { ContentGeneratorConfig } from '@sport/core';
 import Spinner from 'ink-spinner';
 
 interface ModelSelectorProps {
@@ -38,7 +38,7 @@ export function ModelSelector({
   });
 
   // Find current model index
-  const currentIndex = models.findIndex(m => m.id === currentModel);
+  const currentIndex = models.findIndex((m) => m.id === currentModel);
   const initialIndex = currentIndex >= 0 ? currentIndex : 0;
 
   if (loading && models.length === 0) {
@@ -83,7 +83,7 @@ export function ModelSelector({
   }
 
   // Format models for display
-  const modelItems = models.map(model => ({
+  const modelItems = models.map((model) => ({
     label: `${model.name} (${model.id})`,
     value: model.id,
   }));
@@ -111,7 +111,9 @@ export function ModelSelector({
         />
       </Box>
       <Box marginTop={1}>
-        <Text color={Colors.Gray}>(Use arrow keys to navigate, Enter to select, Escape to cancel)</Text>
+        <Text color={Colors.Gray}>
+          (Use arrow keys to navigate, Enter to select, Escape to cancel)
+        </Text>
       </Box>
     </Box>
   );

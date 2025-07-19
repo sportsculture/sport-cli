@@ -18,7 +18,7 @@ const waitFor = async (callback: () => void | boolean, timeout = 1000) => {
     } catch (e) {
       // Continue waiting
     }
-    await new Promise(resolve => setTimeout(resolve, 10));
+    await new Promise((resolve) => setTimeout(resolve, 10));
   }
   throw new Error('waitFor timeout');
 };
@@ -31,7 +31,7 @@ import {
   TrackedExecutingToolCall,
   TrackedCancelledToolCall,
 } from './useReactToolScheduler.js';
-import { Config, EditorType, AuthType } from '@google/gemini-cli-core';
+import { Config, EditorType, AuthType } from '@sport/core';
 import { Part, PartListUnion } from '@google/genai';
 import { UseHistoryManagerReturn } from './useHistoryManager.js';
 import {
@@ -62,7 +62,7 @@ const MockedUserPromptEvent = vi.hoisted(() =>
   vi.fn().mockImplementation(() => {}),
 );
 
-vi.mock('@google/gemini-cli-core', async (importOriginal) => {
+vi.mock('@sport/core', async (importOriginal) => {
   const actualCoreModule = (await importOriginal()) as any;
   return {
     ...actualCoreModule,

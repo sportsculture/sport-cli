@@ -1,7 +1,9 @@
 # GridPlay Project GPS
 
 ## Overview
+
 GridPlay Project GPS provides real-time visualization of your project status, including:
+
 - Module completion tracking
 - Test coverage visualization
 - Risk assessment
@@ -11,9 +13,11 @@ GridPlay Project GPS provides real-time visualization of your project status, in
 ## Usage
 
 ### View Dashboard
+
 Open `.gps/dashboard.html` in your browser to view the interactive dashboard.
 
 ### Update Status
+
 ```bash
 # Update module completion
 .gps/update-status.js core completion 75
@@ -26,13 +30,16 @@ Open `.gps/dashboard.html` in your browser to view the interactive dashboard.
 ```
 
 ### Sync with Task Master
+
 ```bash
 # Sync progress from Task Master tasks
 .gps/sync-with-taskmaster.js
 ```
 
 ### Automated Updates
+
 Add to your CI/CD pipeline:
+
 ```yaml
 - name: Update Project GPS
   run: |
@@ -41,6 +48,7 @@ Add to your CI/CD pipeline:
 ```
 
 ## Directory Structure
+
 ```
 .gps/
 ├── dashboard.html          # Interactive visualization dashboard
@@ -53,6 +61,7 @@ Add to your CI/CD pipeline:
 ```
 
 ## Integration Ideas
+
 1. **Git Hooks**: Update status on commits
 2. **CI/CD**: Update metrics after builds
 3. **Task Master**: Auto-sync task completion
@@ -60,5 +69,6 @@ Add to your CI/CD pipeline:
 5. **VS Code**: Status bar integration
 
 ## Customization
+
 Edit `status.json` to add custom modules, metrics, or risk categories.
 Modify `dashboard.html` to customize the visualization style and layout.

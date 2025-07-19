@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { Config } from '@google/gemini-cli-core';
+import { Config } from '@sport/core';
 import { SlashCommand } from '../ui/commands/types.js';
 import { memoryCommand } from '../ui/commands/memoryCommand.js';
 import { helpCommand } from '../ui/commands/helpCommand.js';
@@ -28,6 +28,7 @@ import { quitCommand } from '../ui/commands/quitCommand.js';
 import { modelsCommand } from '../ui/commands/modelsCommand.js';
 import { modelCommand } from '../ui/commands/modelCommand.js';
 import { restoreCommand } from '../ui/commands/restoreCommand.js';
+import { whoamiCommand } from '../ui/commands/whoamiCommand.js';
 
 const loadBuiltInCommands = async (
   config: Config | null,
@@ -55,6 +56,7 @@ const loadBuiltInCommands = async (
     statsCommand,
     themeCommand,
     toolsCommand,
+    whoamiCommand,
   ];
 
   return allCommands.filter(

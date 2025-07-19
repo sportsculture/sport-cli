@@ -14,7 +14,7 @@ import {
   PluginError,
   PluginDependency,
   PluginMetrics,
-  PluginPermission
+  PluginPermission,
 } from './types.js';
 
 /**
@@ -24,12 +24,12 @@ export class PluginLoader {
   private loadedPlugins = new Map<string, SportCliPlugin>();
   private loadMetrics = new Map<string, PluginMetrics>();
   private config: Config;
-  
+
   // Default plugin search paths
   private defaultPaths = [
     path.join(process.cwd(), '.sport', 'plugins'),
     path.join(process.env.HOME || '', '.sport', 'plugins'),
-    path.join(__dirname, '..', '..', 'plugins') // Built-in plugins
+    path.join(__dirname, '..', '..', 'plugins'), // Built-in plugins
   ];
 
   constructor(config: Config) {
@@ -39,7 +39,9 @@ export class PluginLoader {
   /**
    * Load all plugins from configured paths
    */
-  async loadAll(options: PluginLoadOptions = {}): Promise<Map<string, SportCliPlugin>> {
+  async loadAll(
+    options: PluginLoadOptions = {},
+  ): Promise<Map<string, SportCliPlugin>> {
     const paths = options.paths || this.defaultPaths;
     const loadPromises: Promise<void>[] = [];
 
@@ -67,16 +69,14 @@ export class PluginLoader {
         if (!stat.isDirectory()) continue;
 
         const entries = await fs.readdir(searchPath, { withFileTypes: true });
-        
+
         for (const entry of entries) {
           if (entry.isDirectory()) {
             const pluginPath = path.join(searchPath, entry.name);
-            const hasIndex = await this.fileExists(
-              path.join(pluginPath, 'index.js')
-            ) || await this.fileExists(
-              path.join(pluginPath, 'index.ts')
-            );
-            
+            const hasIndex =
+              (await this.fileExists(path.join(pluginPath, 'index.js'))) ||
+              (await this.fileExists(path.join(pluginPath, 'index.ts')));
+
             if (hasIndex) {
               yield pluginPath;
             }
@@ -96,16 +96,14 @@ export class PluginLoader {
    */
   private async loadPlugin(
     pluginPath: string,
-    options: PluginLoadOptions
+    options: PluginLoadOptions,
   ): Promise<void> {
     const startTime = Date.now();
-    
+
     try {
       // Dynamic import
-      const moduleUrl = pathToFileURL(
-        path.join(pluginPath, 'index.js')
-      ).href;
-      
+      const moduleUrl = pathToFileURL(path.join(pluginPath, 'index.js')).href;
+
       const module = await import(moduleUrl);
       const plugin: SportCliPlugin = module.default || module;
 
@@ -128,7 +126,7 @@ export class PluginLoader {
         name: plugin.name,
         loadTime: Date.now() - startTime,
         executionTimes: new Map(),
-        errorCount: 0
+        errorCount: 0,
       });
 
       console.log(`Loaded plugin: ${plugin.name} v${plugin.version}`);
@@ -137,7 +135,7 @@ export class PluginLoader {
       if (options.strict) {
         throw new PluginError(
           `Failed to load plugin: ${(error as Error).message}`,
-          pluginPath
+          pluginPath,
         );
       }
     }
@@ -150,11 +148,11 @@ export class PluginLoader {
     if (!plugin.name || typeof plugin.name !== 'string') {
       throw new Error('Plugin must have a name property');
     }
-    
+
     if (!plugin.version || typeof plugin.version !== 'string') {
       throw new Error('Plugin must have a version property');
     }
-    
+
     if (!plugin.hooks || typeof plugin.hooks !== 'object') {
       throw new Error('Plugin must have a hooks object');
     }
@@ -168,12 +166,12 @@ export class PluginLoader {
     // For now, allow all permissions until we add plugin config to Config class
     const allowedPermissions = Object.values(PluginPermission);
     const requiredPermissions = plugin.permissions || [];
-    
+
     for (const permission of requiredPermissions) {
       if (!allowedPermissions.includes(permission)) {
         throw new PluginError(
           `Plugin requires permission: ${permission}`,
-          plugin.name
+          plugin.name,
         );
       }
     }
@@ -188,7 +186,7 @@ export class PluginLoader {
 
       for (const dep of plugin.dependencies) {
         const loaded = this.loadedPlugins.get(dep.name);
-        
+
         if (!loaded && !dep.optional) {
           const message = `Plugin ${name} requires ${dep.name}`;
           if (strict) {
@@ -197,7 +195,7 @@ export class PluginLoader {
             console.warn(message);
           }
         }
-        
+
         if (loaded && !this.satisfiesVersion(loaded.version, dep.version)) {
           const message = `Plugin ${name} requires ${dep.name}@${dep.version} but ${loaded.version} is loaded`;
           if (strict) {
@@ -216,14 +214,14 @@ export class PluginLoader {
   private satisfiesVersion(actual: string, required: string): boolean {
     // Simple implementation - enhance with semver for production
     if (required === '*' || required === 'latest') return true;
-    
+
     if (required.startsWith('^')) {
       // Major version must match
       const requiredMajor = required.slice(1).split('.')[0];
       const actualMajor = actual.split('.')[0];
       return requiredMajor === actualMajor;
     }
-    
+
     return actual === required;
   }
 
@@ -234,7 +232,7 @@ export class PluginLoader {
     // TODO: Add plugin priority configuration to Config class
     const priorities: Record<string, number> = {};
     const sorted = new Map<string, SportCliPlugin>();
-    
+
     // Sort entries by priority (higher number = higher priority)
     const entries = Array.from(this.loadedPlugins.entries());
     entries.sort(([nameA], [nameB]) => {
@@ -242,11 +240,11 @@ export class PluginLoader {
       const priorityB = priorities[nameB] || 0;
       return priorityB - priorityA;
     });
-    
+
     for (const [name, plugin] of entries) {
       sorted.set(name, plugin);
     }
-    
+
     return sorted;
   }
 

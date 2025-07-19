@@ -24,7 +24,7 @@ export const modelCommand: SlashCommand = {
     }
 
     const currentModel = config.getModel();
-    
+
     // If no arguments, show current model and open selector
     if (args.length === 0 || args === '') {
       context.ui.addItem(
@@ -34,7 +34,7 @@ export const modelCommand: SlashCommand = {
         },
         Date.now(),
       );
-      
+
       // Return dialog action to open model selector
       return {
         type: 'dialog',
@@ -44,9 +44,9 @@ export const modelCommand: SlashCommand = {
 
     // If argument is provided, try to set the model directly
     const newModel = args.trim();
-    
+
     try {
-      config.setModel(newModel);
+      await config.setModel(newModel);
       context.ui.addItem(
         {
           type: MessageType.INFO,

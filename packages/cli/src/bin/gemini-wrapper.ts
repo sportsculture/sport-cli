@@ -4,7 +4,7 @@
  * @license
  * Copyright 2025 SportsCulture LLC
  * SPDX-License-Identifier: Apache-2.0
- * 
+ *
  * Backward compatibility wrapper for the legacy 'gemini' command.
  * This wrapper launches the 'sport' binary with an environment variable
  * to indicate it was invoked via the legacy command name.
@@ -27,7 +27,7 @@ const child = spawn(process.execPath, [sportPath, ...process.argv.slice(2)], {
     ...process.env,
     IS_LEGACY_COMMAND: 'true',
     LEGACY_COMMAND_NAME: 'gemini',
-  }
+  },
 });
 
 // Forward the exit code

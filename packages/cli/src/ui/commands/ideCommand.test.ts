@@ -7,7 +7,7 @@
 import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { ideCommand } from './ideCommand.js';
 import { type CommandContext } from './types.js';
-import { type Config } from '@google/gemini-cli-core';
+import { type Config } from '@sport/core';
 import * as child_process from 'child_process';
 import { glob } from 'glob';
 
@@ -17,13 +17,12 @@ import {
   IDE_SERVER_NAME,
   MCPDiscoveryState,
   MCPServerStatus,
-} from '@google/gemini-cli-core';
+} from '@sport/core';
 
 vi.mock('child_process');
 vi.mock('glob');
-vi.mock('@google/gemini-cli-core', async (importOriginal) => {
-  const original =
-    await importOriginal<typeof import('@google/gemini-cli-core')>();
+vi.mock('@sport/core', async (importOriginal) => {
+  const original = await importOriginal<typeof import('@sport/core')>();
   return {
     ...original,
     getMCPServerStatus: vi.fn(),

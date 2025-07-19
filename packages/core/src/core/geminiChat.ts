@@ -526,7 +526,7 @@ export class GeminiChat {
         if (isValidResponse(chunk) || chunk.usageMetadata) {
           chunks.push(chunk);
         }
-        
+
         if (isValidResponse(chunk)) {
           const content = chunk.candidates?.[0]?.content;
           if (content !== undefined) {
@@ -537,7 +537,7 @@ export class GeminiChat {
             outputContent.push(content);
           }
         }
-        
+
         yield chunk;
       }
     } catch (error) {

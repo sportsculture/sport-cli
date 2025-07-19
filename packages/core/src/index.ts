@@ -44,6 +44,7 @@ export * from './utils/quotaErrorDetection.js';
 export * from './utils/fileUtils.js';
 export * from './utils/retry.js';
 export * from './utils/modelScoring.js';
+export * from './utils/modelAuthInference.js';
 
 // Export services
 export * from './services/fileDiscoveryService.js';

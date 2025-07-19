@@ -41,7 +41,7 @@ With sport-cli you can:
    ```bash
    sport
    ```
-   
+
    > **Backward compatibility:** The `gemini` command is still available as an alias for existing users.
 
 3. **Pick a color theme**
@@ -84,8 +84,8 @@ The Zen MCP server is a powerful tool that extends the capabilities of the Gemin
 
 **Prerequisites:**
 
-*   You need to have `jq` installed on your system. You can install it using your system's package manager (e.g., `brew install jq` on macOS, `sudo apt-get install jq` on Linux).
-*   You need to have an `OPENAI_API_KEY` defined in a `.env` file in your project's root directory.
+- You need to have `jq` installed on your system. You can install it using your system's package manager (e.g., `brew install jq` on macOS, `sudo apt-get install jq` on Linux).
+- You need to have an `OPENAI_API_KEY` defined in a `.env` file in your project's root directory.
 
 **Configuration:**
 
@@ -259,6 +259,7 @@ git push origin main
 ### Development Guidelines
 
 When adding new features:
+
 1. Create feature branches: `git checkout -b feature/your-feature`
 2. Keep commits atomic and well-described
 3. Isolate sport-cli specific features in dedicated directories

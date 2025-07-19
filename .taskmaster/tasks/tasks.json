@@ -525,7 +525,7 @@
         "testStrategy": "Create unit tests with various markdown bold patterns including edge cases like nested asterisks, incomplete patterns, and mixed content. Test on different terminal emulators (Windows Terminal, iTerm2, standard Linux terminals) to ensure cross-platform compatibility. Verify that when terminal doesn't support colors, bold markers are cleanly removed.",
         "priority": "high",
         "dependencies": [],
-        "status": "pending",
+        "status": "done",
         "subtasks": []
       },
       {
@@ -538,7 +538,7 @@
         "dependencies": [
           15
         ],
-        "status": "pending",
+        "status": "done",
         "subtasks": []
       },
       {
@@ -549,7 +549,7 @@
         "testStrategy": "Create comprehensive test suite with mock model data including multiple Dolphin variants, various GPT models, Claude versions, and Gemini models. Verify exactly one model per provider is selected. Test edge cases like missing providers, single model scenarios, and identical scoring situations. Validate that the highest-scoring Dolphin model is always selected when available.",
         "priority": "high",
         "dependencies": [],
-        "status": "pending",
+        "status": "done",
         "subtasks": []
       },
       {
@@ -612,7 +612,7 @@
     ],
     "metadata": {
       "created": "2025-07-07T18:56:28.419Z",
-      "updated": "2025-07-19T18:59:45.501Z",
+      "updated": "2025-07-19T20:19:06.778Z",
       "description": "Tasks for master context"
     }
   }

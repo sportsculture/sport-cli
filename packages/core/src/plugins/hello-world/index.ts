@@ -30,10 +30,10 @@ const helloWorldPlugin: SportCliPlugin = {
       // Add a footer to the output
       return {
         ...result,
-        stdout: result.stdout + '\n\n✨ Powered by sport-cli plugins'
+        stdout: result.stdout + '\n\n✨ Powered by sport-cli plugins',
       };
-    }
-  }
+    },
+  },
 };
 
 export default helloWorldPlugin;

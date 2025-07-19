@@ -41,6 +41,7 @@ interface SportCliPlugin {
 ## Rebranding to sport-cli
 
 ### 1. Package Updates
+
 ```json
 // package.json
 {
@@ -53,12 +54,14 @@ interface SportCliPlugin {
 ```
 
 ### 2. Code Changes Required
+
 - Update all package names from `@google/gemini-cli` to `@sportsculture/sport-cli`
 - Change binary from `gemini` to `sport`
 - Update config directories from `.gemini/` to `.sport/`
 - Maintain compatibility aliases during transition
 
 ### 3. Branding Script
+
 ```bash
 # scripts/rebrand.sh
 find . -type f -name "*.ts" -o -name "*.js" -o -name "*.json" | \
@@ -68,6 +71,7 @@ find . -type f -name "*.ts" -o -name "*.js" -o -name "*.json" | \
 ## Enhancement Implementation Plan
 
 ### Phase 1: Foundation (Week 1)
+
 1. **Plugin System**
    - Create plugin loader
    - Define hook points
@@ -79,7 +83,9 @@ find . -type f -name "*.ts" -o -name "*.js" -o -name "*.json" | \
    - Update documentation
 
 ### Phase 2: Core Features (Week 2-3)
+
 1. **Configurable Paths**
+
    ```bash
    sport config --set paths.history ~/.sport/history
    sport config --set paths.artifacts ./sport-artifacts
@@ -92,7 +98,9 @@ find . -type f -name "*.ts" -o -name "*.js" -o -name "*.json" | \
    ```
 
 ### Phase 3: Advanced Features (Week 4-5)
+
 1. **Persistent History**
+
    ```bash
    sport history              # Interactive viewer
    sport history --replay 42  # Replay command
@@ -107,6 +115,7 @@ find . -type f -name "*.ts" -o -name "*.js" -o -name "*.json" | \
 ## Upstream Sync Workflow
 
 ### Automated Sync Script
+
 ```bash
 #!/bin/bash
 # scripts/sync-upstream.sh
@@ -130,6 +139,7 @@ git merge $BRANCH
 ```
 
 ### Conflict Resolution Strategy
+
 1. **Core files**: Accept upstream, re-apply via plugins
 2. **Config**: Merge both, prefer upstream structure
 3. **Tests**: Keep both test suites
@@ -190,17 +200,20 @@ npm run test:integration
 Format: `{upstream_version}-sport.{sport_version}`
 
 Examples:
+
 - `0.1.12-sport.1.0` - First sport-cli release based on upstream 0.1.12
 - `0.2.0-sport.1.5` - Sport version 1.5 based on upstream 0.2.0
 
 ## Maintenance Checklist
 
 ### Weekly
+
 - [ ] Check upstream for updates
 - [ ] Run sync workflow if needed
 - [ ] Update UPSTREAM_SYNC_LOG.md
 
 ### Per Release
+
 - [ ] Test all plugins with new upstream
 - [ ] Update compatibility matrix
 - [ ] Tag with version strategy
@@ -245,19 +258,19 @@ If upstream makes breaking changes:
 // plugins/transparent-bash.ts
 export class TransparentBashPlugin implements SportCliPlugin {
   name = 'transparent-bash';
-  
+
   hooks = {
     beforeShellExecute: (cmd: string) => {
       console.log(`🏃 Executing: ${cmd}`);
       // Add confirmation prompt
       return this.confirmExecution(cmd);
     },
-    
+
     afterShellExecute: (result: any) => {
       // Show full output
       console.log('📋 Full output:', result.stdout);
       return result;
-    }
+    },
   };
 }
 ```

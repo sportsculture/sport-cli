@@ -91,6 +91,7 @@ export class GeminiClient {
   };
   private sessionTurnCount = 0;
   private readonly MAX_TURNS = 100;
+  private isGeneratingResponse = false;
   /**
    * Threshold for compression token count as a fraction of the model's token limit.
    * If the chat history exceeds this threshold, it will be compressed.
@@ -145,6 +146,10 @@ export class GeminiClient {
     return this.chat !== undefined && this.contentGenerator !== undefined;
   }
 
+  getIsGeneratingResponse(): boolean {
+    return this.isGeneratingResponse;
+  }
+
   getHistory(): Content[] {
     return this.getChat().getHistory();
   }
@@ -153,8 +158,61 @@ export class GeminiClient {
     this.getChat().setHistory(history);
   }
 
-  async resetChat(): Promise<void> {
-    this.chat = await this.startChat();
+  async resetChat(preserveHistory: boolean = false): Promise<void> {
+    if (preserveHistory && this.chat) {
+      // Get current history but exclude system messages
+      const currentHistory = this.getHistory();
+      // Filter out the initial environment setup messages
+      const preservedHistory = currentHistory.slice(2); // Skip initial user/model setup
+      this.chat = await this.startChat(preservedHistory);
+    } else {
+      this.chat = await this.startChat();
+    }
+  }
+
+  async handoffToNewModel(
+    previousModel: string,
+    newModel: string,
+  ): Promise<void> {
+    if (!this.chat) {
+      return;
+    }
+
+    // Prevent handoff during an active response
+    if (this.isGeneratingResponse) {
+      throw new Error(
+        'Cannot handoff to new model while a response is being generated.',
+      );
+    }
+
+    // Get current history
+    const currentHistory = this.getHistory();
+    // Filter out the initial environment setup messages
+    const conversationHistory = currentHistory.slice(2); // Skip initial user/model setup
+
+    // Add handoff message
+    const handoffHistory: Content[] = [
+      ...conversationHistory,
+      {
+        role: 'model',
+        parts: [
+          {
+            text: `I'll hand you over to ${newModel} now to continue assisting you.`,
+          },
+        ],
+      },
+    ];
+
+    // Recreate the content generator with the new model
+    const updatedConfig = this.config.getContentGeneratorConfig();
+    this.contentGenerator = await createContentGenerator(
+      updatedConfig,
+      this.config,
+      this.config.getSessionId(),
+    );
+
+    // Create new chat with updated content generator and preserved history
+    this.chat = await this.startChat(handoffHistory);
   }
 
   private async getEnvironment(): Promise<Part[]> {
@@ -170,7 +228,7 @@ export class GeminiClient {
       fileService: this.config.getFileService(),
     });
     const context = `
-  This is the gemini CLI. We are setting up the context for our chat.
+  This is a command-line interface. We are setting up the context for our chat.
   Today's date is ${today}.
   My operating system is: ${platform}
   I'm currently working in the directory: ${cwd}
@@ -296,77 +354,85 @@ export class GeminiClient {
       return new Turn(this.getChat(), prompt_id);
     }
 
-    // Track the original model from the first call to detect model switching
-    const initialModel = originalModel || this.config.getModel();
+    // Mark that we're generating a response
+    this.isGeneratingResponse = true;
 
-    const compressed = await this.tryCompressChat(prompt_id);
+    try {
+      // Track the original model from the first call to detect model switching
+      const initialModel = originalModel || this.config.getModel();
 
-    if (compressed) {
-      yield { type: GeminiEventType.ChatCompressed, value: compressed };
-    }
+      const compressed = await this.tryCompressChat(prompt_id);
 
-    if (this.config.getIdeMode()) {
-      const activeFile = ideContext.getActiveFileContext();
-      if (activeFile?.filePath) {
-        let context = `
+      if (compressed) {
+        yield { type: GeminiEventType.ChatCompressed, value: compressed };
+      }
+
+      if (this.config.getIdeMode()) {
+        const activeFile = ideContext.getActiveFileContext();
+        if (activeFile?.filePath) {
+          let context = `
 This is the file that the user was most recently looking at:
 - Path: ${activeFile.filePath}`;
-        if (activeFile.cursor) {
-          context += `
+          if (activeFile.cursor) {
+            context += `
 This is the cursor position in the file:
 - Cursor Position: Line ${activeFile.cursor.line}, Character ${activeFile.cursor.character}`;
+          }
+          request = [
+            { text: context },
+            ...(Array.isArray(request) ? request : [request]),
+          ];
         }
-        request = [
-          { text: context },
-          ...(Array.isArray(request) ? request : [request]),
-        ];
       }
-    }
 
-    const turn = new Turn(this.getChat(), prompt_id);
+      const turn = new Turn(this.getChat(), prompt_id);
 
-    const loopDetected = await this.loopDetector.turnStarted(signal);
-    if (loopDetected) {
-      yield { type: GeminiEventType.LoopDetected };
-      return turn;
-    }
-
-    const resultStream = turn.run(request, signal);
-    for await (const event of resultStream) {
-      if (this.loopDetector.addAndCheck(event)) {
+      const loopDetected = await this.loopDetector.turnStarted(signal);
+      if (loopDetected) {
         yield { type: GeminiEventType.LoopDetected };
         return turn;
       }
-      yield event;
-    }
-    if (!turn.pendingToolCalls.length && signal && !signal.aborted) {
-      // Check if model was switched during the call (likely due to quota error)
-      const currentModel = this.config.getModel();
-      if (currentModel !== initialModel) {
-        // Model was switched (likely due to quota error fallback)
-        // Don't continue with recursive call to prevent unwanted Flash execution
-        return turn;
-      }
 
-      const nextSpeakerCheck = await checkNextSpeaker(
-        this.getChat(),
-        this,
-        signal,
-      );
-      if (nextSpeakerCheck?.next_speaker === 'model') {
-        const nextRequest = [{ text: 'Please continue.' }];
-        // This recursive call's events will be yielded out, but the final
-        // turn object will be from the top-level call.
-        yield* this.sendMessageStream(
-          nextRequest,
-          signal,
-          prompt_id,
-          boundedTurns - 1,
-          initialModel,
-        );
+      const resultStream = turn.run(request, signal);
+      for await (const event of resultStream) {
+        if (this.loopDetector.addAndCheck(event)) {
+          yield { type: GeminiEventType.LoopDetected };
+          return turn;
+        }
+        yield event;
       }
+      if (!turn.pendingToolCalls.length && signal && !signal.aborted) {
+        // Check if model was switched during the call (likely due to quota error)
+        const currentModel = this.config.getModel();
+        if (currentModel !== initialModel) {
+          // Model was switched (likely due to quota error fallback)
+          // Don't continue with recursive call to prevent unwanted Flash execution
+          return turn;
+        }
+
+        const nextSpeakerCheck = await checkNextSpeaker(
+          this.getChat(),
+          this,
+          signal,
+        );
+        if (nextSpeakerCheck?.next_speaker === 'model') {
+          const nextRequest = [{ text: 'Please continue.' }];
+          // This recursive call's events will be yielded out, but the final
+          // turn object will be from the top-level call.
+          yield* this.sendMessageStream(
+            nextRequest,
+            signal,
+            prompt_id,
+            boundedTurns - 1,
+            initialModel,
+          );
+        }
+      }
+      return turn;
+    } finally {
+      // Always reset the flag when done
+      this.isGeneratingResponse = false;
     }
-    return turn;
   }
 
   async generateJson(

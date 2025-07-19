@@ -111,19 +111,19 @@ There are two distinct build processes used, depending on the distribution chann
 The Docker-based execution method is supported by the `sprtscltr-cli-sandbox` container image. This image is published to a container registry and contains a pre-installed, global version of Gemini CLI. The `scripts/prepare-cli-packagejson.js` script dynamically injects the URI of this image into the CLI's `package.json` before publishing, so the CLI knows which image to pull when the `--sandbox` flag is used.
 =======
 The Docker-based execution method is supported by the `gemini-cli-sandbox` container image. This image is published to a container registry and contains a pre-installed, global version of Gemini CLI.
->>>>>>> upstream/main
+
+> > > > > > > upstream/main
 
 ## Release process
 
 The release process is automated through GitHub Actions. The release workflow performs the following actions:
 
 1.  Build the NPM packages using `tsc`.
-<<<<<<< HEAD
+    <<<<<<< HEAD
 2.  Update the CLI's `package.json` with the Docker image URI.
 3.  Build and tag the `sprtscltr-cli-sandbox` Docker image.
 4.  Push the Docker image to the container registry.
-5.  Publish the NPM packages to the artifact registry.
-=======
-2.  Publish the NPM packages to the artifact registry.
-3.  Create GitHub releases with bundled assets.
->>>>>>> upstream/main
+5.  # Publish the NPM packages to the artifact registry.
+6.  Publish the NPM packages to the artifact registry.
+7.  Create GitHub releases with bundled assets.
+    > > > > > > > upstream/main

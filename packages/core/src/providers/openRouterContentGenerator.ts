@@ -27,7 +27,9 @@ import { ModelCacheService } from './modelCache.js';
 
 interface OpenRouterMessage {
   role: 'system' | 'user' | 'assistant' | 'tool';
-  content: string | Array<{ type: string; text?: string; tool_call_id?: string }>;
+  content:
+    | string
+    | Array<{ type: string; text?: string; tool_call_id?: string }>;
   tool_calls?: Array<{
     id: string;
     type: 'function';
@@ -136,13 +138,15 @@ export class OpenRouterContentGenerator implements IProvider {
   private convertToOpenRouterMessages(contents: any): OpenRouterMessage[] {
     // Handle various content formats
     let contentArray: Content[] = [];
-    
+
     if (typeof contents === 'string') {
       contentArray = [{ role: 'user', parts: [{ text: contents }] }];
     } else if (Array.isArray(contents)) {
       if (contents.length > 0 && typeof contents[0] === 'string') {
         // Array of strings
-        contentArray = [{ role: 'user', parts: contents.map(text => ({ text })) }];
+        contentArray = [
+          { role: 'user', parts: contents.map((text) => ({ text })) },
+        ];
       } else if (contents.length > 0 && 'text' in contents[0]) {
         // Array of parts
         contentArray = [{ role: 'user', parts: contents }];
@@ -161,7 +165,7 @@ export class OpenRouterContentGenerator implements IProvider {
 
     for (const content of contentArray) {
       const role = content.role === 'model' ? 'assistant' : content.role;
-      
+
       if (!content.parts || content.parts.length === 0) {
         continue;
       }
@@ -219,25 +223,31 @@ export class OpenRouterContentGenerator implements IProvider {
     return messages;
   }
 
-  private convertToGoogleTools(tools?: any[]): Array<{ type: 'function'; function: OpenRouterFunction }> | undefined {
+  private convertToGoogleTools(
+    tools?: any[],
+  ): Array<{ type: 'function'; function: OpenRouterFunction }> | undefined {
     if (!tools) return undefined;
 
-    return tools.map(tool => {
-      if ('functionDeclarations' in tool) {
-        return tool.functionDeclarations.map((func: FunctionDeclaration) => ({
-          type: 'function' as const,
-          function: {
-            name: func.name,
-            description: func.description,
-            parameters: func.parameters,
-          },
-        }));
-      }
-      return [];
-    }).flat();
+    return tools
+      .map((tool) => {
+        if ('functionDeclarations' in tool) {
+          return tool.functionDeclarations.map((func: FunctionDeclaration) => ({
+            type: 'function' as const,
+            function: {
+              name: func.name,
+              description: func.description,
+              parameters: func.parameters,
+            },
+          }));
+        }
+        return [];
+      })
+      .flat();
   }
 
-  private convertOpenRouterResponse(response: OpenRouterResponse): GenerateContentResponse {
+  private convertOpenRouterResponse(
+    response: OpenRouterResponse,
+  ): GenerateContentResponse {
     const choice = response.choices[0];
     const parts: Part[] = [];
 
@@ -267,7 +277,7 @@ export class OpenRouterContentGenerator implements IProvider {
         index: 0,
       },
     ];
-    
+
     if (response.usage) {
       result.usageMetadata = {
         promptTokenCount: response.usage.prompt_tokens,
@@ -284,7 +294,7 @@ export class OpenRouterContentGenerator implements IProvider {
           .filter((p: Part) => 'text' in p)
           .map((p: Part) => p.text);
         return textParts.length > 0 ? textParts.join('') : undefined;
-      }
+      },
     });
 
     Object.defineProperty(result, 'functionCalls', {
@@ -294,25 +304,25 @@ export class OpenRouterContentGenerator implements IProvider {
           .filter((p: Part) => 'functionCall' in p && p.functionCall)
           .map((p: Part) => p.functionCall);
         return calls.length > 0 ? calls : undefined;
-      }
+      },
     });
 
     Object.defineProperty(result, 'data', {
       get() {
         return undefined; // OpenRouter doesn't support inline data
-      }
+      },
     });
 
     Object.defineProperty(result, 'executableCode', {
       get() {
         return undefined; // OpenRouter doesn't support executable code
-      }
+      },
     });
 
     Object.defineProperty(result, 'codeExecutionResult', {
       get() {
         return undefined; // OpenRouter doesn't support code execution
-      }
+      },
     });
 
     return result;
@@ -336,7 +346,7 @@ export class OpenRouterContentGenerator implements IProvider {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${this.apiKey}`,
+          Authorization: `Bearer ${this.apiKey}`,
           'HTTP-Referer': 'https://github.com/google/gemini-cli',
           'X-Title': 'gemini CLI',
         },
@@ -378,7 +388,7 @@ export class OpenRouterContentGenerator implements IProvider {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${this.apiKey}`,
+        Authorization: `Bearer ${this.apiKey}`,
         'HTTP-Referer': 'https://github.com/google/gemini-cli',
         'X-Title': 'gemini CLI',
       },
@@ -416,10 +426,10 @@ export class OpenRouterContentGenerator implements IProvider {
           try {
             const chunk: OpenRouterStreamResponse = JSON.parse(data);
             const choice = chunk.choices[0];
-            
+
             // Only yield if there's new content in this chunk
             let hasNewContent = false;
-            
+
             if (choice.delta.content) {
               accumulatedContent += choice.delta.content;
               hasNewContent = true;
@@ -436,10 +446,12 @@ export class OpenRouterContentGenerator implements IProvider {
                   };
                 }
                 if (toolCall.function?.name) {
-                  accumulatedToolCalls[toolCall.index].function.name = toolCall.function.name;
+                  accumulatedToolCalls[toolCall.index].function.name =
+                    toolCall.function.name;
                 }
                 if (toolCall.function?.arguments) {
-                  accumulatedToolCalls[toolCall.index].function.arguments += toolCall.function.arguments;
+                  accumulatedToolCalls[toolCall.index].function.arguments +=
+                    toolCall.function.arguments;
                 }
               }
             }
@@ -450,19 +462,23 @@ export class OpenRouterContentGenerator implements IProvider {
               parts.push({ text: choice.delta.content });
             }
             if (accumulatedToolCalls.length > 0) {
-              for (const toolCall of accumulatedToolCalls.filter(tc => tc)) {
+              for (const toolCall of accumulatedToolCalls.filter((tc) => tc)) {
                 if (toolCall.function.name) {
                   parts.push({
                     functionCall: {
                       name: toolCall.function.name,
-                      args: toolCall.function.arguments ? JSON.parse(toolCall.function.arguments) : {},
+                      args: toolCall.function.arguments
+                        ? JSON.parse(toolCall.function.arguments)
+                        : {},
                     },
                   });
                 }
               }
             }
 
-            const streamResult = Object.create(GenerateContentResponse.prototype);
+            const streamResult = Object.create(
+              GenerateContentResponse.prototype,
+            );
             streamResult.candidates = [
               {
                 content: {
@@ -473,7 +489,7 @@ export class OpenRouterContentGenerator implements IProvider {
                 index: 0,
               },
             ];
-            
+
             // Check if this chunk has usage data (final chunk)
             if (chunk.usage) {
               streamResult.usageMetadata = {
@@ -482,44 +498,46 @@ export class OpenRouterContentGenerator implements IProvider {
                 totalTokenCount: chunk.usage.total_tokens,
               };
             }
-            
+
             // Add getter methods
             Object.defineProperty(streamResult, 'text', {
               get() {
-                if (!this.candidates || this.candidates.length === 0) return undefined;
+                if (!this.candidates || this.candidates.length === 0)
+                  return undefined;
                 const textParts = this.candidates[0].content.parts
                   .filter((p: Part) => 'text' in p)
                   .map((p: Part) => p.text);
                 return textParts.length > 0 ? textParts.join('') : undefined;
-              }
+              },
             });
 
             Object.defineProperty(streamResult, 'functionCalls', {
               get() {
-                if (!this.candidates || this.candidates.length === 0) return undefined;
+                if (!this.candidates || this.candidates.length === 0)
+                  return undefined;
                 const calls = this.candidates[0].content.parts
                   .filter((p: Part) => 'functionCall' in p && p.functionCall)
                   .map((p: Part) => p.functionCall);
                 return calls.length > 0 ? calls : undefined;
-              }
+              },
             });
 
             Object.defineProperty(streamResult, 'data', {
               get() {
                 return undefined;
-              }
+              },
             });
 
             Object.defineProperty(streamResult, 'executableCode', {
               get() {
                 return undefined;
-              }
+              },
             });
 
             Object.defineProperty(streamResult, 'codeExecutionResult', {
               get() {
                 return undefined;
-              }
+              },
             });
 
             // Yield if there's new content or if this is the final chunk with usage data
@@ -534,10 +552,12 @@ export class OpenRouterContentGenerator implements IProvider {
     }
   }
 
-  async countTokens(request: CountTokensParameters): Promise<CountTokensResponse> {
+  async countTokens(
+    request: CountTokensParameters,
+  ): Promise<CountTokensResponse> {
     // OpenRouter doesn't have a token counting endpoint, so we'll estimate
     let textContent = '';
-    
+
     // Handle various content formats
     if (typeof request.contents === 'string') {
       textContent = request.contents;
@@ -552,11 +572,15 @@ export class OpenRouterContentGenerator implements IProvider {
         }
         return '';
       };
-      
+
       textContent = request.contents.map(processContent).join(' ');
     } else if (request.contents && 'text' in request.contents) {
       textContent = request.contents.text || '';
-    } else if (request.contents && 'parts' in request.contents && request.contents.parts) {
+    } else if (
+      request.contents &&
+      'parts' in request.contents &&
+      request.contents.parts
+    ) {
       textContent = request.contents.parts
         .filter((p: any) => p && 'text' in p)
         .map((p: any) => p.text)
@@ -572,24 +596,30 @@ export class OpenRouterContentGenerator implements IProvider {
     };
   }
 
-  async embedContent(request: EmbedContentParameters): Promise<EmbedContentResponse> {
+  async embedContent(
+    request: EmbedContentParameters,
+  ): Promise<EmbedContentResponse> {
     throw new Error('Embeddings are not supported by OpenRouter');
   }
 
-  async fetchModels(): Promise<Array<{id: string; name: string; context_length?: number; pricing?: any}>> {
+  async fetchModels(): Promise<
+    Array<{ id: string; name: string; context_length?: number; pricing?: any }>
+  > {
     try {
       const response = await retryWithBackoff(async () => {
         const resp = await fetch(`${this.baseUrl}/models`, {
           method: 'GET',
           headers: {
-            'Authorization': `Bearer ${this.apiKey}`,
+            Authorization: `Bearer ${this.apiKey}`,
             'HTTP-Referer': 'https://github.com/google-gemini/gemini-cli',
             'X-Title': 'Gemini CLI',
           },
         });
 
         if (!resp.ok) {
-          throw new Error(`Failed to fetch models: ${resp.status} ${resp.statusText}`);
+          throw new Error(
+            `Failed to fetch models: ${resp.status} ${resp.statusText}`,
+          );
         }
 
         return resp;
@@ -615,20 +645,22 @@ export class OpenRouterContentGenerator implements IProvider {
   async getAvailableModels(): Promise<ModelInfo[]> {
     const cache = ModelCacheService.getInstance();
     const providerId = 'openrouter';
-    
+
     // Check cache first
     const cachedModels = cache.getCachedModels(providerId);
     if (cachedModels) {
       return cachedModels;
     }
-    
+
     const models = await this.fetchModels();
-    
-    const modelInfos = models.map(model => {
+
+    const modelInfos = models.map((model) => {
       // Check if this is a known model from our predefined list
-      const knownModel = Object.entries(OPENROUTER_MODELS).find(([_, id]) => id === model.id);
+      const knownModel = Object.entries(OPENROUTER_MODELS).find(
+        ([_, id]) => id === model.id,
+      );
       const isDefault = model.id === 'deepseek/deepseek-chat';
-      
+
       const modelInfo: ModelInfo = {
         id: model.id,
         name: model.name || model.id,
@@ -646,17 +678,21 @@ export class OpenRouterContentGenerator implements IProvider {
       // Add pricing if available
       if (model.pricing) {
         modelInfo.pricing = {
-          inputPer1k: model.pricing.prompt ? parseFloat(model.pricing.prompt) * 1000 : undefined,
-          outputPer1k: model.pricing.completion ? parseFloat(model.pricing.completion) * 1000 : undefined,
+          inputPer1k: model.pricing.prompt
+            ? parseFloat(model.pricing.prompt) * 1000
+            : undefined,
+          outputPer1k: model.pricing.completion
+            ? parseFloat(model.pricing.completion) * 1000
+            : undefined,
         };
       }
 
       return modelInfo;
     });
-    
-    // Cache the models  
+
+    // Cache the models
     cache.setCachedModels(providerId, modelInfos);
-    
+
     return modelInfos;
   }
 
@@ -666,7 +702,7 @@ export class OpenRouterContentGenerator implements IProvider {
       const response = await fetch(`${this.baseUrl}/auth/key`, {
         method: 'GET',
         headers: {
-          'Authorization': `Bearer ${this.apiKey}`,
+          Authorization: `Bearer ${this.apiKey}`,
         },
       });
 
@@ -678,14 +714,16 @@ export class OpenRouterContentGenerator implements IProvider {
         return {
           isConfigured: false,
           errorMessage: `Invalid API key: ${response.status}`,
-          configInstructions: 'Set OPENROUTER_API_KEY environment variable with a valid OpenRouter API key',
+          configInstructions:
+            'Set OPENROUTER_API_KEY environment variable with a valid OpenRouter API key',
         };
       }
     } catch (error) {
       return {
         isConfigured: false,
         errorMessage: `Connection error: ${error}`,
-        configInstructions: 'Ensure you have internet connectivity and OPENROUTER_API_KEY is set',
+        configInstructions:
+          'Ensure you have internet connectivity and OPENROUTER_API_KEY is set',
       };
     }
   }
@@ -705,22 +743,38 @@ export class OpenRouterContentGenerator implements IProvider {
       'mistralai/mixtral-8x7b': 'Open-source mixture of experts model',
       'meta-llama/llama-3-70b': 'Large open-source model from Meta',
     };
-    
+
     return descriptions[modelId] || 'AI model available through OpenRouter';
   }
 
   private getModelStrengths(modelId: string): string[] {
     const strengths: Record<string, string[]> = {
-      'deepseek/deepseek-chat': ['Cost-effective', 'General purpose', 'Fast responses'],
-      'deepseek/deepseek-coder': ['Code generation', 'Bug fixing', 'Code review'],
-      'anthropic/claude-3-opus': ['Complex reasoning', 'Creative writing', 'Technical analysis'],
-      'anthropic/claude-3-sonnet': ['Balanced performance', 'General tasks', 'Efficient'],
+      'deepseek/deepseek-chat': [
+        'Cost-effective',
+        'General purpose',
+        'Fast responses',
+      ],
+      'deepseek/deepseek-coder': [
+        'Code generation',
+        'Bug fixing',
+        'Code review',
+      ],
+      'anthropic/claude-3-opus': [
+        'Complex reasoning',
+        'Creative writing',
+        'Technical analysis',
+      ],
+      'anthropic/claude-3-sonnet': [
+        'Balanced performance',
+        'General tasks',
+        'Efficient',
+      ],
       'openai/gpt-4': ['Reasoning', 'Analysis', 'Problem solving'],
       'openai/gpt-4-turbo': ['Fast processing', 'Large context', 'Versatile'],
       'mistralai/mixtral-8x7b': ['Open source', 'Efficient', 'Multi-lingual'],
       'meta-llama/llama-3-70b': ['Open source', 'Large scale', 'Research'],
     };
-    
+
     return strengths[modelId] || ['General purpose'];
   }
 }

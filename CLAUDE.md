@@ -5,8 +5,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Repository Overview
 
 sport-cli is an enhanced fork of Google's official Gemini CLI with multi-provider AI support. It's a command-line AI workflow tool built as a monorepo with:
+
 - **Frontend**: React-based CLI using Ink for terminal UI
-- **Backend**: TypeScript/Node.js handling multi-provider AI interactions  
+- **Backend**: TypeScript/Node.js handling multi-provider AI interactions
 - **VSCode Extension**: IDE companion for integration
 - **Origin**: Forked from [google-gemini/gemini-cli](https://github.com/google-gemini/gemini-cli)
 
@@ -34,24 +35,30 @@ npm test -- path/to/test.test.ts
 ## Architecture & Code Organization
 
 ### Package Structure
+
 - **`packages/cli`**: Terminal UI layer (React/Ink components, command processing)
 - **`packages/core`**: Backend logic (provider integrations, tools, MCP support)
 - **`packages/vscode-ide-companion`**: VSCode extension
 
 ### Key Design Patterns
+
 - **Plain objects over classes** with TypeScript interfaces
 - **Functional programming** patterns (map, filter, reduce)
 - **React hooks** for state management and side effects
 - **Co-located tests** (`.test.ts` files next to source)
 
 ### Provider Integration
+
 The codebase supports multiple AI providers through a unified interface:
+
 - Providers are implemented in `packages/core/src/providers/`
 - Each provider implements the `Provider` interface
 - Configuration is managed through settings.json and environment variables
 
 ### Tool System
+
 Tools are the primary way the AI interacts with the system:
+
 - Tool definitions in `packages/core/src/tools/`
 - Each tool implements validation, execution, and formatting
 - MCP (Model Context Protocol) servers can provide additional tools
@@ -85,6 +92,7 @@ Tools are the primary way the AI interacts with the system:
 ## Common Development Tasks
 
 ### Adding a New Provider
+
 1. Create provider in `packages/core/src/providers/`
 2. Implement the `Provider` interface
 3. Add to provider factory
@@ -92,6 +100,7 @@ Tools are the primary way the AI interacts with the system:
 5. Update documentation
 
 ### Adding a New Tool
+
 1. Create tool in `packages/core/src/tools/`
 2. Implement validation, execution, and formatting
 3. Add to tool registry
@@ -99,6 +108,7 @@ Tools are the primary way the AI interacts with the system:
 5. Update help documentation
 
 ### Working with the UI
+
 - Components in `packages/cli/src/components/`
 - Use Ink's React components for terminal rendering
 - Theme system in `packages/cli/src/utils/theme.ts`

@@ -44,7 +44,10 @@ const renderWithMockedStats = (metrics: SessionMetrics) => {
 const renderWithMockedStatsAndCost = (
   metrics: SessionMetrics,
   totalCost?: number,
-  costBreakdown?: Record<string, { cost: number; inputTokens: number; outputTokens: number }>
+  costBreakdown?: Record<
+    string,
+    { cost: number; inputTokens: number; outputTokens: number }
+  >,
 ) => {
   useSessionStatsMock.mockReturnValue({
     stats: {
@@ -63,11 +66,13 @@ const renderWithMockedStatsAndCost = (
     updateCosts: vi.fn(),
   });
 
-  return render(<SessionSummaryDisplay 
-    duration="1h 23m 45s" 
-    totalCost={totalCost}
-    costBreakdown={costBreakdown}
-  />);
+  return render(
+    <SessionSummaryDisplay
+      duration="1h 23m 45s"
+      totalCost={totalCost}
+      costBreakdown={costBreakdown}
+    />,
+  );
 };
 
 describe('<SessionSummaryDisplay />', () => {
@@ -137,7 +142,11 @@ describe('<SessionSummaryDisplay />', () => {
       },
     };
 
-    const { lastFrame } = renderWithMockedStatsAndCost(metrics, totalCost, costBreakdown);
+    const { lastFrame } = renderWithMockedStatsAndCost(
+      metrics,
+      totalCost,
+      costBreakdown,
+    );
     const output = lastFrame();
 
     expect(output).toContain('Session Cost');

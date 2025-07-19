@@ -12,7 +12,7 @@ import {
   PluginLoadOptions,
   ShellResult,
   HistoryEntry,
-  PluginMetrics
+  PluginMetrics,
 } from './types.js';
 
 /**
@@ -38,10 +38,10 @@ export class PluginManager {
     if (this.initialized) return;
 
     console.log('Initializing plugin system...');
-    
+
     // Load all plugins
     this.plugins = await this.loader.loadAll(options);
-    
+
     console.log(`Loaded ${this.plugins.size} plugins`);
     this.initialized = true;
   }
@@ -57,7 +57,7 @@ export class PluginManager {
     return this.executor.executeHookChain(
       Array.from(this.plugins.values()),
       'beforeShellExecute',
-      command
+      command,
     );
   }
 
@@ -72,7 +72,7 @@ export class PluginManager {
     return this.executor.executeHookChain(
       Array.from(this.plugins.values()),
       'afterShellExecute',
-      result
+      result,
     );
   }
 
@@ -87,7 +87,7 @@ export class PluginManager {
     return this.executor.executeHookChain(
       Array.from(this.plugins.values()),
       'onConfigLoad',
-      config
+      config,
     );
   }
 
@@ -105,7 +105,7 @@ export class PluginManager {
     return this.executor.executeHookChain(
       Array.from(this.plugins.values()),
       'onHistoryWrite',
-      entry
+      entry,
     );
   }
 
@@ -118,11 +118,13 @@ export class PluginManager {
     description?: string;
     hooks: string[];
   }> {
-    return Array.from(this.plugins.values()).map(plugin => ({
+    return Array.from(this.plugins.values()).map((plugin) => ({
       name: plugin.name,
       version: plugin.version,
       description: plugin.description,
-      hooks: Object.keys(plugin.hooks).filter(k => plugin.hooks[k as keyof typeof plugin.hooks])
+      hooks: Object.keys(plugin.hooks).filter(
+        (k) => plugin.hooks[k as keyof typeof plugin.hooks],
+      ),
     }));
   }
 
@@ -156,9 +158,9 @@ export class PluginManager {
     return {
       plugins: Array.from(allMetrics.entries()).map(([name, metrics]) => ({
         name,
-        metrics
+        metrics,
       })),
-      slowPlugins
+      slowPlugins,
     };
   }
 

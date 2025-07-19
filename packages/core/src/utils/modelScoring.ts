@@ -71,7 +71,12 @@ function loadModelMetadata(): ModelMetadata {
   }
 
   try {
-    const metadataPath = path.join(__dirname, '..', 'config', 'model-metadata.json');
+    const metadataPath = path.join(
+      __dirname,
+      '..',
+      'config',
+      'model-metadata.json',
+    );
     const metadataContent = fs.readFileSync(metadataPath, 'utf-8');
     cachedMetadata = JSON.parse(metadataContent);
     return cachedMetadata!;
@@ -83,23 +88,26 @@ function loadModelMetadata(): ModelMetadata {
         popularity_multiplier: 100,
         free_model_bonus: 500,
         context_length_factor: 0.001,
-        cost_sensitivity: 100
+        cost_sensitivity: 100,
       },
       model_families: {
-        "cognitivecomputations/dolphin": {
-          name: "Dolphin",
+        'cognitivecomputations/dolphin': {
+          name: 'Dolphin',
           bonus: 1000,
-          description: "Uncensored, fine-tuned models",
-          version_keywords: { "3.0": 200, "8x22b": 150 },
-          patterns: ["cognitivecomputations/dolphin"]
-        }
+          description: 'Uncensored, fine-tuned models',
+          version_keywords: { '3.0': 200, '8x22b': 150 },
+          patterns: ['cognitivecomputations/dolphin'],
+        },
       },
-      special_tags: {}
+      special_tags: {},
     };
   }
 }
 
-function calculateFamilyScore(modelId: string, metadata: ModelMetadata): { familyBonus: number; versionBonus: number; matchedFamily?: string } {
+function calculateFamilyScore(
+  modelId: string,
+  metadata: ModelMetadata,
+): { familyBonus: number; versionBonus: number; matchedFamily?: string } {
   let familyBonus = 0;
   let versionBonus = 0;
   let matchedFamily: string | undefined;
@@ -107,12 +115,14 @@ function calculateFamilyScore(modelId: string, metadata: ModelMetadata): { famil
   // Check each model family
   for (const [familyKey, family] of Object.entries(metadata.model_families)) {
     // Check if model matches any of the family patterns
-    const matches = family.patterns.some(pattern => modelId.toLowerCase().includes(pattern.toLowerCase()));
-    
+    const matches = family.patterns.some((pattern) =>
+      modelId.toLowerCase().includes(pattern.toLowerCase()),
+    );
+
     if (matches) {
       familyBonus = family.bonus;
       matchedFamily = family.name;
-      
+
       // Check for version keywords
       for (const [keyword, bonus] of Object.entries(family.version_keywords)) {
         if (modelId.toLowerCase().includes(keyword.toLowerCase())) {
@@ -126,9 +136,12 @@ function calculateFamilyScore(modelId: string, metadata: ModelMetadata): { famil
   return { familyBonus, versionBonus, matchedFamily };
 }
 
-function calculatePricingScore(model: OpenRouterModel, metadata: ModelMetadata): number {
+function calculatePricingScore(
+  model: OpenRouterModel,
+  metadata: ModelMetadata,
+): number {
   const { free_model_bonus, cost_sensitivity } = metadata.scoring_weights;
-  
+
   // Check if it's a free model
   if (model.id.includes(':free') || model.id.includes('free')) {
     return free_model_bonus;
@@ -139,11 +152,11 @@ function calculatePricingScore(model: OpenRouterModel, metadata: ModelMetadata):
     try {
       const promptCost = parseFloat(model.pricing.prompt);
       const completionCost = parseFloat(model.pricing.completion);
-      
+
       if (promptCost === 0 && completionCost === 0) {
         return free_model_bonus;
       }
-      
+
       const totalCost = promptCost + completionCost;
       if (totalCost > 0) {
         // Lower cost = higher score (inverse relationship)
@@ -158,15 +171,19 @@ function calculatePricingScore(model: OpenRouterModel, metadata: ModelMetadata):
   return 0; // No pricing information
 }
 
-function calculateSpecialTagsScore(modelId: string, modelName: string, metadata: ModelMetadata): number {
+function calculateSpecialTagsScore(
+  modelId: string,
+  modelName: string,
+  metadata: ModelMetadata,
+): number {
   let score = 0;
   const textToCheck = (modelId + ' ' + modelName).toLowerCase();
 
   for (const [tagName, tag] of Object.entries(metadata.special_tags)) {
-    const hasIndicator = tag.indicators.some(indicator => 
-      textToCheck.includes(indicator.toLowerCase())
+    const hasIndicator = tag.indicators.some((indicator) =>
+      textToCheck.includes(indicator.toLowerCase()),
     );
-    
+
     if (hasIndicator) {
       score += tag.bonus;
     }
@@ -177,27 +194,46 @@ function calculateSpecialTagsScore(modelId: string, modelName: string, metadata:
 
 export function scoreModels(models: OpenRouterModel[]): ScoredModel[] {
   const metadata = loadModelMetadata();
-  const { popularity_multiplier, context_length_factor } = metadata.scoring_weights;
+  const { popularity_multiplier, context_length_factor } =
+    metadata.scoring_weights;
 
-  const scoredModels: ScoredModel[] = models.map(model => {
+  const scoredModels: ScoredModel[] = models.map((model) => {
     const baseScore = 100; // Everyone starts with base score
-    
+
     // Family and version scoring
-    const { familyBonus, versionBonus, matchedFamily } = calculateFamilyScore(model.id, metadata);
-    
+    const { familyBonus, versionBonus, matchedFamily } = calculateFamilyScore(
+      model.id,
+      metadata,
+    );
+
     // Pricing scoring
     const pricingScore = calculatePricingScore(model, metadata);
-    
+
     // Popularity scoring (if available)
-    const popularityScore = model.popularity ? model.popularity * popularity_multiplier : 0;
-    
+    const popularityScore = model.popularity
+      ? model.popularity * popularity_multiplier
+      : 0;
+
     // Context length scoring
-    const contextScore = model.context_length ? model.context_length * context_length_factor : 0;
-    
+    const contextScore = model.context_length
+      ? model.context_length * context_length_factor
+      : 0;
+
     // Special tags scoring
-    const specialTagsScore = calculateSpecialTagsScore(model.id, model.name, metadata);
-    
-    const totalScore = baseScore + familyBonus + versionBonus + pricingScore + popularityScore + contextScore + specialTagsScore;
+    const specialTagsScore = calculateSpecialTagsScore(
+      model.id,
+      model.name,
+      metadata,
+    );
+
+    const totalScore =
+      baseScore +
+      familyBonus +
+      versionBonus +
+      pricingScore +
+      popularityScore +
+      contextScore +
+      specialTagsScore;
 
     return {
       ...model,
@@ -210,8 +246,8 @@ export function scoreModels(models: OpenRouterModel[]): ScoredModel[] {
         pricingScore,
         popularityScore,
         contextScore,
-        specialTagsScore
-      }
+        specialTagsScore,
+      },
     };
   });
 
@@ -219,7 +255,10 @@ export function scoreModels(models: OpenRouterModel[]): ScoredModel[] {
   return scoredModels.sort((a, b) => b.score - a.score);
 }
 
-export function getTopRecommendations(models: OpenRouterModel[], count: number = 6): ScoredModel[] {
+export function getTopRecommendations(
+  models: OpenRouterModel[],
+  count: number = 6,
+): ScoredModel[] {
   const scored = scoreModels(models);
   return scored.slice(0, count);
 }
@@ -232,7 +271,7 @@ export function formatModelForDisplay(model: ScoredModel): {
   score?: number;
 } {
   let recommendedFor = model.matchedFamily || 'General Use';
-  
+
   // Add specific recommendations based on model characteristics
   if (model.id.includes('dolphin')) {
     if (model.id.includes('3.0')) {
@@ -254,6 +293,6 @@ export function formatModelForDisplay(model: ScoredModel): {
     id: model.id,
     recommendedFor,
     provider: 'OpenRouter',
-    score: Math.round(model.score)
+    score: Math.round(model.score),
   };
 }

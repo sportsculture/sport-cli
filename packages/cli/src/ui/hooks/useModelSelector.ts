@@ -5,7 +5,7 @@
  */
 
 import { useState, useCallback } from 'react';
-import { Config } from '@google/gemini-cli-core';
+import { Config } from '@sport/core';
 import { HistoryItem, MessageType } from '../types.js';
 
 export const useModelSelector = (
@@ -23,18 +23,29 @@ export const useModelSelector = (
   }, []);
 
   const handleModelSelect = useCallback(
-    (model: string) => {
+    async (model: string) => {
       const previousModel = config.getModel();
-      config.setModel(model);
-      setIsModelSelectorOpen(false);
-      
-      addItem(
-        {
-          type: MessageType.INFO,
-          text: `Model changed from ${previousModel} to ${model}`,
-        },
-        Date.now(),
-      );
+      try {
+        await config.setModel(model);
+        setIsModelSelectorOpen(false);
+
+        addItem(
+          {
+            type: MessageType.INFO,
+            text: `Model changed from ${previousModel} to ${model}\n\nThe conversation history has been preserved for continuity.`,
+          },
+          Date.now(),
+        );
+      } catch (error) {
+        addItem(
+          {
+            type: MessageType.ERROR,
+            text:
+              error instanceof Error ? error.message : 'Failed to switch model',
+          },
+          Date.now(),
+        );
+      }
     },
     [config, addItem],
   );

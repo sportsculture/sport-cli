@@ -8,7 +8,7 @@ import React, { useState } from 'react';
 import { Box, Text, useInput } from 'ink';
 import { Colors } from '../colors.js';
 import TextInput from 'ink-text-input';
-import { AuthType } from '@google/gemini-cli-core';
+import { AuthType } from '@sport/core';
 
 interface ApiKeyDialogProps {
   authType: AuthType;

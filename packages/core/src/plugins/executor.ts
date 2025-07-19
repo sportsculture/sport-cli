@@ -11,7 +11,7 @@ import {
   ErrorContext,
   PluginError,
   SportCliFatalError,
-  PluginMetrics
+  PluginMetrics,
 } from './types.js';
 
 /**
@@ -33,14 +33,14 @@ export class PluginExecutor {
   async executeHook<T>(
     plugin: SportCliPlugin,
     hookName: keyof SportCliPlugin['hooks'],
-    args: any[]
+    args: any[],
   ): Promise<T> {
     const startTime = Date.now();
     const context: HookContext = {
       pluginName: plugin.name,
       hookName,
       timestamp: startTime,
-      config: this.config
+      config: this.config,
     };
 
     try {
@@ -56,7 +56,7 @@ export class PluginExecutor {
         // Special handling for onError hook
         const errorContext: ErrorContext = {
           ...context,
-          originalArgs: args.slice(1)
+          originalArgs: args.slice(1),
         };
         result = await Promise.resolve((hook as any)(args[0], errorContext));
       } else {
@@ -68,8 +68,8 @@ export class PluginExecutor {
       const timeoutPromise = new Promise((_, reject) =>
         setTimeout(
           () => reject(new Error(`Plugin timeout after ${this.timeout}ms`)),
-          this.timeout
-        )
+          this.timeout,
+        ),
       );
 
       result = await Promise.race([result, timeoutPromise]);
@@ -86,22 +86,22 @@ export class PluginExecutor {
       if (plugin.hooks.onError) {
         const errorContext: ErrorContext = {
           ...context,
-          originalArgs: args
+          originalArgs: args,
         };
-        
+
         try {
           await plugin.hooks.onError(error as Error, errorContext);
         } catch (handlerError) {
           console.error(
             `Error handler failed for plugin ${plugin.name}:`,
-            handlerError
+            handlerError,
           );
         }
       }
 
       // Log the error
       console.warn(
-        `Plugin ${plugin.name} failed in ${hookName}: ${(error as Error).message}`
+        `Plugin ${plugin.name} failed in ${hookName}: ${(error as Error).message}`,
       );
 
       // Check if error is fatal
@@ -127,11 +127,10 @@ export class PluginExecutor {
 
     for (const plugin of plugins) {
       try {
-        result = await this.executeHook<T>(
-          plugin,
-          hookName,
-          [result, ...additionalArgs]
-        );
+        result = await this.executeHook<T>(plugin, hookName, [
+          result,
+          ...additionalArgs,
+        ]);
       } catch (error) {
         if (error instanceof SportCliFatalError) {
           throw error; // Stop chain on fatal errors
@@ -149,18 +148,18 @@ export class PluginExecutor {
   async executeHookParallel(
     plugins: SportCliPlugin[],
     hookName: keyof SportCliPlugin['hooks'],
-    args: any[]
+    args: any[],
   ): Promise<any[]> {
-    const promises = plugins.map(plugin =>
-      this.executeHook(plugin, hookName, args)
+    const promises = plugins.map((plugin) =>
+      this.executeHook(plugin, hookName, args),
     );
 
     // Use allSettled to continue even if some fail
     const results = await Promise.allSettled(promises);
 
     return results
-      .filter(result => result.status === 'fulfilled')
-      .map(result => (result as PromiseFulfilledResult<any>).value);
+      .filter((result) => result.status === 'fulfilled')
+      .map((result) => (result as PromiseFulfilledResult<any>).value);
   }
 
   /**
@@ -198,37 +197,37 @@ export class PluginExecutor {
 
   private recordMetric(pluginName: string, hookName: string, duration: number) {
     let metrics = this.metrics.get(pluginName);
-    
+
     if (!metrics) {
       metrics = {
         name: pluginName,
         loadTime: 0,
         executionTimes: new Map(),
-        errorCount: 0
+        errorCount: 0,
       };
       this.metrics.set(pluginName, metrics);
     }
 
     const times = metrics.executionTimes.get(hookName) || [];
     times.push(duration);
-    
+
     // Keep only last 100 measurements
     if (times.length > 100) {
       times.shift();
     }
-    
+
     metrics.executionTimes.set(hookName, times);
   }
 
   private recordError(pluginName: string, error: Error) {
     let metrics = this.metrics.get(pluginName);
-    
+
     if (!metrics) {
       metrics = {
         name: pluginName,
         loadTime: 0,
         executionTimes: new Map(),
-        errorCount: 0
+        errorCount: 0,
       };
       this.metrics.set(pluginName, metrics);
     }

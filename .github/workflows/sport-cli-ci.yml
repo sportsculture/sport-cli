@@ -12,19 +12,19 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20'
           cache: 'npm'
-      
+
       - name: Install dependencies
         run: npm ci
-      
+
       - name: Lint
         run: npm run lint
-      
+
       - name: Type check
         run: npm run typecheck
 
@@ -35,19 +35,19 @@ jobs:
         node: [18, 20]
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Setup Node.js ${{ matrix.node }}
         uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node }}
           cache: 'npm'
-      
+
       - name: Install dependencies
         run: npm ci
-      
+
       - name: Run tests
         run: npm test
-      
+
       - name: Upload coverage
         if: matrix.node == 20
         uses: codecov/codecov-action@v3
@@ -58,81 +58,81 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20'
           cache: 'npm'
-      
+
       - name: Install dependencies
         run: npm ci
-      
+
       - name: Build
         run: npm run build
-      
+
       - name: Check binary size
         run: |
           SIZE_KB=$(du -sk dist/ | cut -f1)
           echo "Binary size: ${SIZE_KB}KB"
-          
+
           # Fail if over 50MB (51200KB)
           if [ $SIZE_KB -gt 51200 ]; then
             echo "❌ Binary size exceeds 50MB limit!"
             exit 1
           fi
-          
+
           echo "✅ Binary size within limits"
-      
+
       - name: Plugin load performance test
         run: |
           cat > perf-test.js << 'EOF'
           import { Config } from './dist/packages/core/src/config/config.js';
           import { initializePlugins } from './dist/packages/core/src/plugins/index.js';
-          
+
           const config = new Config();
           const start = Date.now();
-          
+
           await initializePlugins(config, {
             paths: ['./dist/packages/core/src/plugins/hello-world']
           });
-          
+
           const loadTime = Date.now() - start;
           console.log(`Plugin load time: ${loadTime}ms`);
-          
+
           if (loadTime > 1000) {
             console.error('❌ Plugin load time exceeds 1s limit!');
             process.exit(1);
           }
-          
+
           console.log('✅ Plugin load performance within limits');
           EOF
-          
+
           node perf-test.js
 
   security-scan:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20'
           cache: 'npm'
-      
+
       - name: Install dependencies
         run: npm ci
-      
+
       - name: Run security audit
         run: |
           npm audit --production || echo "Security issues found - not blocking build"
-      
+
       - name: License check
         run: |
           # Install license checker
           npm install -g license-checker
-          
+
           # Check licenses
           license-checker --onlyAllow 'MIT;Apache-2.0;BSD;ISC;CC0' || echo "License issues found - review needed"
 
@@ -141,26 +141,26 @@ jobs:
     needs: [lint-and-type-check, test]
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20'
           cache: 'npm'
-      
+
       - name: Install dependencies
         run: npm ci
-      
+
       - name: Build
         run: npm run build
-      
+
       - name: Canary plugin test
         run: |
           # Create a test script that uses plugins
           cat > integration-test.js << 'EOF'
           import { Config } from './dist/packages/core/src/config/config.js';
           import { PluginManager } from './dist/packages/core/src/plugins/manager.js';
-          
+
           async function test() {
             const config = new Config();
             const manager = new PluginManager(config);
@@ -205,13 +205,13 @@ jobs:
             
             console.log('✅ All integration tests passed!');
           }
-          
+
           test().catch(err => {
             console.error('❌ Integration test failed:', err);
             process.exit(1);
           });
           EOF
-          
+
           node integration-test.js
 
   upstream-sync-test:
@@ -221,28 +221,28 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      
+
       - name: Setup Git
         run: |
           git config user.name "GitHub Actions"
           git config user.email "actions@github.com"
-      
+
       - name: Add upstream remote
         run: |
           git remote add upstream https://github.com/google-gemini/gemini-cli.git || true
           git fetch upstream
-      
+
       - name: Test sync script
         run: |
           ./scripts/sync-upstream.sh --dry-run
-      
+
       - name: Report sync status
         if: failure()
         uses: actions/create-issue@v2
         with:
-          title: "Upstream sync test failed"
+          title: 'Upstream sync test failed'
           body: |
             The automated upstream sync test has failed.
-            
+
             Please check the [workflow run](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}) for details.
           labels: upstream-sync, automated

@@ -7,7 +7,7 @@
 import React from 'react';
 import { Text } from 'ink';
 import { Colors } from '../colors.js';
-import { type ActiveFile, type MCPServerConfig, AuthType } from '@google/gemini-cli-core';
+import { type ActiveFile, type MCPServerConfig, AuthType } from '@sport/core';
 import path from 'path';
 
 interface ContextSummaryDisplayProps {
@@ -85,17 +85,17 @@ export const ContextSummaryDisplay: React.FC<ContextSummaryDisplayProps> = ({
   })();
 
   let summaryText = '';
-  
+
   // Add model info first if present
   if (currentModel) {
     // For OpenRouter models, extract just the model name after the provider
     // For other providers, show the full model name
-    const modelName = currentModel.includes('/') 
-      ? currentModel.split('/').pop() 
+    const modelName = currentModel.includes('/')
+      ? currentModel.split('/').pop()
       : currentModel;
     summaryText = `Model: ${modelName}`;
   }
-  
+
   // Add context info
   const summaryParts = [];
   if (activeFileText) {
@@ -107,7 +107,7 @@ export const ContextSummaryDisplay: React.FC<ContextSummaryDisplayProps> = ({
   if (mcpText) {
     summaryParts.push(mcpText);
   }
-  
+
   if (summaryParts.length > 0) {
     if (summaryText) {
       summaryText += ' | ';

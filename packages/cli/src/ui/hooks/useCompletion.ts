@@ -15,7 +15,7 @@ import {
   getErrorMessage,
   Config,
   FileDiscoveryService,
-} from '@google/gemini-cli-core';
+} from '@sport/core';
 import {
   MAX_SUGGESTIONS_TO_SHOW,
   Suggestion,

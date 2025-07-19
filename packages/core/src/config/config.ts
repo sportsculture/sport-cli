@@ -315,10 +315,29 @@ export class Config {
     return this.contentGeneratorConfig?.model || this.model;
   }
 
-  setModel(newModel: string): void {
+  async setModel(newModel: string): Promise<void> {
     if (this.contentGeneratorConfig) {
+      // Avoid reset if the model isn't actually changing
+      if (this.contentGeneratorConfig.model === newModel) {
+        console.log(`Model is already set to '${newModel}'.`);
+        return;
+      }
+
+      // Prevent switching during an active response
+      if (this.geminiClient?.getIsGeneratingResponse()) {
+        throw new Error(
+          'Cannot switch model while a response is being generated. Please wait for it to complete.',
+        );
+      }
+
+      const previousModel = this.contentGeneratorConfig.model;
       this.contentGeneratorConfig.model = newModel;
       this.modelSwitchedDuringSession = true;
+
+      // Perform handoff to new model while preserving conversation history
+      if (this.geminiClient) {
+        await this.geminiClient.handoffToNewModel(previousModel, newModel);
+      }
     }
   }
 

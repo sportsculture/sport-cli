@@ -52,6 +52,7 @@ OpenRouter gives you access to many models through one API:
    - And many more!
 
 **Example commands:**
+
 ```bash
 # After selecting OpenRouter
 > help
@@ -73,6 +74,7 @@ Perfect for your local DeepSeek instance:
    - `Dolphin3.0-R1-Mistral-24B`
 
 **Example session:**
+
 ```bash
 # The CLI will use your local GPU server
 > remember I'm using my local GPU server with DeepSeek R1
@@ -138,7 +140,7 @@ npm start  # Choose OpenRouter
 > analyze the architecture of this project
 
 # Session 2 - Local GPU with DeepSeek
-npm start  # Choose Custom API  
+npm start  # Choose Custom API
 > analyze the architecture of this project
 
 # Compare responses!
@@ -168,11 +170,13 @@ npm start  # Choose Custom API
 ### Custom API Issues
 
 1. **Connection Refused**: Check if your server is running
+
    ```bash
    curl http://10.0.0.69:5000/api/tags
    ```
 
 2. **Model Not Found**: List available models
+
    ```bash
    curl http://10.0.0.69:5000/api/tags | jq
    ```
@@ -184,14 +188,17 @@ npm start  # Choose Custom API
 ## Performance Tips
 
 ### For Speed
+
 - Use `deepseek-r1:7b` on your local server
 - Use `deepseek/deepseek-chat` on OpenRouter
 
 ### For Quality
+
 - Use `deepseek-r1:70b` on your local server
 - Use `anthropic/claude-3-opus` on OpenRouter
 
 ### For Cost Efficiency
+
 - Local GPU server = FREE (just electricity!)
 - OpenRouter = Pay per token (check prices)
 

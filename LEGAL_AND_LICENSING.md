@@ -3,15 +3,20 @@
 ## License Status
 
 ### Upstream License
+
 Google's gemini-cli is licensed under **Apache License 2.0**
+
 - Source: https://github.com/google-gemini/gemini-cli
 - Full text: https://www.apache.org/licenses/LICENSE-2.0
 
 ### Our Fork License
+
 sport-cli maintains the same **Apache License 2.0** (as required)
 
 ### What This Means
+
 ✅ **You CAN:**
+
 - Use commercially
 - Modify
 - Distribute
@@ -19,11 +24,13 @@ sport-cli maintains the same **Apache License 2.0** (as required)
 - Place warranty
 
 ❌ **You CANNOT:**
+
 - Use Google trademarks
 - Hold Google liable
 - Remove copyright notices
 
 ⚠️ **You MUST:**
+
 - Include copyright notice
 - Include license
 - State changes
@@ -32,17 +39,18 @@ sport-cli maintains the same **Apache License 2.0** (as required)
 ## Required Attributions
 
 ### In Source Files
+
 ```javascript
 /**
  * Copyright 2025 Google LLC (original work)
  * Copyright 2025 SportsCulture (modifications)
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *     https://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -52,21 +60,24 @@ sport-cli maintains the same **Apache License 2.0** (as required)
 ```
 
 ### In README
+
 ```markdown
 ## Acknowledgments
 
-sport-cli is a fork of [Google's gemini-cli](https://github.com/google-gemini/gemini-cli), 
+sport-cli is a fork of [Google's gemini-cli](https://github.com/google-gemini/gemini-cli),
 originally created by Google LLC and licensed under Apache 2.0.
 
 Major modifications include:
+
 - Multi-provider support
 - Plugin architecture
 - Enhanced transparency features
 - Configurable paths
-[... list key changes ...]
+  [... list key changes ...]
 ```
 
 ### In Package.json
+
 ```json
 {
   "name": "@sportsculture/sport-cli",
@@ -82,11 +93,13 @@ Major modifications include:
 ## Trademark Considerations
 
 ### Must Change
+
 - ❌ "Gemini" → ✅ "sport"
 - ❌ Google branding → ✅ SportsCulture branding
 - ❌ Google logos → ✅ Your logos
 
 ### Can Keep
+
 - ✅ Technical references to Gemini API
 - ✅ Attribution to Google as original author
 - ✅ Links to upstream repo
@@ -120,6 +133,7 @@ This product includes the following third-party software:
 ## Third-Party Dependencies
 
 ### Audit Process
+
 ```bash
 # Check all licenses
 npm run license-check
@@ -129,7 +143,9 @@ sport licenses audit > THIRD_PARTY_LICENSES.txt
 ```
 
 ### Acceptable Licenses
+
 ✅ Safe to include:
+
 - MIT
 - Apache 2.0
 - BSD (2-clause, 3-clause)
@@ -137,11 +153,13 @@ sport licenses audit > THIRD_PARTY_LICENSES.txt
 - CC0
 
 ⚠️ Review carefully:
+
 - LGPL (dynamic linking only)
 - MPL 2.0
 - CC-BY
 
 ❌ Avoid:
+
 - GPL (any version)
 - AGPL
 - Proprietary licenses
@@ -153,7 +171,7 @@ sport licenses audit > THIRD_PARTY_LICENSES.txt
 
 Create `CONTRIBUTING.md`:
 
-```markdown
+````markdown
 # Contributing to sport-cli
 
 By contributing, you agree that:
@@ -167,12 +185,15 @@ By contributing, you agree that:
 ## Developer Certificate of Origin
 
 All commits must be signed off:
+
 ```bash
 git commit -s -m "Your commit message"
 ```
+````
 
 This indicates you agree to the DCO: https://developercertificate.org/
-```
+
+````
 
 ### CLA (Optional but Recommended)
 
@@ -200,11 +221,12 @@ jobs:
           path-to-signatures: 'signatures/version1/cla.json'
           path-to-document: 'CLA.md'
           branch: 'cla-signatures'
-```
+````
 
 ## Patent Considerations
 
 Apache 2.0 includes patent grants, meaning:
+
 - Google grants patent licenses for their contributions
 - You grant patent licenses for your contributions
 - Users receive patent licenses from all contributors
@@ -212,17 +234,20 @@ Apache 2.0 includes patent grants, meaning:
 ## Commercial Use
 
 ### You CAN:
+
 - ✅ Sell sport-cli
 - ✅ Offer paid support
 - ✅ Include in commercial products
 - ✅ Charge for plugins
 
 ### You MUST:
+
 - ⚠️ Maintain Apache 2.0 license
 - ⚠️ Provide attribution
 - ⚠️ State modifications
 
 ### You CANNOT:
+
 - ❌ Claim Google endorsement
 - ❌ Use Google trademarks
 - ❌ Misrepresent origin
@@ -230,6 +255,7 @@ Apache 2.0 includes patent grants, meaning:
 ## Risk Mitigation
 
 ### Code Scanning
+
 ```bash
 # Regular security scans
 npm audit
@@ -240,14 +266,18 @@ sport licenses verify
 ```
 
 ### Documentation
+
 Maintain clear records of:
+
 - Origin of each feature
 - Author of significant changes
 - Date of modifications
 - Reason for divergence
 
 ### Insurance
+
 Consider:
+
 - Open source liability insurance
 - Errors & omissions coverage
 - General liability including IP
@@ -283,6 +313,7 @@ A: Yes, commercial use is explicitly allowed.
 This document last updated: July 17, 2025
 
 Review quarterly or when:
+
 - Major features added
 - Upstream license changes
 - New dependencies added
@@ -290,5 +321,5 @@ Review quarterly or when:
 
 ---
 
-*Disclaimer: This document provides general guidance based on the Apache 2.0 license. 
-For specific legal advice, consult with an attorney specializing in open source licensing.*
+_Disclaimer: This document provides general guidance based on the Apache 2.0 license.
+For specific legal advice, consult with an attorney specializing in open source licensing._

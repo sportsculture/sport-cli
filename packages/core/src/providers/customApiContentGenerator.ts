@@ -118,13 +118,15 @@ export class CustomApiContentGenerator implements IProvider {
   private convertToCustomApiMessages(contents: any): CustomApiMessage[] {
     // Handle various content formats
     let contentArray: Content[] = [];
-    
+
     if (typeof contents === 'string') {
       contentArray = [{ role: 'user', parts: [{ text: contents }] }];
     } else if (Array.isArray(contents)) {
       if (contents.length > 0 && typeof contents[0] === 'string') {
         // Array of strings
-        contentArray = [{ role: 'user', parts: contents.map(text => ({ text })) }];
+        contentArray = [
+          { role: 'user', parts: contents.map((text) => ({ text })) },
+        ];
       } else if (contents.length > 0 && 'text' in contents[0]) {
         // Array of parts
         contentArray = [{ role: 'user', parts: contents }];
@@ -143,7 +145,7 @@ export class CustomApiContentGenerator implements IProvider {
 
     for (const content of contentArray) {
       const role = content.role === 'model' ? 'assistant' : content.role;
-      
+
       if (!content.parts || content.parts.length === 0) {
         continue;
       }
@@ -194,19 +196,23 @@ export class CustomApiContentGenerator implements IProvider {
   private convertToCustomApiFunctions(tools?: any[]): Array<any> | undefined {
     if (!tools) return undefined;
 
-    return tools.map(tool => {
-      if ('functionDeclarations' in tool) {
-        return tool.functionDeclarations.map((func: FunctionDeclaration) => ({
-          name: func.name,
-          description: func.description,
-          parameters: func.parameters,
-        }));
-      }
-      return [];
-    }).flat();
+    return tools
+      .map((tool) => {
+        if ('functionDeclarations' in tool) {
+          return tool.functionDeclarations.map((func: FunctionDeclaration) => ({
+            name: func.name,
+            description: func.description,
+            parameters: func.parameters,
+          }));
+        }
+        return [];
+      })
+      .flat();
   }
 
-  private convertCustomApiResponse(response: CustomApiResponse): GenerateContentResponse {
+  private convertCustomApiResponse(
+    response: CustomApiResponse,
+  ): GenerateContentResponse {
     const choice = response.choices[0];
     const parts: Part[] = [];
 
@@ -234,7 +240,7 @@ export class CustomApiContentGenerator implements IProvider {
         index: 0,
       },
     ];
-    
+
     if (response.usage) {
       result.usageMetadata = {
         promptTokenCount: response.usage.prompt_tokens,
@@ -251,7 +257,7 @@ export class CustomApiContentGenerator implements IProvider {
           .filter((p: Part) => 'text' in p)
           .map((p: Part) => p.text);
         return textParts.length > 0 ? textParts.join('') : undefined;
-      }
+      },
     });
 
     Object.defineProperty(result, 'functionCalls', {
@@ -261,25 +267,25 @@ export class CustomApiContentGenerator implements IProvider {
           .filter((p: Part) => 'functionCall' in p && p.functionCall)
           .map((p: Part) => p.functionCall);
         return calls.length > 0 ? calls : undefined;
-      }
+      },
     });
 
     Object.defineProperty(result, 'data', {
       get() {
         return undefined; // Custom API doesn't support inline data
-      }
+      },
     });
 
     Object.defineProperty(result, 'executableCode', {
       get() {
         return undefined; // Custom API doesn't support executable code
-      }
+      },
     });
 
     Object.defineProperty(result, 'codeExecutionResult', {
       get() {
         return undefined; // Custom API doesn't support code execution
-      }
+      },
     });
 
     return result;
@@ -302,7 +308,7 @@ export class CustomApiContentGenerator implements IProvider {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${this.apiKey}`,
+          Authorization: `Bearer ${this.apiKey}`,
           ...this.customHeaders,
         },
         body: JSON.stringify(customApiRequest),
@@ -342,7 +348,7 @@ export class CustomApiContentGenerator implements IProvider {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${this.apiKey}`,
+        Authorization: `Bearer ${this.apiKey}`,
         ...this.customHeaders,
       },
       body: JSON.stringify(customApiRequest),
@@ -379,7 +385,7 @@ export class CustomApiContentGenerator implements IProvider {
           try {
             const chunk: CustomApiStreamResponse = JSON.parse(data);
             const choice = chunk.choices[0];
-            
+
             if (choice.delta.content) {
               accumulatedContent += choice.delta.content;
             }
@@ -392,7 +398,8 @@ export class CustomApiContentGenerator implements IProvider {
                 accumulatedFunctionCall.name = choice.delta.function_call.name;
               }
               if (choice.delta.function_call.arguments) {
-                accumulatedFunctionCall.arguments += choice.delta.function_call.arguments;
+                accumulatedFunctionCall.arguments +=
+                  choice.delta.function_call.arguments;
               }
             }
 
@@ -404,12 +411,16 @@ export class CustomApiContentGenerator implements IProvider {
               parts.push({
                 functionCall: {
                   name: accumulatedFunctionCall.name,
-                  args: accumulatedFunctionCall.arguments ? JSON.parse(accumulatedFunctionCall.arguments) : {},
+                  args: accumulatedFunctionCall.arguments
+                    ? JSON.parse(accumulatedFunctionCall.arguments)
+                    : {},
                 },
               });
             }
 
-            const streamResult = Object.create(GenerateContentResponse.prototype);
+            const streamResult = Object.create(
+              GenerateContentResponse.prototype,
+            );
             streamResult.candidates = [
               {
                 content: {
@@ -420,44 +431,46 @@ export class CustomApiContentGenerator implements IProvider {
                 index: 0,
               },
             ];
-            
+
             // Add getter methods
             Object.defineProperty(streamResult, 'text', {
               get() {
-                if (!this.candidates || this.candidates.length === 0) return undefined;
+                if (!this.candidates || this.candidates.length === 0)
+                  return undefined;
                 const textParts = this.candidates[0].content.parts
                   .filter((p: Part) => 'text' in p)
                   .map((p: Part) => p.text);
                 return textParts.length > 0 ? textParts.join('') : undefined;
-              }
+              },
             });
 
             Object.defineProperty(streamResult, 'functionCalls', {
               get() {
-                if (!this.candidates || this.candidates.length === 0) return undefined;
+                if (!this.candidates || this.candidates.length === 0)
+                  return undefined;
                 const calls = this.candidates[0].content.parts
                   .filter((p: Part) => 'functionCall' in p && p.functionCall)
                   .map((p: Part) => p.functionCall);
                 return calls.length > 0 ? calls : undefined;
-              }
+              },
             });
 
             Object.defineProperty(streamResult, 'data', {
               get() {
                 return undefined;
-              }
+              },
             });
 
             Object.defineProperty(streamResult, 'executableCode', {
               get() {
                 return undefined;
-              }
+              },
             });
 
             Object.defineProperty(streamResult, 'codeExecutionResult', {
               get() {
                 return undefined;
-              }
+              },
             });
 
             yield streamResult;
@@ -469,10 +482,12 @@ export class CustomApiContentGenerator implements IProvider {
     }
   }
 
-  async countTokens(request: CountTokensParameters): Promise<CountTokensResponse> {
+  async countTokens(
+    request: CountTokensParameters,
+  ): Promise<CountTokensResponse> {
     // Try to call a token counting endpoint if available
     let textContent = '';
-    
+
     // Handle various content formats
     if (typeof request.contents === 'string') {
       textContent = request.contents;
@@ -487,11 +502,15 @@ export class CustomApiContentGenerator implements IProvider {
         }
         return '';
       };
-      
+
       textContent = request.contents.map(processContent).join(' ');
     } else if (request.contents && 'text' in request.contents) {
       textContent = request.contents.text || '';
-    } else if (request.contents && 'parts' in request.contents && request.contents.parts) {
+    } else if (
+      request.contents &&
+      'parts' in request.contents &&
+      request.contents.parts
+    ) {
       textContent = request.contents.parts
         .filter((p: any) => p && 'text' in p)
         .map((p: any) => p.text)
@@ -503,7 +522,7 @@ export class CustomApiContentGenerator implements IProvider {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${this.apiKey}`,
+          Authorization: `Bearer ${this.apiKey}`,
           ...this.customHeaders,
         },
         body: JSON.stringify({
@@ -532,10 +551,12 @@ export class CustomApiContentGenerator implements IProvider {
     };
   }
 
-  async embedContent(request: EmbedContentParameters): Promise<EmbedContentResponse> {
+  async embedContent(
+    request: EmbedContentParameters,
+  ): Promise<EmbedContentResponse> {
     try {
       let input = '';
-      
+
       if (typeof request.contents === 'string') {
         input = request.contents;
       } else if (Array.isArray(request.contents)) {
@@ -543,7 +564,11 @@ export class CustomApiContentGenerator implements IProvider {
           .filter((p: any) => p && 'text' in p)
           .map((p: any) => p.text)
           .join(' ');
-      } else if (request.contents && typeof request.contents === 'object' && 'text' in request.contents) {
+      } else if (
+        request.contents &&
+        typeof request.contents === 'object' &&
+        'text' in request.contents
+      ) {
         input = (request.contents as any).text || '';
       }
 
@@ -551,7 +576,7 @@ export class CustomApiContentGenerator implements IProvider {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${this.apiKey}`,
+          Authorization: `Bearer ${this.apiKey}`,
           ...this.customHeaders,
         },
         body: JSON.stringify({
@@ -566,7 +591,7 @@ export class CustomApiContentGenerator implements IProvider {
           embeddings: [
             {
               values: data.data[0].embedding,
-            }
+            },
           ],
         };
       }
@@ -581,19 +606,19 @@ export class CustomApiContentGenerator implements IProvider {
   async getAvailableModels(): Promise<ModelInfo[]> {
     const cache = ModelCacheService.getInstance();
     const providerId = `custom-api-${this.baseUrl}`;
-    
+
     // Check cache first
     const cachedModels = cache.getCachedModels(providerId);
     if (cachedModels) {
       return cachedModels;
     }
-    
+
     // Try to fetch models from the custom API
     try {
       const response = await fetch(`${this.baseUrl}/v1/models`, {
         method: 'GET',
         headers: {
-          'Authorization': `Bearer ${this.apiKey}`,
+          Authorization: `Bearer ${this.apiKey}`,
           ...this.customHeaders,
         },
       });
@@ -601,7 +626,7 @@ export class CustomApiContentGenerator implements IProvider {
       if (response.ok) {
         const data = await response.json();
         const models = data.data || data.models || [];
-        
+
         const modelInfos = models.map((model: any) => ({
           id: model.id || model.name,
           name: model.name || model.id,
@@ -615,10 +640,10 @@ export class CustomApiContentGenerator implements IProvider {
             strengths: model.strengths || ['General purpose'],
           },
         }));
-        
+
         // Cache the models
         cache.setCachedModels(providerId, modelInfos);
-        
+
         return modelInfos;
       }
     } catch (error) {
@@ -626,22 +651,24 @@ export class CustomApiContentGenerator implements IProvider {
     }
 
     // Fallback to showing the configured model
-    const fallbackModels = [{
-      id: this.model,
-      name: this.model,
-      provider: 'Custom API',
-      isDefault: true,
-      description: 'Custom API model',
-      capabilities: {
-        supportsFunctions: true,
-        supportsStreaming: true,
-        strengths: ['General purpose'],
+    const fallbackModels = [
+      {
+        id: this.model,
+        name: this.model,
+        provider: 'Custom API',
+        isDefault: true,
+        description: 'Custom API model',
+        capabilities: {
+          supportsFunctions: true,
+          supportsStreaming: true,
+          strengths: ['General purpose'],
+        },
       },
-    }];
-    
+    ];
+
     // Cache the fallback
     cache.setCachedModels(providerId, fallbackModels);
-    
+
     return fallbackModels;
   }
 
@@ -667,7 +694,7 @@ export class CustomApiContentGenerator implements IProvider {
       const response = await fetch(`${this.baseUrl}/v1/models`, {
         method: 'GET',
         headers: {
-          'Authorization': `Bearer ${this.apiKey}`,
+          Authorization: `Bearer ${this.apiKey}`,
           ...this.customHeaders,
         },
       });
@@ -687,14 +714,16 @@ export class CustomApiContentGenerator implements IProvider {
         return {
           isConfigured: false,
           errorMessage: `API error: ${response.status}`,
-          configInstructions: 'Check your CUSTOM_API_ENDPOINT and CUSTOM_API_KEY',
+          configInstructions:
+            'Check your CUSTOM_API_ENDPOINT and CUSTOM_API_KEY',
         };
       }
     } catch (error: any) {
       return {
         isConfigured: false,
         errorMessage: `Connection error: ${error.message}`,
-        configInstructions: 'Ensure CUSTOM_API_ENDPOINT is reachable and CUSTOM_API_KEY is set',
+        configInstructions:
+          'Ensure CUSTOM_API_ENDPOINT is reachable and CUSTOM_API_KEY is set',
       };
     }
   }
