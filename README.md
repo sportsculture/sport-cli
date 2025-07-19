@@ -2,6 +2,7 @@
 
 [![sport-cli CI](https://github.com/sportsculture/gemini-cli/actions/workflows/ci.yml/badge.svg)](https://github.com/sportsculture/gemini-cli/actions/workflows/ci.yml)
 
+<!-- TODO: Update screenshot to show SPORT branding -->
 ![sport-cli Screenshot](./docs/assets/gemini-screenshot.png)
 
 > **Origin:** sport-cli is a fork of [Google's gemini-cli](https://github.com/google-gemini/gemini-cli), extended with multi-provider AI support and enhanced features. We maintain an upstream remote to incorporate Google's ongoing improvements while adding our own innovations.
