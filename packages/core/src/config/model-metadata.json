@@ -1,0 +1,97 @@
+{
+  "scoring_weights": {
+    "popularity_multiplier": 100,
+    "free_model_bonus": 500,
+    "context_length_factor": 0.001,
+    "cost_sensitivity": 100
+  },
+  "model_families": {
+    "cognitivecomputations/dolphin": {
+      "name": "Dolphin",
+      "bonus": 1000,
+      "description": "Uncensored, fine-tuned models optimized for coding and general use",
+      "version_keywords": {
+        "3.0": 200,
+        "8x22b": 150,
+        "8x7b": 100,
+        "2.9": 50,
+        "mixtral": 75,
+        "mistral": 50,
+        "llama3": 60
+      },
+      "patterns": ["cognitivecomputations/dolphin"]
+    },
+    "anthropic/claude": {
+      "name": "Claude",
+      "bonus": 900,
+      "description": "Advanced reasoning and conversation models",
+      "version_keywords": {
+        "opus": 100,
+        "sonnet": 75,
+        "haiku": 50,
+        "3.5": 80,
+        "3": 60
+      },
+      "patterns": ["anthropic/claude"]
+    },
+    "openai/gpt": {
+      "name": "GPT",
+      "bonus": 800,
+      "description": "OpenAI's flagship models",
+      "version_keywords": {
+        "4o": 150,
+        "4-turbo": 120,
+        "4": 100,
+        "3.5": 50
+      },
+      "patterns": ["openai/gpt"]
+    },
+    "deepseek": {
+      "name": "DeepSeek",
+      "bonus": 700,
+      "description": "Cost-effective models with strong performance",
+      "version_keywords": {
+        "coder": 100,
+        "chat": 75,
+        "v2": 50
+      },
+      "patterns": ["deepseek/"]
+    },
+    "google/gemini": {
+      "name": "Gemini",
+      "bonus": 600,
+      "description": "Google's multimodal models",
+      "version_keywords": {
+        "2.5": 100,
+        "pro": 75,
+        "flash": 50
+      },
+      "patterns": ["google/gemini"]
+    },
+    "xai/grok": {
+      "name": "Grok",
+      "bonus": 750,
+      "description": "X.AI's advanced reasoning models",
+      "version_keywords": {
+        "beta": 100,
+        "2": 80,
+        "vision": 50
+      },
+      "patterns": ["xai/grok", "grok"]
+    }
+  },
+  "special_tags": {
+    "free": {
+      "bonus": 300,
+      "indicators": [":free", "free"]
+    },
+    "vision": {
+      "bonus": 100,
+      "indicators": ["vision", "multimodal"]
+    },
+    "coding": {
+      "bonus": 150,
+      "indicators": ["coder", "code", "coding"]
+    }
+  }
+}

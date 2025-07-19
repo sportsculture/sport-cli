@@ -1,56 +1,50 @@
-OpenRouter API Key Prompt and Model Switching Implementation
+# Models Command UI Fixes - Product Requirements Document
 
-## Overview
-The sprtscltr CLI (formerly Gemini CLI) currently has OpenRouter integration but lacks two critical features:
-1. API key prompt when selecting OpenRouter authentication
-2. Model switching capability within OpenRouter
+## Problem Statement
+The `/models` command in sport-cli has multiple critical UI and functionality issues that prevent users from effectively discovering and selecting AI models:
 
-## Current State
-- OpenRouter provider is implemented and functional
-- Authentication dialog shows OpenRouter as option 4
-- When selected, no API key prompt appears
-- No way to switch between different models available on OpenRouter
+1. **Bold formatting failure**: Model names show visible `**` asterisks instead of bold text
+2. **Column truncation**: "Context" appears as "Con..." due to width constraints  
+3. **Duplicate recommendations**: Multiple Dolphin models appear instead of diverse selection
+4. **Poor user experience**: Cost explanation text is cut off, table formatting is misaligned
+
+## User Story
+As a software developer switching from Claude Code to sport-cli, I need a clean, informative models list that helps me:
+- Quickly identify the best Dolphin model (my preferred choice)
+- See flagship models from major providers (OpenAI, Anthropic, Google, XAI)
+- Understand model capabilities (context length, cost)
+- Make informed decisions about which model to use
 
 ## Requirements
 
-### 1. API Key Prompt Implementation
-- When user selects OpenRouter from auth dialog, prompt for API key
-- Store API key securely in environment/config
-- Handle cases where API key is already set via environment variable
-- Show appropriate error messages for invalid API keys
+### Core Functionality
+1. **Curated Recommendations**: Show exactly 1 best Dolphin model + 1 best model from each major provider
+2. **Proper Formatting**: Bold model names should render correctly in terminal
+3. **Complete Information**: All column headers and content should be fully visible
+4. **Clear Pricing**: Cost information should be clearly explained and consistently formatted
 
-### 2. Model Switching Functionality
-- Add ability to list available OpenRouter models
-- Implement model selection UI (similar to existing auth selection)
-- Allow switching models mid-session
-- Display current model in status bar or header
-- Save model preference for future sessions
+### Technical Requirements
+1. Fix MessageType.GEMINI rendering issues for table content
+2. Implement proper deduplication logic for model recommendations  
+3. Adjust column widths to fit terminal constraints
+4. Add explanation text for cost methodology
 
-### 3. User Experience
-- Seamless flow from auth selection to API key entry to model selection
-- Clear feedback on authentication status
-- Graceful handling of API errors
-- Consistent UI/UX with existing sprtscltr patterns
-
-## Technical Implementation
-
-### Files to Modify
-- /packages/cli/src/ui/components/AuthDialog.tsx - Add API key prompt
-- /packages/cli/src/ui/hooks/useAuthCommand.ts - Handle auth flow
-- /packages/core/src/providers/openRouterContentGenerator.ts - Model switching
-- /packages/cli/src/ui/App.tsx - Display current model
-- Configuration files for storing API key and model preference
-
-### Key Considerations
-- Maintain backward compatibility with existing auth methods
-- Ensure Custom API provider follows same pattern
-- Consider adding model switching for all providers that support multiple models
-- Handle rate limits and API errors gracefully
+### User Experience
+1. **Clean Table**: Properly aligned borders, readable headers
+2. **Diverse Selection**: No duplicate models in recommendations
+3. **Clear Value Proposition**: Each model should have clear "Best For" description
+4. **Actionable**: Include usage examples and links to full model lists
 
 ## Success Criteria
-1. User can select OpenRouter and be prompted for API key
-2. API key is validated and stored appropriately
-3. User can see list of available models
-4. User can switch between models easily
-5. Current model is displayed in UI
-6. Preferences persist across sessions
+- Bold formatting works correctly for all model names
+- "Context" and "Cost" headers display completely
+- Exactly 1 Dolphin model + diverse selection from other providers
+- Table renders properly within standard terminal widths (80+ chars)
+- Cost explanation text displays completely
+
+## Technical Context
+- CLI tool built with TypeScript/Node.js
+- Uses MessageType system for output rendering
+- Table content processed through message formatting system
+- OpenRouter API integration for model data
+- Dynamic scoring system for model recommendations
