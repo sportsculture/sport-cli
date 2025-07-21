@@ -13,6 +13,7 @@ import {
 } from '../index.js';
 import { Config } from '../config/config.js';
 import { convertToFunctionResponse } from './coreToolScheduler.js';
+import { toolExecutor } from '../tools/toolExecutor.js';
 
 /**
  * Executes a single tool call non-interactively.
@@ -62,10 +63,18 @@ export async function executeToolCall(
   try {
     // Directly execute without confirmation or live output handling
     const effectiveAbortSignal = abortSignal ?? new AbortController().signal;
-    const toolResult: ToolResult = await tool.execute(
+
+    // Use idempotent executor to prevent duplicate executions
+    const toolResult: ToolResult = await toolExecutor.executeToolCall(
+      toolCallRequest.callId,
+      toolCallRequest.name,
       toolCallRequest.args,
-      effectiveAbortSignal,
-      // No live output callback for non-interactive mode
+      () =>
+        tool.execute(
+          toolCallRequest.args,
+          effectiveAbortSignal,
+          // No live output callback for non-interactive mode
+        ),
     );
 
     const tool_output = toolResult.llmContent;

@@ -36,6 +36,20 @@ export class ShellTool extends BaseTool<ShellToolParams, ToolResult> {
   static Name: string = 'run_shell_command';
   private whitelist: Set<string> = new Set();
 
+  /**
+   * Decode HTML entities that may have been introduced by the API
+   * Common entities that affect shell commands
+   */
+  private decodeHtmlEntities(text: string): string {
+    return text
+      .replace(/&amp;/g, '&')
+      .replace(/&lt;/g, '<')
+      .replace(/&gt;/g, '>')
+      .replace(/&quot;/g, '"')
+      .replace(/&#39;/g, "'")
+      .replace(/&#x27;/g, "'");
+  }
+
   constructor(private readonly config: Config) {
     super(
       ShellTool.Name,
@@ -80,7 +94,10 @@ Process Group PGID: Process group started or \`(none)\``,
   }
 
   getDescription(params: ShellToolParams): string {
-    let description = `${params.command}`;
+    // Decode HTML entities for display
+    const decodedCommand = this.decodeHtmlEntities(params.command);
+    
+    let description = `${decodedCommand}`;
     // append optional [in directory]
     // note description is needed even if validation fails due to absolute path
     if (params.directory) {
@@ -256,17 +273,21 @@ Process Group PGID: Process group started or \`(none)\``,
     params: ShellToolParams,
     _abortSignal: AbortSignal,
   ): Promise<ToolCallConfirmationDetails | false> {
-    if (this.validateToolParams(params)) {
+    // Decode HTML entities
+    const decodedCommand = this.decodeHtmlEntities(params.command);
+    const decodedParams = { ...params, command: decodedCommand };
+    
+    if (this.validateToolParams(decodedParams)) {
       return false; // skip confirmation, execute call will fail immediately
     }
-    const rootCommand = this.getCommandRoot(params.command)!; // must be non-empty string post-validation
+    const rootCommand = this.getCommandRoot(decodedParams.command)!; // must be non-empty string post-validation
     if (this.whitelist.has(rootCommand)) {
       return false; // already approved and whitelisted
     }
     const confirmationDetails: ToolExecuteConfirmationDetails = {
       type: 'exec',
       title: 'Confirm Shell Command',
-      command: params.command,
+      command: decodedParams.command,
       rootCommand,
       onConfirm: async (outcome: ToolConfirmationOutcome) => {
         if (outcome === ToolConfirmationOutcome.ProceedAlways) {
@@ -282,11 +303,15 @@ Process Group PGID: Process group started or \`(none)\``,
     abortSignal: AbortSignal,
     updateOutput?: (chunk: string) => void,
   ): Promise<ToolResult> {
-    const validationError = this.validateToolParams(params);
+    // Decode HTML entities that may have been introduced by the API
+    const decodedCommand = this.decodeHtmlEntities(params.command);
+    const decodedParams = { ...params, command: decodedCommand };
+
+    const validationError = this.validateToolParams(decodedParams);
     if (validationError) {
       return {
         llmContent: [
-          `Command rejected: ${params.command}`,
+          `Command rejected: ${decodedParams.command}`,
           `Reason: ${validationError}`,
         ].join('\n'),
         returnDisplay: `Error: ${validationError}`,
@@ -308,10 +333,10 @@ Process Group PGID: Process group started or \`(none)\``,
 
     // pgrep is not available on Windows, so we can't get background PIDs
     const command = isWindows
-      ? params.command
+      ? decodedParams.command
       : (() => {
           // wrap command to append subprocess pids (via pgrep) to temporary file
-          let command = params.command.trim();
+          let command = decodedParams.command.trim();
           if (!command.endsWith('&')) command += ';';
           return `{ ${command} }; __code=$?; pgrep -g 0 >${tempFilePath} 2>&1; exit $__code;`;
         })();
@@ -321,12 +346,12 @@ Process Group PGID: Process group started or \`(none)\``,
       ? spawn('cmd.exe', ['/c', command], {
           stdio: ['ignore', 'pipe', 'pipe'],
           // detached: true, // ensure subprocess starts its own process group (esp. in Linux)
-          cwd: path.resolve(this.config.getTargetDir(), params.directory || ''),
+          cwd: path.resolve(this.config.getTargetDir(), decodedParams.directory || ''),
         })
       : spawn('bash', ['-c', command], {
           stdio: ['ignore', 'pipe', 'pipe'],
           detached: true, // ensure subprocess starts its own process group (esp. in Linux)
-          cwd: path.resolve(this.config.getTargetDir(), params.directory || ''),
+          cwd: path.resolve(this.config.getTargetDir(), decodedParams.directory || ''),
         });
 
     let exited = false;
@@ -369,7 +394,7 @@ Process Group PGID: Process group started or \`(none)\``,
     shell.on('error', (err: Error) => {
       error = err;
       // remove wrapper from user's command in error message
-      error.message = error.message.replace(command, params.command);
+      error.message = error.message.replace(command, decodedParams.command);
     });
 
     let code: number | null = null;
@@ -456,8 +481,8 @@ Process Group PGID: Process group started or \`(none)\``,
       }
     } else {
       llmContent = [
-        `Command: ${params.command}`,
-        `Directory: ${params.directory || '(root)'}`,
+        `Command: ${decodedParams.command}`,
+        `Directory: ${decodedParams.directory || '(root)'}`,
         `Stdout: ${stdout || '(empty)'}`,
         `Stderr: ${stderr || '(empty)'}`,
         `Error: ${error ?? '(none)'}`,

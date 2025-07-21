@@ -54,6 +54,7 @@ export * from './services/ideContext.js';
 // Export base tool definitions
 export * from './tools/tools.js';
 export * from './tools/tool-registry.js';
+export * from './tools/toolExecutor.js';
 
 // Export specific tool logic
 export * from './tools/read-file.js';

@@ -78,6 +78,43 @@ The Vertex AI API provides a [free tier](https://cloud.google.com/vertex-ai/gene
 
 For other authentication methods, including Google Workspace accounts, see the [authentication](./docs/cli/authentication.md) guide.
 
+### Use OpenRouter for 300+ AI Models:
+
+OpenRouter provides a unified gateway to virtually every major AI model - if it's publicly available, it's on OpenRouter. This includes the latest from OpenAI, Anthropic, Google, xAI, Meta, and more.
+
+**Setup is simple:**
+
+1. Get your API key from [OpenRouter](https://openrouter.ai/keys)
+2. Set it as an environment variable:
+
+   ```bash
+   export OPENROUTER_API_KEY="YOUR_API_KEY"
+   ```
+
+3. Start sport-cli and use the `/model` command to switch between any available model:
+
+   ```bash
+   sport
+   > /model grok-4  # xAI's latest with 73 AI Index score
+   > /model claude-4-opus  # Best for complex coding tasks
+   > /model gpt-4.1  # OpenAI's versatile assistant
+   > /model gemini-2.5-pro  # Google's multimodal powerhouse
+   > /model deepseek-r1  # Cost-effective reasoning model
+   ```
+
+**Popular models and their strengths:**
+
+- **Grok-4** ($3/$15 per M tokens) - Leading reasoning capabilities, outperforms o3 and Claude
+- **Claude 4 Opus** - Exceptional at coding with hybrid instant/thinking architecture
+- **GPT-4.1** - Most cost-efficient for long contexts, great general-purpose model
+- **Gemini 2.5 Pro** - Best for multimodal tasks (images, audio, video)
+- **DeepSeek R1** - Incredibly cost-effective while maintaining high performance
+- **Llama 4** - Open-source option for unrestricted development
+
+**Pro tip:** Many providers offer free tiers! Try models from Mistral, DeepSeek, Google, and Meta without any upfront costs. Perfect for experimenting before committing to paid usage.
+
+With OpenRouter, you're not locked into any single provider's ecosystem - switch models based on your task, budget, or preference. The future of AI is multi-model, and sport-cli puts that power at your fingertips.
+
 ### Connecting to Zen MCP Server
 
 The Zen MCP server is a powerful tool that extends the capabilities of the Gemini CLI by providing access to a wider range of models and services. To connect to the Zen MCP server, you need to configure it in your Gemini CLI settings.

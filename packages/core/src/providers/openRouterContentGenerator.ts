@@ -24,6 +24,9 @@ import { retryWithBackoff } from '../utils/retry.js';
 import { IProvider, ModelInfo, ProviderStatus } from './types.js';
 import { OPENROUTER_MODELS } from '../config/models.js';
 import { ModelCacheService } from './modelCache.js';
+import { ModelCapabilityRegistry } from './modelCapabilities.js';
+import { StreamingJsonBuffer } from '../utils/streamingJsonBuffer.js';
+import { toolLogger } from '../utils/logger.js';
 
 interface OpenRouterMessage {
   role: 'system' | 'user' | 'assistant' | 'tool';
@@ -179,7 +182,9 @@ export class OpenRouterContentGenerator implements IProvider {
           textParts.push(part.text);
         } else if ('functionCall' in part && part.functionCall) {
           toolCalls.push({
-            id: `call_${Date.now()}_${Math.random().toString(36).substring(7)}`,
+            id:
+              part.functionCall.id ||
+              `call_${Date.now()}_${Math.random().toString(36).substring(7)}`,
             type: 'function',
             function: {
               name: part.functionCall.name,
@@ -190,6 +195,8 @@ export class OpenRouterContentGenerator implements IProvider {
           toolResponses.push({
             type: 'text',
             text: JSON.stringify(part.functionResponse.response),
+            name: part.functionResponse.name,
+            id: part.functionResponse.id,
           });
         } else if ('inlineData' in part) {
           // For now, we'll skip inline data as OpenRouter doesn't support it directly
@@ -203,7 +210,7 @@ export class OpenRouterContentGenerator implements IProvider {
           messages.push({
             role: 'tool',
             content: response.text,
-            tool_call_id: `call_${Date.now()}`, // This should match the actual call ID
+            tool_call_id: response.id || `call_${Date.now()}`, // Use the original call ID
           });
         }
       } else if (toolCalls.length > 0) {
@@ -226,23 +233,133 @@ export class OpenRouterContentGenerator implements IProvider {
   private convertToGoogleTools(
     tools?: any[],
   ): Array<{ type: 'function'; function: OpenRouterFunction }> | undefined {
-    if (!tools) return undefined;
+    if (!tools) {
+      if (process.env.DEBUG) {
+        console.log(
+          '[DEBUG] OpenRouter.convertToGoogleTools: No tools provided',
+        );
+      }
+      return undefined;
+    }
 
-    return tools
+    if (process.env.DEBUG) {
+      console.log(
+        '[DEBUG] OpenRouter.convertToGoogleTools: Converting tools:',
+        {
+          toolsCount: tools.length,
+          firstToolKeys: tools[0] ? Object.keys(tools[0]) : [],
+        },
+      );
+    }
+
+    const converted = tools
       .map((tool) => {
+        toolLogger.debug('OpenRouter: Processing tool', {
+          hasFunction: 'function' in tool,
+          hasFunctionDeclarations: 'functionDeclarations' in tool,
+          keys: Object.keys(tool),
+          functionDeclarationsLength: tool.functionDeclarations?.length,
+        });
         if ('functionDeclarations' in tool) {
-          return tool.functionDeclarations.map((func: FunctionDeclaration) => ({
-            type: 'function' as const,
-            function: {
+          return tool.functionDeclarations.map((func: FunctionDeclaration) => {
+            const convertedParams = this.convertGeminiSchemaToOpenAI(
+              func.parameters,
+            );
+            toolLogger.debug('OpenRouter: Converting function', {
               name: func.name,
-              description: func.description,
-              parameters: func.parameters,
-            },
-          }));
+              hasDescription: !!func.description,
+              hasParameters: !!func.parameters,
+            });
+            return {
+              type: 'function' as const,
+              function: {
+                name: func.name,
+                description: func.description,
+                parameters: convertedParams,
+              },
+            };
+          });
         }
         return [];
       })
       .flat();
+
+    if (process.env.DEBUG) {
+      console.log(
+        '[DEBUG] OpenRouter.convertToGoogleTools: Converted tools count:',
+        converted.length,
+      );
+    }
+
+    return converted;
+  }
+
+  private convertGeminiSchemaToOpenAI(schema: any): any {
+    if (!schema) return {};
+
+    const converted: any = { ...schema };
+
+    // Convert Gemini Type enum to OpenAI type strings
+    if (schema.type !== undefined) {
+      const typeMap: Record<string | number, string> = {
+        STRING: 'string',
+        NUMBER: 'number',
+        INTEGER: 'integer',
+        BOOLEAN: 'boolean',
+        ARRAY: 'array',
+        OBJECT: 'object',
+        // Handle numeric enum values from Gemini
+        1: 'string', // Type.STRING
+        2: 'number', // Type.NUMBER
+        3: 'integer', // Type.INTEGER
+        4: 'boolean', // Type.BOOLEAN
+        5: 'array', // Type.ARRAY
+        6: 'object', // Type.OBJECT
+      };
+      converted.type =
+        typeMap[schema.type] ||
+        (typeof schema.type === 'string'
+          ? schema.type.toLowerCase()
+          : 'string');
+    }
+
+    // Convert string numbers to actual numbers for numeric properties
+    const numericProps = [
+      'minLength',
+      'maxLength',
+      'minItems',
+      'maxItems',
+      'minimum',
+      'maximum',
+    ];
+    for (const prop of numericProps) {
+      if (
+        converted[prop] !== undefined &&
+        typeof converted[prop] === 'string'
+      ) {
+        converted[prop] = parseInt(converted[prop], 10);
+      }
+    }
+
+    // Recursively convert nested schemas
+    if (schema.properties) {
+      converted.properties = {};
+      for (const [key, value] of Object.entries(schema.properties)) {
+        converted.properties[key] = this.convertGeminiSchemaToOpenAI(value);
+      }
+    }
+
+    if (schema.items) {
+      converted.items = this.convertGeminiSchemaToOpenAI(schema.items);
+    }
+
+    if (schema.anyOf) {
+      converted.anyOf = schema.anyOf.map((s: any) =>
+        this.convertGeminiSchemaToOpenAI(s),
+      );
+    }
+
+    return converted;
   }
 
   private convertOpenRouterResponse(
@@ -277,6 +394,9 @@ export class OpenRouterContentGenerator implements IProvider {
         index: 0,
       },
     ];
+
+    // Store tool calls for event generation
+    (result as any)._toolCalls = choice.message.tool_calls;
 
     if (response.usage) {
       result.usageMetadata = {
@@ -331,13 +451,33 @@ export class OpenRouterContentGenerator implements IProvider {
   async generateContent(
     request: GenerateContentParameters,
   ): Promise<GenerateContentResponse> {
+    const capabilityRegistry = ModelCapabilityRegistry.getInstance();
+    const supportsTools = capabilityRegistry.supportsTools(this.model);
+
+    const tools = supportsTools
+      ? this.convertToGoogleTools((request as any).tools)
+      : undefined;
+
+    toolLogger.traceProviderDetection('OpenRouter', {
+      model: this.model,
+      supportsTools,
+      toolsCount: tools?.length || 0,
+    });
+
+    if (tools) {
+      toolLogger.debug('OpenRouter: Sending tools to API', {
+        toolNames: tools.map((t) => t.function.name),
+        toolsCount: tools.length,
+      });
+    }
+
     const openRouterRequest: OpenRouterRequest = {
       model: this.model,
       messages: this.convertToOpenRouterMessages(request.contents),
       temperature: request.config?.temperature,
       top_p: request.config?.topP,
       max_tokens: request.config?.maxOutputTokens,
-      tools: this.convertToGoogleTools((request as any).tools),
+      tools,
       usage: true,
     };
 
@@ -355,6 +495,12 @@ export class OpenRouterContentGenerator implements IProvider {
 
       if (!res.ok) {
         const error = await res.text();
+
+        // Cache capability information if we get a tool support error
+        if (error.includes('No endpoints found that support tool use')) {
+          capabilityRegistry.cacheFromApiError(this.model, error);
+        }
+
         throw new Error(`OpenRouter API error: ${res.status} - ${error}`);
       }
 
@@ -367,12 +513,20 @@ export class OpenRouterContentGenerator implements IProvider {
   async generateContentStream(
     request: GenerateContentParameters,
   ): Promise<AsyncGenerator<GenerateContentResponse>> {
+    toolLogger.debug('OpenRouter: Starting streaming request', {
+      hasTools: !!(request as any).tools,
+      toolsLength: (request as any).tools?.length,
+      model: this.model,
+    });
     return this.generateContentStreamInternal(request);
   }
 
   private async *generateContentStreamInternal(
     request: GenerateContentParameters,
   ): AsyncGenerator<GenerateContentResponse> {
+    const capabilityRegistry = ModelCapabilityRegistry.getInstance();
+    const supportsTools = capabilityRegistry.supportsTools(this.model);
+
     const openRouterRequest: OpenRouterRequest = {
       model: this.model,
       messages: this.convertToOpenRouterMessages(request.contents),
@@ -380,7 +534,9 @@ export class OpenRouterContentGenerator implements IProvider {
       top_p: request.config?.topP,
       max_tokens: request.config?.maxOutputTokens,
       stream: true,
-      tools: this.convertToGoogleTools((request as any).tools),
+      tools: supportsTools
+        ? this.convertToGoogleTools((request as any).tools)
+        : undefined,
       usage: true,
     };
 
@@ -397,6 +553,12 @@ export class OpenRouterContentGenerator implements IProvider {
 
     if (!response.ok) {
       const error = await response.text();
+
+      // Cache capability information if we get a tool support error
+      if (error.includes('No endpoints found that support tool use')) {
+        capabilityRegistry.cacheFromApiError(this.model, error);
+      }
+
       throw new Error(`OpenRouter API error: ${response.status} - ${error}`);
     }
 
@@ -406,9 +568,11 @@ export class OpenRouterContentGenerator implements IProvider {
     }
 
     const decoder = new TextDecoder();
+    const jsonBuffer = new StreamingJsonBuffer();
     let buffer = '';
     let accumulatedContent = '';
     let accumulatedToolCalls: any[] = [];
+    let yieldedToolCallIds = new Set<string>(); // Track which tool calls we've already yielded
 
     while (true) {
       const { done, value } = await reader.read();
@@ -437,6 +601,36 @@ export class OpenRouterContentGenerator implements IProvider {
 
             if (choice.delta.tool_calls) {
               hasNewContent = true;
+              
+              // Enhanced debugging for Grok duplicate detection
+              if (process.env.DEBUG_TOOLS === 'true') {
+                console.error('[GROK DEBUG] Tool call delta received:', {
+                  count: choice.delta.tool_calls.length,
+                  toolCalls: choice.delta.tool_calls.map((tc) => ({
+                    index: tc.index,
+                    id: tc.id,
+                    name: tc.function?.name,
+                    argsLength: tc.function?.arguments?.length,
+                    argsPreview: tc.function?.arguments?.substring(0, 50),
+                  })),
+                  currentAccumulated: accumulatedToolCalls.map((tc) => ({
+                    index: accumulatedToolCalls.indexOf(tc),
+                    id: tc?.id,
+                    name: tc?.function?.name,
+                  })),
+                });
+              }
+              
+              toolLogger.debug('OpenRouter: Tool call delta received', {
+                count: choice.delta.tool_calls.length,
+                toolCalls: choice.delta.tool_calls.map((tc) => ({
+                  index: tc.index,
+                  hasId: !!tc.id,
+                  hasName: !!tc.function?.name,
+                  hasArgs: !!tc.function?.arguments,
+                })),
+              });
+
               for (const toolCall of choice.delta.tool_calls) {
                 if (!accumulatedToolCalls[toolCall.index]) {
                   accumulatedToolCalls[toolCall.index] = {
@@ -444,6 +638,10 @@ export class OpenRouterContentGenerator implements IProvider {
                     type: 'function',
                     function: { name: '', arguments: '' },
                   };
+                }
+                // Update ID if provided in this chunk
+                if (toolCall.id) {
+                  accumulatedToolCalls[toolCall.index].id = toolCall.id;
                 }
                 if (toolCall.function?.name) {
                   accumulatedToolCalls[toolCall.index].function.name =
@@ -462,16 +660,28 @@ export class OpenRouterContentGenerator implements IProvider {
               parts.push({ text: choice.delta.content });
             }
             if (accumulatedToolCalls.length > 0) {
+              // Only yield tool calls that haven't been yielded yet
               for (const toolCall of accumulatedToolCalls.filter((tc) => tc)) {
-                if (toolCall.function.name) {
-                  parts.push({
-                    functionCall: {
+                if (toolCall.function.name && toolCall.id && !yieldedToolCallIds.has(toolCall.id)) {
+                  // Check if this tool call has complete arguments before yielding
+                  try {
+                    const args = toolCall.function.arguments ? JSON.parse(toolCall.function.arguments) : {};
+                    parts.push({
+                      functionCall: {
+                        id: toolCall.id, // Include ID for tracking
+                        name: toolCall.function.name,
+                        args: args,
+                      },
+                    });
+                    yieldedToolCallIds.add(toolCall.id); // Mark as yielded
+                  } catch (e) {
+                    // Arguments not complete yet, skip this iteration
+                    toolLogger.debug('OpenRouter: Skipping incomplete tool call', {
+                      id: toolCall.id,
                       name: toolCall.function.name,
-                      args: toolCall.function.arguments
-                        ? JSON.parse(toolCall.function.arguments)
-                        : {},
-                    },
-                  });
+                      error: e
+                    });
+                  }
                 }
               }
             }
@@ -489,6 +699,25 @@ export class OpenRouterContentGenerator implements IProvider {
                 index: 0,
               },
             ];
+
+            // Store accumulated tool calls for event generation
+            // Only store on the last chunk to avoid duplicate processing
+            if (
+              choice.finish_reason &&
+              accumulatedToolCalls.length > 0 &&
+              accumulatedToolCalls.some((tc) => tc && tc.function.name)
+            ) {
+              const validToolCalls = accumulatedToolCalls.filter(
+                (tc) => tc && tc.function.name,
+              );
+              (streamResult as any)._toolCalls = validToolCalls;
+
+              toolLogger.info('OpenRouter: Storing tool calls in response', {
+                count: validToolCalls.length,
+                toolNames: validToolCalls.map((tc) => tc.function.name),
+                isLastChunk: true,
+              });
+            }
 
             // Check if this chunk has usage data (final chunk)
             if (chunk.usage) {
@@ -545,7 +774,14 @@ export class OpenRouterContentGenerator implements IProvider {
               yield streamResult;
             }
           } catch (e) {
-            console.error('Error parsing streaming response:', e);
+            // Log the error with more context in debug mode
+            if (process.env.DEBUG || process.env.NODE_ENV === 'development') {
+              console.error('Error parsing streaming response:', e);
+              console.error(
+                'Failed to parse data:',
+                data.substring(0, 100) + '...',
+              );
+            }
           }
         }
       }

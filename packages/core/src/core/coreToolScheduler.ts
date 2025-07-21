@@ -27,6 +27,7 @@ import {
   modifyWithEditor,
 } from '../tools/modifiable-tool.js';
 import * as Diff from 'diff';
+import { toolExecutor } from '../tools/toolExecutor.js';
 
 export type ValidatingToolCall = {
   status: 'validating';
@@ -644,8 +645,15 @@ export class CoreToolScheduler {
               }
             : undefined;
 
-        scheduledCall.tool
-          .execute(scheduledCall.request.args, signal, liveOutputCallback)
+        // Use idempotent executor to prevent duplicate executions
+        toolExecutor
+          .executeToolCall(callId, toolName, scheduledCall.request.args, () =>
+            scheduledCall.tool.execute(
+              scheduledCall.request.args,
+              signal,
+              liveOutputCallback,
+            ),
+          )
           .then(async (toolResult: ToolResult) => {
             if (signal.aborted) {
               this.setStatusInternal(
