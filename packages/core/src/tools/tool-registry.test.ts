@@ -145,7 +145,8 @@ describe('ToolRegistry', () => {
 
   beforeEach(() => {
     config = new Config(baseConfigParams);
-    toolRegistry = new ToolRegistry(config);
+    ToolRegistry.clearInstances();
+    toolRegistry = ToolRegistry.createForTesting(config);
     vi.spyOn(console, 'warn').mockImplementation(() => {});
     vi.spyOn(console, 'error').mockImplementation(() => {});
     vi.spyOn(console, 'debug').mockImplementation(() => {});

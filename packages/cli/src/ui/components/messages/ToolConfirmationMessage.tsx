@@ -40,14 +40,20 @@ export const ToolConfirmationMessage: React.FC<
   const { onConfirm } = confirmationDetails;
   const childWidth = terminalWidth - 2; // 2 for padding
 
-  useInput((_, key) => {
-    if (!isFocused) return;
-    if (key.escape) {
-      onConfirm(ToolConfirmationOutcome.Cancel);
-    }
-  });
+  // Remove the escape handler here since RadioButtonSelect handles it via option 3
+  // This prevents double-handling of keys
 
-  const handleSelect = (item: ToolConfirmationOutcome) => onConfirm(item);
+  const handleSelect = (item: ToolConfirmationOutcome) => {
+    if (process.env.DEBUG === 'true' || process.env.DEBUG_TOOLS === 'true') {
+      console.log(
+        '[DEBUG ToolConfirmation] User selected:',
+        item,
+        'at',
+        Date.now(),
+      );
+    }
+    onConfirm(item);
+  };
 
   let bodyContent: React.ReactNode | null = null; // Removed contextDisplay here
   let question: string;

@@ -30,10 +30,20 @@ With sport-cli you can:
    npx https://github.com/sportsculture/gemini-cli
    ```
 
-   Or install it with:
+   Or install it globally:
 
    ```bash
    npm install -g @sport/sport-cli
+   ```
+
+   **Alternative: Install from source** (recommended if you have an existing gemini installation):
+
+   ```bash
+   git clone https://github.com/sportsculture/sport-cli
+   cd sport-cli
+   npm install
+   npm run build
+   npm install -g .
    ```
 
    Then, run the CLI from anywhere:
@@ -41,8 +51,6 @@ With sport-cli you can:
    ```bash
    sport
    ```
-
-   > **Backward compatibility:** The `gemini` command is still available as an alias for existing users.
 
 3. **Pick a color theme**
 4. **Authenticate:** When prompted, sign in with your personal Google account. This will grant you up to 60 model requests per minute and 1,000 model requests per day using Gemini.

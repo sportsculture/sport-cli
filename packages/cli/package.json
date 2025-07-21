@@ -10,8 +10,7 @@
   "main": "dist/index.js",
   "bin": {
     "sport": "dist/index.js",
-    "sprtscltr": "dist/index.js",
-    "gemini": "dist/src/bin/gemini-wrapper.js"
+    "sprtscltr": "dist/index.js"
   },
   "scripts": {
     "build": "node ../../scripts/build_package.js",

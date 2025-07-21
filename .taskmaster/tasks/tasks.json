@@ -608,11 +608,553 @@
         ],
         "priority": "high",
         "subtasks": []
+      },
+      {
+        "id": 22,
+        "title": "Create Model Capability Registry System",
+        "description": "Design and implement a centralized registry to track which AI models support tool/function calling capabilities",
+        "details": "Create a new file `/packages/core/src/providers/modelCapabilities.ts` that exports:\n\n```typescript\ninterface ModelCapability {\n  modelId: string;\n  provider: string;\n  supportsTools: boolean;\n  maxTokens?: number;\n  lastUpdated: Date;\n}\n\nclass ModelCapabilityRegistry {\n  private capabilities: Map<string, ModelCapability>;\n  private cache: Map<string, boolean>;\n  \n  constructor() {\n    this.capabilities = new Map();\n    this.cache = new Map();\n    this.initializeKnownModels();\n  }\n  \n  private initializeKnownModels() {\n    // Known models with tool support\n    const toolSupportModels = [\n      'gpt-4', 'gpt-4-turbo', 'gpt-3.5-turbo',\n      'claude-3-opus', 'claude-3-sonnet', 'claude-3-haiku',\n      'gemini-pro', 'gemini-1.5-pro'\n    ];\n    \n    // Known models without tool support\n    const noToolSupportModels = [\n      'grok-beta', 'dolphin-mistral', 'llama-2-70b',\n      'mixtral-8x7b', 'yi-34b'\n    ];\n  }\n  \n  supportsTools(modelId: string): boolean {\n    if (this.cache.has(modelId)) {\n      return this.cache.get(modelId)!;\n    }\n    // Check registry and cache result\n  }\n}\n\nexport const modelCapabilityRegistry = new ModelCapabilityRegistry();\n```",
+        "testStrategy": "Unit tests should verify:\n1. Registry correctly identifies known models with/without tool support\n2. Cache functionality works and improves performance\n3. Unknown models default to false (no tool support)\n4. Registry can be updated dynamically\n\nCreate test file: `/packages/core/src/providers/__tests__/modelCapabilities.test.ts`",
+        "priority": "high",
+        "dependencies": [],
+        "status": "done",
+        "subtasks": []
+      },
+      {
+        "id": 23,
+        "title": "Add Capability Checking to OpenRouterContentGenerator",
+        "description": "Modify OpenRouterContentGenerator to check model capabilities before including tools in API requests",
+        "details": "Update `/packages/core/src/providers/openRouterContentGenerator.ts`:\n\n```typescript\nimport { modelCapabilityRegistry } from './modelCapabilities';\n\nclass OpenRouterContentGenerator {\n  async generateContent(messages: Message[], options: GenerateOptions) {\n    const modelId = options.model || this.defaultModel;\n    const supportsTools = modelCapabilityRegistry.supportsTools(modelId);\n    \n    const requestBody: any = {\n      model: modelId,\n      messages: this.formatMessages(messages),\n      stream: options.stream || false,\n      temperature: options.temperature || 0.7,\n      max_tokens: options.maxTokens || 4096\n    };\n    \n    // Only include tools if model supports them\n    if (supportsTools && options.tools && options.tools.length > 0) {\n      requestBody.tools = this.formatTools(options.tools);\n      requestBody.tool_choice = options.toolChoice || 'auto';\n    }\n    \n    try {\n      const response = await this.makeRequest(requestBody);\n      return response;\n    } catch (error) {\n      // Handle 404 \"No endpoints found\" error\n      if (error.status === 404 && error.message?.includes('No endpoints found')) {\n        console.warn(`Model ${modelId} doesn't support tools, retrying without...`);\n        delete requestBody.tools;\n        delete requestBody.tool_choice;\n        return await this.makeRequest(requestBody);\n      }\n      throw error;\n    }\n  }\n}\n```",
+        "testStrategy": "Integration tests should verify:\n1. Tools are included for GPT-4, Claude models\n2. Tools are excluded for Grok, Dolphin-Mistral\n3. 404 errors trigger automatic retry without tools\n4. Successful fallback behavior when tools are removed\n5. Performance impact is minimal with caching",
+        "priority": "high",
+        "dependencies": [
+          22
+        ],
+        "status": "done",
+        "subtasks": []
+      },
+      {
+        "id": 24,
+        "title": "Update CustomApiContentGenerator with Capability Detection",
+        "description": "Add similar capability checking logic to CustomApiContentGenerator for consistency across providers",
+        "details": "Modify `/packages/core/src/providers/customApiContentGenerator.ts`:\n\n```typescript\nimport { modelCapabilityRegistry } from './modelCapabilities';\n\nclass CustomApiContentGenerator {\n  async generateContent(messages: Message[], options: GenerateOptions) {\n    const modelId = this.config.model || options.model;\n    const supportsTools = modelCapabilityRegistry.supportsTools(modelId);\n    \n    // Build request based on API format (OpenAI, Anthropic, etc.)\n    const request = this.buildRequest(messages, options);\n    \n    // Conditionally add tools\n    if (supportsTools && options.tools?.length > 0) {\n      if (this.config.apiFormat === 'openai') {\n        request.tools = options.tools;\n        request.tool_choice = options.toolChoice || 'auto';\n      } else if (this.config.apiFormat === 'anthropic') {\n        request.tools = this.formatAnthropicTools(options.tools);\n      }\n    }\n    \n    try {\n      return await this.sendRequest(request);\n    } catch (error) {\n      if (this.isToolNotSupportedError(error)) {\n        console.warn('Tools not supported, retrying without...');\n        delete request.tools;\n        delete request.tool_choice;\n        return await this.sendRequest(request);\n      }\n      throw error;\n    }\n  }\n  \n  private isToolNotSupportedError(error: any): boolean {\n    return error.status === 404 || \n           error.message?.includes('tool') ||\n           error.message?.includes('function_call');\n  }\n}\n```",
+        "testStrategy": "Test with various custom API endpoints:\n1. OpenAI-compatible APIs with/without tool support\n2. Anthropic-compatible APIs\n3. Generic REST APIs\n4. Verify graceful degradation when tools aren't supported\n5. Test error detection patterns for different API formats",
+        "priority": "high",
+        "dependencies": [
+          22
+        ],
+        "status": "done",
+        "subtasks": []
+      },
+      {
+        "id": 25,
+        "title": "Fix ToolGroupMessage Duplicate Rendering",
+        "description": "Implement state tracking and memoization in ToolGroupMessage component to prevent duplicate tool response displays",
+        "details": "Update `/packages/cli/src/ui/components/messages/ToolGroupMessage.tsx`:\n\n```typescript\nimport React, { useMemo, useCallback, useRef } from 'react';\nimport { Box, Text } from 'ink';\n\ninterface ToolGroupMessageProps {\n  tools: ToolCall[];\n  results: ToolResult[];\n  messageId: string;\n}\n\nexport const ToolGroupMessage = React.memo(({ tools, results, messageId }: ToolGroupMessageProps) => {\n  // Track rendered tool IDs to prevent duplicates\n  const renderedToolIds = useRef(new Set<string>());\n  \n  // Generate unique keys for each tool\n  const getToolKey = useCallback((tool: ToolCall) => {\n    return `${messageId}-${tool.id}-${tool.name}`;\n  }, [messageId]);\n  \n  // Filter out already rendered tools\n  const uniqueTools = useMemo(() => {\n    return tools.filter(tool => {\n      const key = getToolKey(tool);\n      if (renderedToolIds.current.has(key)) {\n        return false;\n      }\n      renderedToolIds.current.add(key);\n      return true;\n    });\n  }, [tools, getToolKey]);\n  \n  // Match results to unique tools\n  const toolsWithResults = useMemo(() => {\n    return uniqueTools.map(tool => ({\n      tool,\n      result: results.find(r => r.toolCallId === tool.id)\n    }));\n  }, [uniqueTools, results]);\n  \n  if (toolsWithResults.length === 0) {\n    return null;\n  }\n  \n  return (\n    <Box flexDirection=\"column\" marginY={1}>\n      {toolsWithResults.map(({ tool, result }) => (\n        <Box key={getToolKey(tool)} flexDirection=\"column\" marginBottom={1}>\n          <Text color=\"cyan\">🔧 {tool.name}</Text>\n          <Box marginLeft={2}>\n            <Text dimColor>Input: {JSON.stringify(tool.arguments)}</Text>\n          </Box>\n          {result && (\n            <Box marginLeft={2}>\n              <Text color=\"green\">Result: {result.output}</Text>\n            </Box>\n          )}\n        </Box>\n      ))}\n    </Box>\n  );\n}, (prevProps, nextProps) => {\n  // Custom comparison to prevent unnecessary re-renders\n  return prevProps.messageId === nextProps.messageId &&\n         prevProps.tools.length === nextProps.tools.length &&\n         prevProps.results.length === nextProps.results.length;\n});\n```",
+        "testStrategy": "Component tests should verify:\n1. Each tool is rendered exactly once\n2. Re-renders don't duplicate existing tools\n3. New tools are properly added\n4. Results are correctly matched to tools\n5. Performance with many rapid tool calls\n\nUse React Testing Library to simulate multiple render cycles",
+        "priority": "high",
+        "dependencies": [],
+        "status": "done",
+        "subtasks": []
+      },
+      {
+        "id": 26,
+        "title": "Implement Streaming JSON Buffer System",
+        "description": "Create a robust buffering system to handle incomplete JSON chunks in streaming responses",
+        "details": "Create `/packages/core/src/utils/streamingJsonBuffer.ts`:\n\n```typescript\nexport class StreamingJsonBuffer {\n  private buffer: string = '';\n  private depth: number = 0;\n  private inString: boolean = false;\n  private escapeNext: boolean = false;\n  \n  addChunk(chunk: string): string[] {\n    this.buffer += chunk;\n    const completeObjects: string[] = [];\n    let start = 0;\n    \n    for (let i = 0; i < this.buffer.length; i++) {\n      const char = this.buffer[i];\n      const prevChar = i > 0 ? this.buffer[i - 1] : '';\n      \n      // Handle escape sequences\n      if (this.escapeNext) {\n        this.escapeNext = false;\n        continue;\n      }\n      \n      if (char === '\\\\' && this.inString) {\n        this.escapeNext = true;\n        continue;\n      }\n      \n      // Track string boundaries\n      if (char === '\"' && !this.escapeNext) {\n        this.inString = !this.inString;\n        continue;\n      }\n      \n      // Only count braces outside of strings\n      if (!this.inString) {\n        if (char === '{') {\n          if (this.depth === 0) {\n            start = i;\n          }\n          this.depth++;\n        } else if (char === '}') {\n          this.depth--;\n          if (this.depth === 0) {\n            // Found complete object\n            const jsonStr = this.buffer.substring(start, i + 1);\n            try {\n              JSON.parse(jsonStr); // Validate\n              completeObjects.push(jsonStr);\n            } catch (e) {\n              // Invalid JSON, keep buffering\n            }\n          }\n        }\n      }\n    }\n    \n    // Remove processed objects from buffer\n    if (completeObjects.length > 0) {\n      const lastEnd = this.buffer.lastIndexOf('}') + 1;\n      this.buffer = this.buffer.substring(lastEnd);\n    }\n    \n    return completeObjects;\n  }\n  \n  flush(): string | null {\n    if (this.buffer.trim()) {\n      try {\n        JSON.parse(this.buffer);\n        return this.buffer;\n      } catch (e) {\n        return null;\n      }\n    }\n    return null;\n  }\n}\n```",
+        "testStrategy": "Unit tests should cover:\n1. Complete JSON objects are extracted correctly\n2. Partial objects are buffered\n3. Multiple objects in one chunk\n4. Objects split across chunks\n5. Escaped quotes and special characters\n6. Nested objects and arrays\n7. Invalid JSON is handled gracefully",
+        "priority": "medium",
+        "dependencies": [],
+        "status": "done",
+        "subtasks": []
+      },
+      {
+        "id": 27,
+        "title": "Integrate JSON Buffer with OpenRouter Streaming",
+        "description": "Update OpenRouterContentGenerator to use the JSON buffer for streaming responses",
+        "details": "Modify streaming logic in `/packages/core/src/providers/openRouterContentGenerator.ts`:\n\n```typescript\nimport { StreamingJsonBuffer } from '../utils/streamingJsonBuffer';\n\nprivate async *handleStreamingResponse(response: Response) {\n  const reader = response.body?.getReader();\n  if (!reader) throw new Error('No response body');\n  \n  const decoder = new TextDecoder();\n  const jsonBuffer = new StreamingJsonBuffer();\n  let timeoutId: NodeJS.Timeout;\n  \n  try {\n    while (true) {\n      // Set timeout for incomplete chunks\n      timeoutId = setTimeout(() => {\n        console.warn('Streaming timeout - flushing buffer');\n      }, 5000);\n      \n      const { done, value } = await reader.read();\n      clearTimeout(timeoutId);\n      \n      if (done) {\n        // Try to flush any remaining data\n        const remaining = jsonBuffer.flush();\n        if (remaining) {\n          yield this.parseStreamingLine(remaining);\n        }\n        break;\n      }\n      \n      const chunk = decoder.decode(value, { stream: true });\n      const lines = chunk.split('\\n');\n      \n      for (const line of lines) {\n        if (line.startsWith('data: ')) {\n          const data = line.slice(6);\n          if (data === '[DONE]') {\n            return;\n          }\n          \n          // Use buffer for JSON parsing\n          const completeObjects = jsonBuffer.addChunk(data);\n          for (const jsonStr of completeObjects) {\n            try {\n              const parsed = JSON.parse(jsonStr);\n              yield parsed;\n            } catch (e) {\n              console.error('Error parsing streaming JSON:', e);\n              // Continue processing other chunks\n            }\n          }\n        }\n      }\n    }\n  } finally {\n    reader.releaseLock();\n    clearTimeout(timeoutId!);\n  }\n}\n```",
+        "testStrategy": "Integration tests should verify:\n1. Normal streaming works without regression\n2. Malformed JSON chunks are handled\n3. Slow connections don't cause data loss\n4. Timeout mechanism works correctly\n5. Memory usage remains stable with long streams\n6. Test with real API responses from OpenRouter",
+        "priority": "medium",
+        "dependencies": [
+          26
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 28,
+        "title": "Add Enhanced Error Handling for Tool Errors",
+        "description": "Implement comprehensive error handling for tool-related API errors across all content generators",
+        "details": "Create `/packages/core/src/providers/errors/toolErrors.ts`:\n\n```typescript\nexport class ToolNotSupportedError extends Error {\n  constructor(\n    public modelId: string,\n    public provider: string,\n    public originalError?: any\n  ) {\n    super(`Model ${modelId} does not support tool/function calling`);\n    this.name = 'ToolNotSupportedError';\n  }\n}\n\nexport class ToolErrorHandler {\n  static isToolError(error: any): boolean {\n    if (!error) return false;\n    \n    const errorPatterns = [\n      /no endpoints found.*tool/i,\n      /function.*not supported/i,\n      /tools.*not available/i,\n      /invalid.*tool.*request/i\n    ];\n    \n    const errorMessage = error.message || error.toString();\n    return errorPatterns.some(pattern => pattern.test(errorMessage));\n  }\n  \n  static async handleWithRetry<T>(\n    request: () => Promise<T>,\n    removeTools: () => void,\n    modelId: string\n  ): Promise<T> {\n    try {\n      return await request();\n    } catch (error) {\n      if (this.isToolError(error)) {\n        console.warn(`Tool error detected for ${modelId}, retrying without tools...`);\n        removeTools();\n        \n        // Update capability registry to remember this\n        modelCapabilityRegistry.updateCapability(modelId, { supportsTools: false });\n        \n        // Retry request\n        return await request();\n      }\n      throw error;\n    }\n  }\n  \n  static formatUserFriendlyError(error: any): string {\n    if (error instanceof ToolNotSupportedError) {\n      return `The selected model (${error.modelId}) doesn't support tool calling. ` +\n             `The request will proceed without tools.`;\n    }\n    \n    if (this.isToolError(error)) {\n      return 'Tool calling is not available for this model. Continuing without tools...';\n    }\n    \n    return error.message || 'An unexpected error occurred';\n  }\n}\n```\n\nUpdate all content generators to use this handler.",
+        "testStrategy": "Test error handling with:\n1. Various error message formats from different providers\n2. Network errors vs API errors\n3. Retry logic success/failure scenarios\n4. User-friendly error message generation\n5. Registry updates after errors\n6. Performance impact of retries",
+        "priority": "medium",
+        "dependencies": [
+          23,
+          24
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 29,
+        "title": "Update Provider Types for Tool Support",
+        "description": "Extend provider type definitions to include tool capability information",
+        "details": "Update `/packages/core/src/providers/types.ts`:\n\n```typescript\nexport interface ModelInfo {\n  id: string;\n  name: string;\n  provider: string;\n  contextLength: number;\n  capabilities: ModelCapabilities;\n  pricing?: ModelPricing;\n}\n\nexport interface ModelCapabilities {\n  chat: boolean;\n  completion: boolean;\n  tools: boolean;\n  vision: boolean;\n  streaming: boolean;\n  functionCalling: boolean; // Legacy, maps to tools\n}\n\nexport interface ProviderConfig {\n  name: string;\n  apiKey?: string;\n  baseUrl?: string;\n  models: ModelInfo[];\n  defaultModel?: string;\n  supportsTools?: boolean; // Provider-level default\n}\n\n// Extend existing interfaces\nexport interface GenerateOptions {\n  model?: string;\n  temperature?: number;\n  maxTokens?: number;\n  tools?: Tool[];\n  toolChoice?: 'auto' | 'none' | ToolChoice;\n  // New field for override\n  forceNoTools?: boolean;\n}\n\nexport interface ContentGenerator {\n  generateContent(\n    messages: Message[],\n    options: GenerateOptions\n  ): Promise<GenerateResponse>;\n  \n  // New method\n  getModelCapabilities(modelId: string): ModelCapabilities;\n}\n```",
+        "testStrategy": "Type checking should verify:\n1. All existing code compiles with new types\n2. Optional fields don't break existing implementations\n3. Type inference works correctly\n4. Documentation generation includes new fields\n5. Backwards compatibility is maintained",
+        "priority": "low",
+        "dependencies": [
+          22
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 30,
+        "title": "Implement Capability Caching with Persistence",
+        "description": "Add persistent caching for model capabilities to avoid repeated lookups and API calls",
+        "details": "Extend `/packages/core/src/providers/modelCapabilities.ts`:\n\n```typescript\nimport { promises as fs } from 'fs';\nimport path from 'path';\nimport os from 'os';\n\nexport class PersistentModelCapabilityCache {\n  private cacheDir: string;\n  private cacheFile: string;\n  private memoryCache: Map<string, ModelCapability>;\n  private saveDebounceTimer?: NodeJS.Timeout;\n  \n  constructor() {\n    this.cacheDir = path.join(os.homedir(), '.sport-cli', 'cache');\n    this.cacheFile = path.join(this.cacheDir, 'model-capabilities.json');\n    this.memoryCache = new Map();\n    this.loadCache();\n  }\n  \n  private async loadCache() {\n    try {\n      await fs.mkdir(this.cacheDir, { recursive: true });\n      const data = await fs.readFile(this.cacheFile, 'utf-8');\n      const cached = JSON.parse(data);\n      \n      // Validate cache entries\n      for (const [key, value] of Object.entries(cached)) {\n        if (this.isValidCacheEntry(value)) {\n          this.memoryCache.set(key, value as ModelCapability);\n        }\n      }\n    } catch (error) {\n      // Cache doesn't exist or is invalid, start fresh\n      console.debug('No valid cache found, starting fresh');\n    }\n  }\n  \n  private isValidCacheEntry(entry: any): boolean {\n    if (!entry || typeof entry !== 'object') return false;\n    if (!entry.lastUpdated) return false;\n    \n    // Cache entries expire after 7 days\n    const expiryTime = 7 * 24 * 60 * 60 * 1000;\n    const age = Date.now() - new Date(entry.lastUpdated).getTime();\n    \n    return age < expiryTime;\n  }\n  \n  async set(modelId: string, capability: ModelCapability) {\n    this.memoryCache.set(modelId, {\n      ...capability,\n      lastUpdated: new Date()\n    });\n    \n    // Debounce saves to avoid excessive disk writes\n    if (this.saveDebounceTimer) {\n      clearTimeout(this.saveDebounceTimer);\n    }\n    \n    this.saveDebounceTimer = setTimeout(() => {\n      this.saveCache();\n    }, 1000);\n  }\n  \n  private async saveCache() {\n    try {\n      const data = Object.fromEntries(this.memoryCache);\n      await fs.writeFile(\n        this.cacheFile,\n        JSON.stringify(data, null, 2),\n        'utf-8'\n      );\n    } catch (error) {\n      console.error('Failed to save capability cache:', error);\n    }\n  }\n  \n  get(modelId: string): ModelCapability | undefined {\n    return this.memoryCache.get(modelId);\n  }\n  \n  clear() {\n    this.memoryCache.clear();\n    fs.unlink(this.cacheFile).catch(() => {});\n  }\n}\n```",
+        "testStrategy": "Test caching functionality:\n1. Cache persistence across application restarts\n2. Cache expiry after 7 days\n3. Debounced saving to prevent disk thrashing\n4. Graceful handling of corrupted cache files\n5. Performance improvement measurements\n6. Concurrent access handling",
+        "priority": "low",
+        "dependencies": [
+          22
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 31,
+        "title": "Create Comprehensive Test Suite",
+        "description": "Develop unit and integration tests for all bug fixes and new functionality",
+        "details": "Create test files for each component:\n\n1. `/packages/core/src/providers/__tests__/modelCapabilities.test.ts`:\n```typescript\ndescribe('ModelCapabilityRegistry', () => {\n  it('should identify GPT-4 as supporting tools', () => {\n    expect(registry.supportsTools('gpt-4')).toBe(true);\n  });\n  \n  it('should identify Grok as not supporting tools', () => {\n    expect(registry.supportsTools('grok-beta')).toBe(false);\n  });\n  \n  it('should cache lookups for performance', () => {\n    const start = performance.now();\n    for (let i = 0; i < 1000; i++) {\n      registry.supportsTools('gpt-4');\n    }\n    const duration = performance.now() - start;\n    expect(duration).toBeLessThan(10); // Should be very fast\n  });\n});\n```\n\n2. `/packages/cli/src/ui/components/messages/__tests__/ToolGroupMessage.test.tsx`:\n```typescript\ndescribe('ToolGroupMessage', () => {\n  it('should not render duplicate tools', () => {\n    const tools = [{ id: '1', name: 'test', arguments: {} }];\n    const { rerender } = render(<ToolGroupMessage tools={tools} />);\n    \n    // Re-render with same tools\n    rerender(<ToolGroupMessage tools={tools} />);\n    \n    expect(screen.getAllByText('test')).toHaveLength(1);\n  });\n});\n```\n\n3. Integration tests in `/packages/core/src/providers/__tests__/integration.test.ts`:\n```typescript\ndescribe('Provider Integration', () => {\n  it('should handle model without tool support gracefully', async () => {\n    const generator = new OpenRouterContentGenerator();\n    const result = await generator.generateContent(\n      [{ role: 'user', content: 'Hello' }],\n      { model: 'grok-beta', tools: [mockTool] }\n    );\n    \n    expect(result).toBeDefined();\n    // Should not throw error\n  });\n});\n```",
+        "testStrategy": "Test coverage should include:\n1. Unit tests for each new class/function\n2. Integration tests for API interactions\n3. Component tests for UI changes\n4. End-to-end tests for complete workflows\n5. Performance benchmarks\n6. Edge case handling\n7. Mock API responses for reliability",
+        "priority": "medium",
+        "dependencies": [
+          22,
+          23,
+          24,
+          25,
+          26,
+          27,
+          28
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 32,
+        "title": "Add Logging and Debugging Infrastructure",
+        "description": "Implement comprehensive logging for debugging tool-related issues in production",
+        "details": "Create `/packages/core/src/utils/logger.ts`:\n\n```typescript\nexport enum LogLevel {\n  ERROR = 0,\n  WARN = 1,\n  INFO = 2,\n  DEBUG = 3,\n  TRACE = 4\n}\n\nexport class Logger {\n  private static instance: Logger;\n  private level: LogLevel;\n  private logFile?: string;\n  \n  private constructor() {\n    this.level = this.getLogLevelFromEnv();\n    if (process.env.SPORT_CLI_LOG_FILE) {\n      this.logFile = process.env.SPORT_CLI_LOG_FILE;\n    }\n  }\n  \n  static getInstance(): Logger {\n    if (!this.instance) {\n      this.instance = new Logger();\n    }\n    return this.instance;\n  }\n  \n  private getLogLevelFromEnv(): LogLevel {\n    const level = process.env.SPORT_CLI_LOG_LEVEL?.toUpperCase();\n    return LogLevel[level as keyof typeof LogLevel] || LogLevel.INFO;\n  }\n  \n  private formatMessage(level: string, category: string, message: string, data?: any): string {\n    const timestamp = new Date().toISOString();\n    const dataStr = data ? ` ${JSON.stringify(data)}` : '';\n    return `[${timestamp}] [${level}] [${category}] ${message}${dataStr}`;\n  }\n  \n  private log(level: LogLevel, category: string, message: string, data?: any) {\n    if (level > this.level) return;\n    \n    const levelName = LogLevel[level];\n    const formatted = this.formatMessage(levelName, category, message, data);\n    \n    // Console output\n    if (level === LogLevel.ERROR) {\n      console.error(formatted);\n    } else if (level === LogLevel.WARN) {\n      console.warn(formatted);\n    } else {\n      console.log(formatted);\n    }\n    \n    // File output\n    if (this.logFile) {\n      fs.appendFileSync(this.logFile, formatted + '\\n');\n    }\n  }\n  \n  error(category: string, message: string, error?: any) {\n    this.log(LogLevel.ERROR, category, message, {\n      error: error?.message || error,\n      stack: error?.stack\n    });\n  }\n  \n  warn(category: string, message: string, data?: any) {\n    this.log(LogLevel.WARN, category, message, data);\n  }\n  \n  info(category: string, message: string, data?: any) {\n    this.log(LogLevel.INFO, category, message, data);\n  }\n  \n  debug(category: string, message: string, data?: any) {\n    this.log(LogLevel.DEBUG, category, message, data);\n  }\n}\n\nexport const logger = Logger.getInstance();\n```\n\nIntegrate throughout codebase:\n```typescript\n// In OpenRouterContentGenerator\nlogger.debug('OpenRouter', 'Checking tool support', { modelId, hasTools: !!options.tools });\nlogger.warn('OpenRouter', 'Model doesn\\'t support tools, removing from request', { modelId });\n```",
+        "testStrategy": "Verify logging functionality:\n1. Log levels filter correctly\n2. File output works when configured\n3. Performance impact is minimal\n4. Sensitive data is not logged\n5. Log rotation works (if implemented)\n6. Structured logging format is parseable",
+        "priority": "low",
+        "dependencies": [
+          28
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 33,
+        "title": "Performance Testing and Optimization",
+        "description": "Conduct performance testing and optimize any bottlenecks introduced by the bug fixes",
+        "details": "Create performance benchmarks in `/packages/core/src/__benchmarks__/`:\n\n```typescript\n// capability-lookup.bench.ts\nimport { Bench } from 'tinybench';\nimport { modelCapabilityRegistry } from '../providers/modelCapabilities';\n\nconst bench = new Bench({ time: 100 });\n\nbench\n  .add('capability lookup - cached', () => {\n    modelCapabilityRegistry.supportsTools('gpt-4');\n  })\n  .add('capability lookup - uncached', () => {\n    modelCapabilityRegistry.supportsTools(`model-${Math.random()}`);\n  })\n  .add('bulk lookups - 100 models', () => {\n    for (let i = 0; i < 100; i++) {\n      modelCapabilityRegistry.supportsTools('gpt-4');\n    }\n  });\n\n// streaming-buffer.bench.ts\nimport { StreamingJsonBuffer } from '../utils/streamingJsonBuffer';\n\nbench\n  .add('parse complete JSON', () => {\n    const buffer = new StreamingJsonBuffer();\n    buffer.addChunk('{\"test\": \"data\"}');\n  })\n  .add('parse fragmented JSON', () => {\n    const buffer = new StreamingJsonBuffer();\n    buffer.addChunk('{\"te');\n    buffer.addChunk('st\": \"da');\n    buffer.addChunk('ta\"}');\n  });\n```\n\nOptimization targets:\n1. Capability lookups < 1ms\n2. JSON buffering overhead < 5%\n3. Memory usage stable over time\n4. No memory leaks in streaming\n5. UI rendering < 16ms per frame",
+        "testStrategy": "Performance testing approach:\n1. Establish baseline metrics before changes\n2. Run benchmarks after each optimization\n3. Profile memory usage during streaming\n4. Test with large tool response payloads\n5. Simulate high-frequency tool calls\n6. Monitor for memory leaks over extended sessions\n7. Use Chrome DevTools for UI performance profiling",
+        "priority": "low",
+        "dependencies": [
+          22,
+          23,
+          24,
+          25,
+          26,
+          27,
+          28,
+          29,
+          30
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 34,
+        "title": "Implement Debug Infrastructure and Logging Framework",
+        "description": "Create comprehensive debug infrastructure with structured logging, correlation IDs, and trace points to enable troubleshooting of tool execution flow across all providers",
+        "details": "1. Add --debug-tools CLI flag using commander.js or yargs\n2. Implement structured logging with winston v3.11+ or pino v8.16+:\n   - Create logger factory with log levels (debug, info, warn, error)\n   - Add correlation ID generation using uuid v9.0.1\n   - Implement context propagation for request tracking\n3. Create debug trace points:\n   - Provider detection: log provider type and raw response format\n   - Chunk reception: log each streaming chunk with timestamp\n   - Tool call detection: log when tool calls are identified\n   - Normalization: log before/after transformation\n   - Execution: log tool execution start/end with timing\n4. Add performance timing using perf_hooks:\n   ```javascript\n   const { performance } = require('perf_hooks');\n   const start = performance.now();\n   // ... operation ...\n   logger.debug(`Operation took ${performance.now() - start}ms`);\n   ```\n5. Implement log rotation and filtering to prevent log bloat",
+        "testStrategy": "1. Unit tests for logger configuration and correlation ID generation\n2. Integration tests verifying debug output contains expected trace points\n3. Performance tests ensuring logging adds <10ms overhead\n4. Manual verification that --debug-tools flag produces actionable output",
+        "priority": "high",
+        "dependencies": [],
+        "status": "pending",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Add --debug-tools CLI Flag",
+            "description": "Integrate a --debug-tools flag into the CLI using commander.js or yargs to enable or disable debug infrastructure and logging features at runtime.",
+            "dependencies": [],
+            "details": "Implement the CLI flag so that when enabled, it activates verbose logging, trace points, and performance timing throughout the tool execution flow.",
+            "status": "pending",
+            "testStrategy": "Verify the flag toggles debug output as expected in both enabled and disabled states using unit and integration tests."
+          },
+          {
+            "id": 2,
+            "title": "Implement Structured Logging with Correlation IDs",
+            "description": "Set up structured logging using winston v3.11+ or pino v8.16+, including a logger factory with log levels and correlation ID generation using uuid v9.0.1.",
+            "dependencies": [
+              "34.1"
+            ],
+            "details": "Create a logger factory supporting debug, info, warn, and error levels. Generate a unique correlation ID for each request and propagate it through the execution context for end-to-end request tracking.",
+            "status": "pending",
+            "testStrategy": "Unit test logger configuration, log level filtering, and correlation ID generation. Integration test that logs include correlation IDs and are correctly propagated."
+          },
+          {
+            "id": 3,
+            "title": "Add Debug Trace Points and Contextual Logging",
+            "description": "Instrument key execution points with structured logs: provider detection, chunk reception, tool call detection, normalization, and execution timing.",
+            "dependencies": [
+              "34.2"
+            ],
+            "details": "Log provider type and raw response, each streaming chunk with timestamp, tool call detection, normalization steps (before/after), and tool execution start/end with timing. Ensure all logs include correlation IDs for traceability.",
+            "status": "pending",
+            "testStrategy": "Integration tests to verify logs are emitted at all trace points with correct context and correlation IDs. Manual verification that logs provide actionable insights."
+          },
+          {
+            "id": 4,
+            "title": "Implement Performance Timing, Log Rotation, and Filtering",
+            "description": "Integrate performance timing using perf_hooks, and add log rotation and filtering to prevent log bloat and maintain performance.",
+            "dependencies": [
+              "34.3"
+            ],
+            "details": "Use perf_hooks to measure and log operation durations. Configure log rotation to archive or delete old logs, and implement filtering to control log verbosity and prevent excessive log growth.",
+            "status": "pending",
+            "testStrategy": "Performance tests to ensure logging overhead is <10ms. Unit and integration tests for log rotation and filtering. Manual checks that log files do not grow unbounded."
+          }
+        ]
+      },
+      {
+        "id": 35,
+        "title": "Design and Implement Provider Normalization Layer",
+        "description": "Create a provider-agnostic normalization layer that transforms various provider response formats into a unified intermediate representation for consistent tool call handling",
+        "details": "1. Define TypeScript interfaces for normalized structures:\n   ```typescript\n   interface NormalizedChunk {\n     content?: string;\n     toolCalls?: ToolCall[];\n     isComplete: boolean;\n     metadata: { provider: string; model: string; timestamp: number; }\n   }\n   \n   interface ToolCall {\n     id: string;\n     name: string;\n     arguments: Record<string, any>;\n     status: 'pending' | 'partial' | 'complete';\n   }\n   ```\n2. Implement provider detection using response signatures:\n   - OpenAI: Check for choices[0].delta.function_call or tool_calls\n   - Anthropic: Check for content array with type='tool_use'\n   - Gemini: Check for functionCall or candidates[0].content.parts\n   - OpenRouter: Detect underlying provider from headers/metadata\n3. Create normalization functions for each provider:\n   - OpenAI: Handle both legacy function_call and modern tool_calls formats\n   - Anthropic: Extract tool_use blocks from content array\n   - Gemini: Map existing functionCall to normalized format\n   - Generic fallback for unknown providers\n4. Implement JSON parsing with error recovery for partial chunks:\n   ```javascript\n   const parsePartialJSON = (str) => {\n     try {\n       return JSON.parse(str);\n     } catch {\n       // Attempt to complete partial JSON\n       const completed = str + '}'.repeat((str.match(/{/g) || []).length - (str.match(/}/g) || []).length);\n       return JSON.parse(completed);\n     }\n   };\n   ```\n5. Add provider version detection for future compatibility",
+        "testStrategy": "1. Unit tests with real provider response samples for each format\n2. Tests for partial JSON handling and error cases\n3. Property-based testing with fast-check to verify normalization invariants\n4. Integration tests with mock provider responses",
+        "priority": "high",
+        "dependencies": [
+          34
+        ],
+        "status": "pending",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Define Normalized Data Interfaces",
+            "description": "Establish TypeScript interfaces for the unified normalized structures, including NormalizedChunk and ToolCall, to serve as the foundation for all provider normalization.",
+            "dependencies": [],
+            "details": "Create and document the NormalizedChunk and ToolCall interfaces, ensuring they capture all necessary fields for downstream tool call handling and metadata tracking.",
+            "status": "pending",
+            "testStrategy": "Write unit tests to validate type correctness and ensure all required fields are present and properly typed."
+          },
+          {
+            "id": 2,
+            "title": "Implement Provider Detection Logic",
+            "description": "Develop logic to accurately detect the originating provider and response format using unique response signatures and metadata.",
+            "dependencies": [
+              "35.1"
+            ],
+            "details": "Implement detection for OpenAI (choices.delta.function_call/tool_calls), Anthropic (content array with type='tool_use'), Gemini (functionCall or candidates.content.parts), and OpenRouter (headers/metadata).",
+            "status": "pending",
+            "testStrategy": "Test detection logic with a variety of real and synthetic provider responses, including ambiguous and malformed cases."
+          },
+          {
+            "id": 3,
+            "title": "Create Provider-Specific Normalization Functions",
+            "description": "Develop normalization functions for each supported provider to transform their native response formats into the unified NormalizedChunk structure.",
+            "dependencies": [
+              "35.1",
+              "35.2"
+            ],
+            "details": "Implement normalization for OpenAI (legacy function_call and tool_calls), Anthropic (tool_use blocks), Gemini (functionCall mapping), and a generic fallback for unknown providers.",
+            "status": "pending",
+            "testStrategy": "Write unit and integration tests using real provider samples to verify correct mapping and invariants across all supported formats."
+          },
+          {
+            "id": 4,
+            "title": "Handle Edge Cases and Partial JSON Parsing",
+            "description": "Implement robust handling for edge cases such as partial or malformed JSON in streaming chunks, ensuring error recovery and data integrity.",
+            "dependencies": [
+              "35.3"
+            ],
+            "details": "Develop and test a partial JSON parser with error recovery logic to handle incomplete data, and ensure normalization functions gracefully handle unknown or unexpected formats.",
+            "status": "pending",
+            "testStrategy": "Test with intentionally truncated and malformed JSON responses, verifying recovery and fallback behavior."
+          },
+          {
+            "id": 5,
+            "title": "Add Provider Version and Compatibility Detection",
+            "description": "Extend normalization logic to detect provider versions and adapt to future format changes for forward compatibility.",
+            "dependencies": [
+              "35.2",
+              "35.3"
+            ],
+            "details": "Implement version detection using response metadata or headers, and design normalization functions to branch logic based on detected version.",
+            "status": "pending",
+            "testStrategy": "Simulate versioned responses and verify correct branching and compatibility handling in normalization."
+          }
+        ]
+      },
+      {
+        "id": 36,
+        "title": "Refactor Streaming Buffer Management System",
+        "description": "Replace string-based accumulation with a structured buffer system that properly tracks and assembles tool calls across streaming chunks without losing data",
+        "details": "1. Implement structured streaming buffer:\n   ```typescript\n   class StreamingBuffer {\n     private contentBuffer: string[] = [];\n     private toolCallBuffer: Map<string, Partial<ToolCall>> = new Map();\n     private chunkHistory: NormalizedChunk[] = [];\n     \n     addChunk(chunk: NormalizedChunk): void {\n       // Accumulate content separately from tool calls\n       if (chunk.content) this.contentBuffer.push(chunk.content);\n       \n       // Merge partial tool calls\n       chunk.toolCalls?.forEach(tc => {\n         const existing = this.toolCallBuffer.get(tc.id);\n         this.toolCallBuffer.set(tc.id, { ...existing, ...tc });\n       });\n     }\n     \n     getCompleteToolCalls(): ToolCall[] {\n       return Array.from(this.toolCallBuffer.values())\n         .filter(tc => tc.status === 'complete');\n     }\n   }\n   ```\n2. Handle chunk boundaries for split JSON:\n   - Detect incomplete JSON at chunk end\n   - Buffer incomplete data for next chunk\n   - Use state machine for parsing context\n3. Implement backpressure handling:\n   - Monitor buffer size and apply flow control\n   - Emit warnings if buffer grows too large\n4. Add chunk reassembly for split tool calls:\n   - Track partial argument accumulation\n   - Handle nested JSON structures\n   - Support arrays split across chunks\n5. Create separate display and processing pipelines:\n   - Display pipeline: immediate content rendering\n   - Processing pipeline: buffered tool call assembly",
+        "testStrategy": "1. Unit tests simulating various chunk splitting scenarios\n2. Stress tests with rapid small chunks to verify no data loss\n3. Integration tests with real streaming responses\n4. Memory leak tests for long-running streams",
+        "priority": "high",
+        "dependencies": [
+          35
+        ],
+        "status": "pending",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Design and Implement Structured Streaming Buffer Class",
+            "description": "Create a robust StreamingBuffer class to replace string-based accumulation, enabling separate tracking of content and tool calls, and supporting partial tool call assembly across streaming chunks.",
+            "dependencies": [],
+            "details": "Define internal buffers for content and tool calls, implement methods for adding chunks, merging partial tool calls, and retrieving complete tool calls. Ensure the class supports extensibility for future buffer management needs.",
+            "status": "pending",
+            "testStrategy": "Develop unit tests to verify correct accumulation of content and tool calls, proper merging of partial tool calls, and accurate retrieval of complete tool calls."
+          },
+          {
+            "id": 2,
+            "title": "Implement Chunk Assembly and Boundary Handling Logic",
+            "description": "Develop logic to detect and handle incomplete JSON or tool call data at chunk boundaries, ensuring no data loss and correct reassembly of split tool calls across multiple chunks.",
+            "dependencies": [
+              "36.1"
+            ],
+            "details": "Integrate a state machine or similar mechanism to track parsing context, buffer incomplete data, and reassemble tool calls or arguments that span multiple chunks. Support nested JSON structures and arrays split across chunks.",
+            "status": "pending",
+            "testStrategy": "Create unit and integration tests simulating various chunk splitting scenarios, including nested and split JSON, to verify correct reassembly and data integrity."
+          },
+          {
+            "id": 3,
+            "title": "Separate Content Display Pipeline from Tool Call Processing",
+            "description": "Establish distinct pipelines for immediate content rendering and buffered tool call assembly, ensuring that user-facing content is displayed without delay while tool calls are processed reliably in the background.",
+            "dependencies": [
+              "36.1",
+              "36.2"
+            ],
+            "details": "Implement logic to route content chunks directly to the display pipeline, while tool call data is buffered and assembled before processing. Ensure synchronization between pipelines where necessary.",
+            "status": "pending",
+            "testStrategy": "Write integration tests to confirm that content is rendered immediately and tool calls are processed only when fully assembled, with no cross-pipeline data leakage."
+          },
+          {
+            "id": 4,
+            "title": "Ensure Robust State Management for Partial Tool Calls",
+            "description": "Implement comprehensive state management within the buffer system to accurately track, update, and finalize partial tool calls, preventing data loss or duplication during streaming.",
+            "dependencies": [
+              "36.1",
+              "36.2",
+              "36.3"
+            ],
+            "details": "Design mechanisms to monitor the state of each tool call, handle updates as new chunks arrive, and mark tool calls as complete only when all required data is present. Support error handling for malformed or incomplete tool calls.",
+            "status": "pending",
+            "testStrategy": "Develop unit and stress tests to verify correct state transitions, handling of edge cases, and resilience to malformed or incomplete tool call data."
+          }
+        ]
+      },
+      {
+        "id": 37,
+        "title": "Fix Tool Execution Flow and Promise Chain Management",
+        "description": "Update the Turn class and execution flow to properly await tool executions, handle multiple concurrent calls, and ensure CLI doesn't exit before completion",
+        "details": "1. Update Turn class to use normalized tool calls:\n   ```javascript\n   class Turn {\n     async processNormalizedResponse(response) {\n       const buffer = new StreamingBuffer();\n       \n       for await (const chunk of response) {\n         const normalized = normalizeProviderChunk(chunk);\n         buffer.addChunk(normalized);\n         \n         // Display content immediately\n         if (normalized.content) {\n           process.stdout.write(normalized.content);\n         }\n       }\n       \n       // Execute all complete tool calls\n       const toolCalls = buffer.getCompleteToolCalls();\n       if (toolCalls.length > 0) {\n         await this.executeToolCalls(toolCalls);\n       }\n     }\n     \n     async executeToolCalls(toolCalls) {\n       // Execute in parallel with concurrency limit\n       const results = await pLimit(5)(toolCalls.map(tc => \n         () => this.executeSingleTool(tc)\n       ));\n       return results;\n     }\n   }\n   ```\n2. Implement proper promise chain:\n   - Use Promise.allSettled for multiple tool calls\n   - Add timeout handling (30s default, configurable)\n   - Implement retry logic for transient failures\n3. Add graceful shutdown handling:\n   ```javascript\n   process.on('SIGINT', async () => {\n     console.log('\\nGracefully shutting down...');\n     await pendingExecutions.waitForAll();\n     process.exit(0);\n   });\n   ```\n4. Create execution tracking:\n   - Track pending executions globally\n   - Prevent CLI exit until all complete\n   - Add progress indicators for long-running tools\n5. Implement error boundaries:\n   - Catch and log tool execution errors\n   - Continue with remaining tools on failure\n   - Aggregate errors for final reporting",
+        "testStrategy": "1. Unit tests for promise chain management and timeout handling\n2. Integration tests verifying CLI waits for tool completion\n3. Tests for concurrent execution limits and error handling\n4. Manual tests with slow/failing tools to verify graceful behavior",
+        "priority": "high",
+        "dependencies": [
+          36
+        ],
+        "status": "pending",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Refactor Turn Class for Normalized Tool Calls",
+            "description": "Update the Turn class to process and buffer normalized tool calls, ensuring that tool call extraction and streaming output are handled efficiently.",
+            "dependencies": [],
+            "details": "Modify the processNormalizedResponse method to use a streaming buffer for normalized chunks, extract complete tool calls, and prepare them for execution. Ensure immediate display of content and correct buffering of tool call data.",
+            "status": "pending",
+            "testStrategy": "Unit test the Turn class with various streaming responses to verify correct buffering, extraction, and immediate output of content."
+          },
+          {
+            "id": 2,
+            "title": "Implement Concurrent Tool Execution with Await Handling",
+            "description": "Enable concurrent execution of multiple tool calls with proper await logic, ensuring all executions are completed before proceeding.",
+            "dependencies": [
+              "37.1"
+            ],
+            "details": "Use a concurrency limiter (e.g., pLimit) to execute tool calls in parallel, respecting a configurable concurrency cap. Ensure all executions are awaited so that the CLI does not proceed or exit prematurely.",
+            "status": "pending",
+            "testStrategy": "Integration test with multiple tool calls to verify concurrency limits, correct awaiting, and that all executions complete before CLI exit."
+          },
+          {
+            "id": 3,
+            "title": "Establish Robust Promise Chain Management",
+            "description": "Refactor promise chains to use Promise.allSettled for multiple tool calls, add timeout handling, and implement retry logic for transient failures.",
+            "dependencies": [
+              "37.2"
+            ],
+            "details": "Ensure all asynchronous tool executions are managed with Promise.allSettled to capture both successes and failures. Add a default (configurable) timeout for each tool call and implement retry logic for transient errors, following best practices for promise chaining and error propagation[1][2][3][4].",
+            "status": "pending",
+            "testStrategy": "Unit and integration tests for promise chain correctness, timeout enforcement, and retry behavior under simulated transient failures."
+          },
+          {
+            "id": 4,
+            "title": "Add Graceful Shutdown and Execution Tracking",
+            "description": "Implement global tracking of pending executions and graceful shutdown logic to prevent CLI exit before all tool calls complete.",
+            "dependencies": [
+              "37.3"
+            ],
+            "details": "Track all pending tool executions globally. Hook into process signals (e.g., SIGINT) to wait for all pending executions before exiting. Add progress indicators for long-running tool calls.",
+            "status": "pending",
+            "testStrategy": "Integration and manual tests to verify that the CLI waits for all executions on shutdown and displays progress for long-running tasks."
+          },
+          {
+            "id": 5,
+            "title": "Integrate Error Boundaries and Reporting",
+            "description": "Add error boundaries to catch and log tool execution errors, continue processing remaining tools, and aggregate errors for final reporting.",
+            "dependencies": [
+              "37.4"
+            ],
+            "details": "Wrap tool execution logic in try/catch blocks or use .catch handlers to log errors without halting execution of other tools. Aggregate all errors and present a summary report after all executions complete.",
+            "status": "pending",
+            "testStrategy": "Unit and integration tests with failing tool calls to verify error logging, continued execution, and correct aggregation of error reports."
+          }
+        ]
+      },
+      {
+        "id": 38,
+        "title": "Implement Comprehensive Test Suite and Provider Validation",
+        "description": "Create unit and integration tests covering all provider formats, edge cases, and end-to-end tool execution scenarios to ensure reliability across all supported AI providers",
+        "details": "1. Unit test suite structure:\n   ```javascript\n   describe('Provider Normalization', () => {\n     describe('OpenAI', () => {\n       test('handles function_call format', () => {});\n       test('handles tool_calls array format', () => {});\n       test('handles streaming deltas', () => {});\n     });\n     \n     describe('Anthropic', () => {\n       test('extracts tool_use from content', () => {});\n       test('handles multiple tools in response', () => {});\n     });\n     \n     describe('Gemini', () => {\n       test('maintains backward compatibility', () => {});\n       test('handles functionCall format', () => {});\n     });\n   });\n   ```\n2. Integration test scenarios:\n   - Single tool call execution\n   - Multiple concurrent tool calls\n   - Tool calls split across chunks\n   - Error handling and recovery\n   - Timeout and cancellation\n3. Create test fixtures from real provider responses:\n   - Capture actual API responses for each provider\n   - Store as JSON fixtures for reproducible tests\n   - Include edge cases and error responses\n4. Implement provider mocks:\n   ```javascript\n   class MockProvider {\n     async *streamResponse(chunks) {\n       for (const chunk of chunks) {\n         await new Promise(r => setTimeout(r, 10));\n         yield chunk;\n       }\n     }\n   }\n   ```\n5. Add performance benchmarks:\n   - Measure latency impact of normalization\n   - Track memory usage during streaming\n   - Verify <100ms overhead requirement\n6. Create end-to-end test harness:\n   - Spawn CLI process programmatically\n   - Verify tool execution via side effects\n   - Test with real providers in CI (with API keys)",
+        "testStrategy": "1. Run unit tests on every commit with 100% coverage target\n2. Integration tests in CI with mocked providers\n3. Nightly tests against real providers with test API keys\n4. Manual acceptance testing with each provider before release",
+        "priority": "medium",
+        "dependencies": [
+          37
+        ],
+        "status": "pending",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Develop Unit Tests for Provider Normalization Functions",
+            "description": "Create comprehensive unit tests for normalization logic of each supported provider (OpenAI, Anthropic, Gemini), ensuring all response formats and streaming behaviors are covered using real provider samples.",
+            "dependencies": [],
+            "details": "Implement test cases for each provider's unique response structures, including function_call, tool_calls, streaming deltas, and backward compatibility. Use real-world samples to validate normalization correctness.",
+            "status": "pending",
+            "testStrategy": "Run unit tests on every commit with a 100% coverage target. Validate against real and synthetic provider responses to ensure normalization logic is robust."
+          },
+          {
+            "id": 2,
+            "title": "Implement Integration Tests for End-to-End Tool Execution",
+            "description": "Design and execute integration tests simulating end-to-end tool execution scenarios, including single and multiple tool calls, chunked responses, and error handling across all providers.",
+            "dependencies": [
+              "38.1"
+            ],
+            "details": "Programmatically invoke CLI processes and simulate tool execution flows. Test with both mocked and real providers to verify correct orchestration and side effects.",
+            "status": "pending",
+            "testStrategy": "Integration tests run in CI with mocked providers and nightly with real providers using test API keys. Verify tool execution outcomes and error recovery."
+          },
+          {
+            "id": 3,
+            "title": "Create Edge Case and Fault Injection Tests",
+            "description": "Develop tests targeting malformed provider responses, network interruptions, timeouts, and cancellation scenarios to ensure robust error handling and recovery.",
+            "dependencies": [
+              "38.1"
+            ],
+            "details": "Simulate edge cases such as incomplete JSON, unexpected data types, and network failures. Validate that the system gracefully handles and recovers from these conditions.",
+            "status": "pending",
+            "testStrategy": "Automated tests inject faults and malformed data, verifying that errors are detected, logged, and do not cause system crashes or data corruption."
+          },
+          {
+            "id": 4,
+            "title": "Build and Maintain Test Fixtures with Real Provider Responses",
+            "description": "Capture and curate a library of real API responses from each provider, including edge cases and error scenarios, to use as reproducible test fixtures.",
+            "dependencies": [],
+            "details": "Store provider responses as versioned JSON fixtures. Ensure fixtures cover all supported formats, edge cases, and error conditions for reliable and repeatable testing.",
+            "status": "pending",
+            "testStrategy": "Fixtures are validated for completeness and updated as provider APIs evolve. Tests using fixtures are run regularly to detect regressions."
+          },
+          {
+            "id": 5,
+            "title": "Establish Performance Benchmarks for Normalization and Streaming",
+            "description": "Implement performance tests to measure latency and memory usage of normalization and streaming logic, ensuring overhead remains below defined thresholds.",
+            "dependencies": [
+              "38.1",
+              "38.2"
+            ],
+            "details": "Benchmark normalization and streaming under various load conditions. Track metrics such as processing latency and memory consumption, verifying compliance with performance requirements (<100ms overhead).",
+            "status": "pending",
+            "testStrategy": "Automated performance benchmarks run in CI and on demand. Regression alerts are triggered if performance thresholds are exceeded."
+          }
+        ]
+      },
+      {
+        "id": 39,
+        "title": "Update CLI Branding from Gemini to Sport",
+        "description": "Replace all references to 'Gemini CLI' with 'Sport CLI' throughout the codebase, starting with the yargs configuration in config.ts",
+        "details": "1. Update packages/cli/src/config/config.ts:\n   - Change .scriptName('gemini') to .scriptName('sport')\n   - Update usage text from 'Gemini CLI - Launch an interactive CLI...' to 'Sport CLI - Launch an interactive CLI...'\n\n2. Search entire codebase for 'Gemini CLI' references:\n   ```bash\n   grep -r \"Gemini CLI\" packages/\n   grep -r \"gemini\" packages/ --include=\"*.ts\" --include=\"*.tsx\"\n   ```\n\n3. Update HTTP headers and referer URLs if any contain 'gemini'\n\n4. Ensure package.json bin field uses 'sport' command\n\n5. Update any documentation files that reference the old branding",
+        "testStrategy": "1. Run 'sport --help' and verify it shows 'Sport CLI' in usage text\n2. Verify command invocation works with 'sport' command\n3. Check all error messages and prompts for correct branding\n4. Run automated tests to ensure no functionality is broken\n5. Manually test common workflows to verify branding consistency",
+        "priority": "high",
+        "dependencies": [],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 40,
+        "title": "Implement Backward Compatibility for Configuration Directories",
+        "description": "Ensure the CLI works with both existing .gemini/ and new .sport/ configuration directories to maintain backward compatibility",
+        "details": "1. Locate configuration directory logic (likely in config initialization)\n\n2. Implement fallback mechanism:\n   ```typescript\n   const getConfigDir = (): string => {\n     const sportDir = path.join(os.homedir(), '.sport');\n     const geminiDir = path.join(os.homedir(), '.gemini');\n     \n     // Check if .sport exists first\n     if (fs.existsSync(sportDir)) {\n       return sportDir;\n     }\n     \n     // Fall back to .gemini for backward compatibility\n     if (fs.existsSync(geminiDir)) {\n       console.log('Using legacy .gemini directory. Consider migrating to .sport');\n       return geminiDir;\n     }\n     \n     // Create new .sport directory for new installations\n     fs.mkdirSync(sportDir, { recursive: true });\n     return sportDir;\n   };\n   ```\n\n3. Add migration helper (optional):\n   ```typescript\n   const migrateConfig = async (): Promise<void> => {\n     if (fs.existsSync(geminiDir) && !fs.existsSync(sportDir)) {\n       console.log('Migrating configuration from .gemini to .sport...');\n       await fs.promises.cp(geminiDir, sportDir, { recursive: true });\n     }\n   };\n   ```",
+        "testStrategy": "1. Test with only .gemini/ directory present - verify it works\n2. Test with only .sport/ directory present - verify it works\n3. Test with both directories present - verify .sport takes precedence\n4. Test fresh installation - verify .sport/ is created\n5. Test configuration file reading/writing in both scenarios\n6. Verify any API keys and settings are properly loaded from either directory",
+        "priority": "high",
+        "dependencies": [
+          39
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 41,
+        "title": "Optimize Processing Animation Timing",
+        "description": "Fix the delay between model response completion and processing animation appearance by optimizing the streaming buffer and UI update pipeline",
+        "details": "1. Profile current implementation in streamingJsonBuffer.ts:\n   ```typescript\n   // Add timing logs to identify bottlenecks\n   console.time('buffer-accumulation');\n   // ... existing buffer logic\n   console.timeEnd('buffer-accumulation');\n   ```\n\n2. Implement immediate UI feedback:\n   ```typescript\n   // In the streaming handler\n   const handleStreamChunk = (chunk: string) => {\n     // Immediately trigger UI update\n     setProcessingState(true);\n     \n     // Process chunk asynchronously\n     requestAnimationFrame(() => {\n       bufferProcessor.addChunk(chunk);\n     });\n   };\n   ```\n\n3. Optimize buffer flushing:\n   ```typescript\n   class StreamingJsonBuffer {\n     private flushTimeout: NodeJS.Timeout | null = null;\n     \n     addChunk(chunk: string) {\n       this.buffer += chunk;\n       \n       // Immediate flush for complete JSON objects\n       if (this.isCompleteJson(this.buffer)) {\n         this.flush();\n       } else {\n         // Debounced flush for partial data\n         this.scheduleFlush();\n       }\n     }\n     \n     private scheduleFlush() {\n       if (this.flushTimeout) clearTimeout(this.flushTimeout);\n       this.flushTimeout = setTimeout(() => this.flush(), 16); // ~60fps\n     }\n   }\n   ```\n\n4. Consider using React's startTransition for non-urgent updates",
+        "testStrategy": "1. Add performance markers to measure delay before and after optimization\n2. Test with various model providers (OpenAI, Anthropic, Google, Grok)\n3. Measure time between last model token and animation start (target < 100ms)\n4. Test with slow/fast network conditions\n5. Verify no memory leaks from rapid buffer updates\n6. Ensure streaming text still appears smoothly without stuttering",
+        "priority": "medium",
+        "dependencies": [],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 42,
+        "title": "Investigate and Document Grok-4 Function Calling Behavior",
+        "description": "Create comprehensive tests for Grok-4 function calling capabilities and document any limitations or special requirements",
+        "details": "1. Create test suite for Grok-4:\n   ```typescript\n   // tests/grok4-function-calling.test.ts\n   describe('Grok-4 Function Calling', () => {\n     const testCases = [\n       {\n         prompt: 'What is the weather in Tokyo?',\n         expectedTool: 'get_weather',\n         params: { location: 'Tokyo' }\n       },\n       {\n         prompt: 'Search for information about TypeScript',\n         expectedTool: 'web_search',\n         params: { query: 'TypeScript' }\n       }\n     ];\n     \n     test.each(testCases)('should call $expectedTool', async ({ prompt, expectedTool, params }) => {\n       const response = await grok4.generate(prompt, { tools: availableTools });\n       // Verify tool_calls in response\n     });\n   });\n   ```\n\n2. Compare response formats:\n   ```typescript\n   // Log and compare responses from different models\n   const models = ['grok-4', 'gpt-4', 'claude-3'];\n   for (const model of models) {\n     console.log(`\\n=== ${model} Response Format ===`);\n     const response = await generateWithTools(model, testPrompt);\n     console.log(JSON.stringify(response, null, 2));\n   }\n   ```\n\n3. Test prompt engineering variations:\n   ```typescript\n   const promptVariations = [\n     // Standard\n     'What is the weather in Tokyo?',\n     // Explicit instruction\n     'Use the get_weather function to check Tokyo weather',\n     // System message emphasis\n     { system: 'You must use tools when appropriate', user: 'Weather in Tokyo?' }\n   ];\n   ```\n\n4. Check OpenRouter headers and model routing",
+        "testStrategy": "1. Run function calling tests with multiple tools available\n2. Test single tool scenarios vs multiple tool scenarios\n3. Compare Grok-4 responses with GPT-4 and Claude for same prompts\n4. Test edge cases: ambiguous requests, multiple tool calls, invalid parameters\n5. Monitor OpenRouter API responses for any error codes or warnings\n6. Document findings in a GROK4_LIMITATIONS.md file\n7. Create integration test that runs periodically to detect behavior changes",
+        "priority": "low",
+        "dependencies": [],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 43,
+        "title": "Update Documentation and Release Notes",
+        "description": "Create comprehensive documentation for the fixes and update release notes to reflect all changes made to sport-cli",
+        "details": "1. Update README.md:\n   - Change all references from gemini-cli to sport-cli\n   - Update installation instructions to use 'sport' command\n   - Add migration guide for existing users\n\n2. Create MIGRATION.md:\n   ```markdown\n   # Migrating from Gemini CLI to Sport CLI\n   \n   ## Configuration Directory\n   Sport CLI maintains backward compatibility with `.gemini/` directories.\n   To migrate:\n   1. Your existing configuration will work as-is\n   2. Optionally, rename ~/.gemini to ~/.sport\n   \n   ## Command Changes\n   - Old: `gemini chat`\n   - New: `sport chat`\n   ```\n\n3. Update CHANGELOG.md:\n   ```markdown\n   ## [Version] - 2025-07-21\n   \n   ### Changed\n   - Rebranded from Gemini CLI to Sport CLI\n   - Optimized processing animation timing (< 100ms delay)\n   \n   ### Fixed\n   - Processing animation delay issue\n   - CLI branding consistency\n   \n   ### Documented\n   - Grok-4 function calling behavior and limitations\n   ```\n\n4. Create or update API documentation for any changed interfaces\n\n5. Update package.json description and keywords",
+        "testStrategy": "1. Review all documentation for accuracy and completeness\n2. Test all code examples in documentation\n3. Verify migration guide works for real user scenarios\n4. Check that all links in documentation are valid\n5. Ensure documentation is consistent with actual CLI behavior\n6. Have someone unfamiliar with the project follow the installation guide",
+        "priority": "medium",
+        "dependencies": [
+          39,
+          40,
+          41,
+          42
+        ],
+        "status": "pending",
+        "subtasks": []
       }
     ],
     "metadata": {
       "created": "2025-07-07T18:56:28.419Z",
-      "updated": "2025-07-19T20:19:06.778Z",
+      "updated": "2025-07-21T15:53:07.711Z",
       "description": "Tasks for master context"
     }
   }

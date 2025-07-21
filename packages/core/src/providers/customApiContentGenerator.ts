@@ -24,6 +24,8 @@ import { retryWithBackoff } from '../utils/retry.js';
 import { IProvider, ModelInfo, ProviderStatus } from './types.js';
 import { DEFAULT_CUSTOM_API_MODEL } from '../config/models.js';
 import { ModelCacheService } from './modelCache.js';
+import { ModelCapabilityRegistry } from './modelCapabilities.js';
+import { StreamingJsonBuffer } from '../utils/streamingJsonBuffer.js';
 
 interface CustomApiMessage {
   role: 'system' | 'user' | 'assistant' | 'function';
@@ -241,6 +243,17 @@ export class CustomApiContentGenerator implements IProvider {
       },
     ];
 
+    // Store tool calls for event generation
+    if (choice.message.function_call) {
+      (result as any)._toolCalls = [
+        {
+          id: `call_${Date.now()}_${Math.random().toString(36).substring(7)}`,
+          type: 'function',
+          function: choice.message.function_call,
+        },
+      ];
+    }
+
     if (response.usage) {
       result.usageMetadata = {
         promptTokenCount: response.usage.prompt_tokens,
@@ -294,13 +307,18 @@ export class CustomApiContentGenerator implements IProvider {
   async generateContent(
     request: GenerateContentParameters,
   ): Promise<GenerateContentResponse> {
+    const capabilityRegistry = ModelCapabilityRegistry.getInstance();
+    const supportsTools = capabilityRegistry.supportsTools(this.model);
+
     const customApiRequest: CustomApiRequest = {
       model: this.model,
       messages: this.convertToCustomApiMessages(request.contents),
       temperature: request.config?.temperature,
       top_p: request.config?.topP,
       max_tokens: request.config?.maxOutputTokens,
-      functions: this.convertToCustomApiFunctions((request as any).tools),
+      functions: supportsTools
+        ? this.convertToCustomApiFunctions((request as any).tools)
+        : undefined,
     };
 
     const response = await retryWithBackoff(async () => {
@@ -316,6 +334,16 @@ export class CustomApiContentGenerator implements IProvider {
 
       if (!res.ok) {
         const error = await res.text();
+
+        // Cache capability information if we get a tool support error
+        if (
+          error.includes('No endpoints found that support tool use') ||
+          error.includes('does not support function') ||
+          error.includes('tools not supported')
+        ) {
+          capabilityRegistry.cacheFromApiError(this.model, error);
+        }
+
         throw new Error(`Custom API error: ${res.status} - ${error}`);
       }
 
@@ -334,6 +362,9 @@ export class CustomApiContentGenerator implements IProvider {
   private async *generateContentStreamInternal(
     request: GenerateContentParameters,
   ): AsyncGenerator<GenerateContentResponse> {
+    const capabilityRegistry = ModelCapabilityRegistry.getInstance();
+    const supportsTools = capabilityRegistry.supportsTools(this.model);
+
     const customApiRequest: CustomApiRequest = {
       model: this.model,
       messages: this.convertToCustomApiMessages(request.contents),
@@ -341,7 +372,9 @@ export class CustomApiContentGenerator implements IProvider {
       top_p: request.config?.topP,
       max_tokens: request.config?.maxOutputTokens,
       stream: true,
-      functions: this.convertToCustomApiFunctions((request as any).tools),
+      functions: supportsTools
+        ? this.convertToCustomApiFunctions((request as any).tools)
+        : undefined,
     };
 
     const response = await fetch(`${this.baseUrl}/v1/chat/completions`, {
@@ -356,6 +389,16 @@ export class CustomApiContentGenerator implements IProvider {
 
     if (!response.ok) {
       const error = await response.text();
+
+      // Cache capability information if we get a tool support error
+      if (
+        error.includes('No endpoints found that support tool use') ||
+        error.includes('does not support function') ||
+        error.includes('tools not supported')
+      ) {
+        capabilityRegistry.cacheFromApiError(this.model, error);
+      }
+
       throw new Error(`Custom API error: ${response.status} - ${error}`);
     }
 
@@ -432,6 +475,17 @@ export class CustomApiContentGenerator implements IProvider {
               },
             ];
 
+            // Store accumulated function call for event generation
+            if (accumulatedFunctionCall && accumulatedFunctionCall.name) {
+              (streamResult as any)._toolCalls = [
+                {
+                  id: `call_${Date.now()}_${Math.random().toString(36).substring(7)}`,
+                  type: 'function',
+                  function: accumulatedFunctionCall,
+                },
+              ];
+            }
+
             // Add getter methods
             Object.defineProperty(streamResult, 'text', {
               get() {
@@ -475,7 +529,14 @@ export class CustomApiContentGenerator implements IProvider {
 
             yield streamResult;
           } catch (e) {
-            console.error('Error parsing streaming response:', e);
+            // Log the error with more context in debug mode
+            if (process.env.DEBUG || process.env.NODE_ENV === 'development') {
+              console.error('Error parsing streaming response:', e);
+              console.error(
+                'Failed to parse data:',
+                data.substring(0, 100) + '...',
+              );
+            }
           }
         }
       }

@@ -1,0 +1,153 @@
+# Product Requirements Document: Remaining Sport-CLI Issues
+
+## Document Information
+- **Date**: July 21, 2025
+- **Author**: SportsCulture LLC
+- **Version**: 1.0
+- **Status**: Final
+
+## Executive Summary
+
+This PRD addresses the remaining issues in the sport-cli (forked from gemini-cli) after the critical 4x tool execution bug has been fixed. The document outlines two remaining issues that need resolution: CLI branding inconsistency and processing animation delay.
+
+## Background
+
+Sport-CLI is an enhanced fork of Google's Gemini CLI with multi-provider AI support. Recent fixes have resolved:
+- 4x tool registration issue (implemented singleton pattern)
+- Model identity issue (models now correctly identify themselves)
+- Grok-4 tool support configuration
+
+However, some issues remain that affect user experience and brand consistency.
+
+## Issues to Address
+
+### 1. CLI Branding Inconsistency (Medium Priority)
+
+**Problem Statement**: The CLI help text and command name still display "Gemini CLI" instead of "sport-cli", causing brand confusion.
+
+**Current State**:
+- Location: `packages/cli/src/config/config.ts` lines 68-72
+- Command name: `.scriptName('gemini')`
+- Usage text: `'Gemini CLI - Launch an interactive CLI...'`
+
+**Desired State**:
+- Command name should be `sport`
+- Usage text should reference "Sport CLI"
+- Maintain compatibility with existing configurations
+
+**Technical Requirements**:
+1. Update yargs configuration to use sport branding
+2. Ensure backward compatibility for users with existing `.gemini/` configuration directories
+3. Update any other hardcoded references to "Gemini CLI" throughout the codebase
+4. Update HTTP headers and referer URLs to reflect sport-cli identity
+
+**Acceptance Criteria**:
+- [ ] Running `sport --help` shows "Sport CLI" in the usage text
+- [ ] Command is invoked as `sport` not `gemini`
+- [ ] All user-facing text reflects sport-cli branding
+- [ ] Existing `.gemini/` and `.sport/` directories both work for configuration
+
+### 2. Processing Animation Delay (Low Priority)
+
+**Problem Statement**: There is a noticeable delay between when the model completes its response and when the processing animation appears, creating a perception of slowness.
+
+**Current State**:
+- Processing animation appears after model completion
+- Delay is noticeable to users
+- Likely related to streaming buffer accumulation
+
+**Desired State**:
+- Smooth transition from model response to processing animation
+- No perceptible delay in UI updates
+
+**Technical Requirements**:
+1. Investigate streaming buffer implementation in `streamingJsonBuffer.ts`
+2. Analyze UI update timing in React/Ink components
+3. Optimize buffer flushing and UI rendering pipeline
+4. Consider implementing immediate UI feedback mechanisms
+
+**Acceptance Criteria**:
+- [ ] Processing animation appears immediately after model response
+- [ ] No visual lag or delay in UI transitions
+- [ ] Streaming performance is not degraded
+
+### 3. Grok-4 Function Calling Investigation (Low Priority)
+
+**Problem Statement**: While Grok-4 is configured to support function calling and the implementation appears correct, it may not be working as expected in practice.
+
+**Current State**:
+- Grok-4 is listed in `modelCapabilities.ts` as supporting tools
+- OpenRouter provider correctly handles `tool_calls` in responses
+- Documentation confirms Grok-4 supports function calling
+- May be a model-specific response format issue
+
+**Investigation Needed**:
+1. Test Grok-4 with various function calling scenarios
+2. Compare response format with other working models
+3. Check if Grok-4 requires specific prompt engineering for tools
+4. Verify if this is a temporary OpenRouter routing issue
+
+**Notes**:
+- This may not be a code issue but rather a model behavior characteristic
+- Should document any limitations discovered
+
+## Implementation Plan
+
+### Phase 1: CLI Branding Update (1-2 hours)
+1. Update yargs configuration in `config.ts`
+2. Search and replace remaining "Gemini CLI" references
+3. Test backward compatibility
+4. Update documentation
+
+### Phase 2: Processing Animation Investigation (2-4 hours)
+1. Profile streaming buffer performance
+2. Identify bottlenecks in UI update pipeline
+3. Implement optimizations
+4. Test with various model providers
+
+### Phase 3: Grok-4 Testing (1-2 hours)
+1. Create comprehensive test suite for Grok-4 function calling
+2. Document any limitations or special requirements
+3. Update documentation if needed
+
+## Testing Requirements
+
+1. **Branding Tests**:
+   - Verify all CLI commands show correct branding
+   - Test configuration file compatibility
+   - Check all error messages and help text
+
+2. **Performance Tests**:
+   - Measure animation delay before and after fixes
+   - Test with different model providers
+   - Verify no regression in streaming performance
+
+3. **Integration Tests**:
+   - Test Grok-4 with various tools
+   - Compare behavior with other models
+   - Document any provider-specific quirks
+
+## Success Metrics
+
+1. Zero references to "Gemini CLI" in user-facing text
+2. Processing animation delay < 100ms
+3. Clear documentation of any model-specific limitations
+
+## Risks and Mitigations
+
+1. **Risk**: Breaking existing user configurations
+   - **Mitigation**: Maintain backward compatibility with `.gemini/` directories
+
+2. **Risk**: Performance regression from animation fixes
+   - **Mitigation**: Comprehensive performance testing before release
+
+3. **Risk**: Grok-4 limitations may be inherent to the model
+   - **Mitigation**: Clear documentation of provider capabilities
+
+## Appendix
+
+### File References
+- CLI Config: `/packages/cli/src/config/config.ts`
+- Model Capabilities: `/packages/core/src/providers/modelCapabilities.ts`
+- OpenRouter Provider: `/packages/core/src/providers/openRouterContentGenerator.ts`
+- Streaming Buffer: `/packages/core/src/utils/streamingJsonBuffer.ts`

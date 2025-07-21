@@ -56,8 +56,7 @@
     "worktree:list": "git worktree list"
   },
   "bin": {
-    "sport": "bundle/gemini.js",
-    "gemini": "bundle/gemini-wrapper.js"
+    "sport": "bundle/gemini.js"
   },
   "files": [
     "bundle/",

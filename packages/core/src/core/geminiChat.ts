@@ -15,6 +15,7 @@ import {
   createUserContent,
   Part,
   GenerateContentResponseUsageMetadata,
+  Tool,
 } from '@google/genai';
 import { retryWithBackoff } from '../utils/retry.js';
 import { isFunctionResponse } from '../utils/messageInspectors.js';
@@ -136,6 +137,7 @@ export class GeminiChat {
     private readonly contentGenerator: ContentGenerator,
     private readonly generationConfig: GenerateContentConfig = {},
     private history: Content[] = [],
+    private readonly tools?: Tool[],
   ) {
     validateHistory(history);
   }
@@ -297,7 +299,8 @@ export class GeminiChat {
           model: modelToUse,
           contents: requestContents,
           config: { ...this.generationConfig, ...params.config },
-        });
+          tools: this.tools,
+        } as any);
       };
 
       response = await retryWithBackoff(apiCall, {
@@ -400,11 +403,24 @@ export class GeminiChat {
           );
         }
 
+        if (process.env.DEBUG) {
+          console.log(
+            '[DEBUG] GeminiChat.sendMessageStream: Passing tools to contentGenerator:',
+            {
+              model: modelToUse,
+              toolsCount: this.tools?.length || 0,
+              toolDeclarations:
+                this.tools?.[0]?.functionDeclarations?.length || 0,
+            },
+          );
+        }
+
         return this.contentGenerator.generateContentStream({
           model: modelToUse,
           contents: requestContents,
           config: { ...this.generationConfig, ...params.config },
-        });
+          tools: this.tools,
+        } as any);
       };
 
       // Note: Retrying streams can be complex. If generateContentStream itself doesn't handle retries

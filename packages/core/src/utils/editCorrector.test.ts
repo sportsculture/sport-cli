@@ -165,7 +165,9 @@ describe('editCorrector', () => {
     const abortSignal = new AbortController().signal;
 
     beforeEach(() => {
-      mockToolRegistry = new ToolRegistry({} as Config) as Mocked<ToolRegistry>;
+      mockToolRegistry = ToolRegistry.createForTesting(
+        {} as Config,
+      ) as Mocked<ToolRegistry>;
       const configParams = {
         apiKey: 'test-api-key',
         model: 'test-model',
@@ -607,7 +609,9 @@ describe('editCorrector', () => {
     const abortSignal = new AbortController().signal;
 
     beforeEach(() => {
-      mockToolRegistry = new ToolRegistry({} as Config) as Mocked<ToolRegistry>;
+      mockToolRegistry = ToolRegistry.createForTesting(
+        {} as Config,
+      ) as Mocked<ToolRegistry>;
       const configParams = {
         apiKey: 'test-api-key',
         model: 'test-model',

@@ -119,6 +119,7 @@ export interface ConfigParameters {
   sandbox?: SandboxConfig;
   targetDir: string;
   debugMode: boolean;
+  debugTools?: boolean;
   question?: string;
   fullContext?: boolean;
   coreTools?: string[];
@@ -165,6 +166,7 @@ export class Config {
   private readonly sandbox: SandboxConfig | undefined;
   private readonly targetDir: string;
   private readonly debugMode: boolean;
+  private readonly debugTools: boolean;
   private readonly question: string | undefined;
   private readonly fullContext: boolean;
   private readonly coreTools: string[] | undefined;
@@ -218,6 +220,7 @@ export class Config {
     this.sandbox = params.sandbox;
     this.targetDir = path.resolve(params.targetDir);
     this.debugMode = params.debugMode;
+    this.debugTools = params.debugTools ?? false;
     this.question = params.question;
     this.fullContext = params.fullContext ?? false;
     this.coreTools = params.coreTools;
@@ -398,6 +401,10 @@ export class Config {
 
   getDebugMode(): boolean {
     return this.debugMode;
+  }
+
+  getDebugTools(): boolean {
+    return this.debugTools;
   }
   getQuestion(): string | undefined {
     return this.question;
@@ -587,7 +594,17 @@ export class Config {
   }
 
   async createToolRegistry(): Promise<ToolRegistry> {
-    const registry = new ToolRegistry(this);
+    const registry = ToolRegistry.getInstance(this);
+
+    // If already initialized, return the existing registry
+    if (registry.isInitialized()) {
+      if (this.getDebugTools()) {
+        console.log(
+          '[TOOL-DEBUG] ToolRegistry already initialized, skipping registration',
+        );
+      }
+      return registry;
+    }
 
     // helper to create & register core tools that are enabled
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -618,9 +635,25 @@ export class Config {
       }
 
       if (isEnabled) {
+        if (this.getDebugTools()) {
+          console.log(
+            `[TOOL-DEBUG] Registering tool: ${toolName} (${className})`,
+          );
+        }
         registry.registerTool(new ToolClass(...args));
+      } else if (this.getDebugTools()) {
+        console.log(
+          `[TOOL-DEBUG] Skipping tool: ${toolName} (${className}), enabled=${isEnabled}`,
+        );
       }
     };
+
+    // Log tool registration if debug tools is enabled
+    if (this.getDebugTools()) {
+      console.log('[TOOL-DEBUG] Starting core tool registration');
+      console.log('[TOOL-DEBUG] Core tools config:', this.getCoreTools());
+      console.log('[TOOL-DEBUG] Exclude tools config:', this.getExcludeTools());
+    }
 
     registerCoreTool(LSTool, this);
     registerCoreTool(ReadFileTool, this);
@@ -634,7 +667,26 @@ export class Config {
     registerCoreTool(MemoryTool);
     registerCoreTool(WebSearchTool, this);
 
+    if (this.getDebugTools()) {
+      const allTools = registry.getAllTools();
+      console.log(`[TOOL-DEBUG] Total tools registered: ${allTools.length}`);
+      allTools.forEach((tool) => {
+        console.log(`[TOOL-DEBUG] - ${tool.name} (${tool.displayName})`);
+      });
+    }
+
     await registry.discoverTools();
+
+    if (this.getDebugTools()) {
+      const finalTools = registry.getAllTools();
+      console.log(
+        `[TOOL-DEBUG] Total tools after discovery: ${finalTools.length}`,
+      );
+    }
+
+    // Mark the registry as initialized
+    registry.markInitialized();
+
     return registry;
   }
 }

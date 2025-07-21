@@ -42,6 +42,7 @@ import { ProxyAgent, setGlobalDispatcher } from 'undici';
 import { DEFAULT_GEMINI_FLASH_MODEL } from '../config/models.js';
 import { LoopDetectionService } from '../services/loopDetectionService.js';
 import { ideContext } from '../services/ideContext.js';
+import { toolLogger } from '../utils/logger.js';
 
 function isThinkingSupported(model: string) {
   if (model.startsWith('gemini-2.5')) return true;
@@ -116,6 +117,9 @@ export class GeminiClient {
   }
 
   async initialize(contentGeneratorConfig: ContentGeneratorConfig) {
+    // Initialize the tool logger with config
+    toolLogger.initialize(this.config);
+
     this.contentGenerator = await createContentGenerator(
       contentGeneratorConfig,
       this.config,
@@ -227,8 +231,9 @@ export class GeminiClient {
     const folderStructure = await getFolderStructure(cwd, {
       fileService: this.config.getFileService(),
     });
+    const modelName = this.config.getModel();
     const context = `
-  This is a command-line interface. We are setting up the context for our chat.
+  This is a command-line interface using ${modelName}. We are setting up the context for our chat.
   Today's date is ${today}.
   My operating system is: ${platform}
   I'm currently working in the directory: ${cwd}
@@ -284,6 +289,22 @@ export class GeminiClient {
     const toolRegistry = await this.config.getToolRegistry();
     const toolDeclarations = toolRegistry.getFunctionDeclarations();
     const tools: Tool[] = [{ functionDeclarations: toolDeclarations }];
+
+    if (this.config.getDebugTools()) {
+      console.log(
+        `[TOOL-DEBUG] Creating chat with ${toolDeclarations.length} tools`,
+      );
+      toolDeclarations.forEach((tool) => {
+        console.log(`[TOOL-DEBUG] - Tool: ${tool.name}`);
+      });
+    }
+
+    if (process.env.DEBUG) {
+      console.log(
+        '[DEBUG] Client: Loaded tools:',
+        toolDeclarations.map((t) => t.name),
+      );
+    }
     const history: Content[] = [
       {
         role: 'user',
@@ -317,6 +338,7 @@ export class GeminiClient {
           tools,
         },
         history,
+        tools,
       );
     } catch (error) {
       await reportError(

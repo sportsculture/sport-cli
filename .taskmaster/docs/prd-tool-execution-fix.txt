@@ -1,0 +1,114 @@
+Product Requirements Document: Multi-Provider Tool Execution Fix for Sport-CLI
+
+EXECUTIVE SUMMARY
+=================
+Sport-CLI (fork of gemini-cli) has a critical bug where tool/function calls from non-Gemini AI providers (OpenRouter, Claude, OpenAI) are received in responses but not executed. This PRD outlines the comprehensive fix required to support proper tool execution across all providers.
+
+PROBLEM STATEMENT
+=================
+Current State:
+- Tool calls work correctly for Gemini provider only
+- Non-Gemini providers return function calls in their responses
+- These function calls are visible in the response but not executed
+- Users report: "I'm getting tool calls back from models that can use the tool calls"
+
+Root Causes (identified through expert analysis):
+1. Provider-specific response formats not normalized
+2. Streaming buffer management loses tool calls across chunks
+3. Tool execution logic hardcoded for Gemini format
+4. Race conditions in async execution flow
+5. Missing debug instrumentation
+
+REQUIREMENTS
+============
+
+Functional Requirements:
+1. Tool calls must execute for ALL supported providers (Gemini, OpenRouter, OpenAI, Claude, etc.)
+2. Both streaming and non-streaming responses must handle tool calls correctly
+3. Partial tool calls split across streaming chunks must be assembled correctly
+4. Multiple tool calls in a single response must all execute
+5. Tool execution must complete before CLI exits
+
+Non-Functional Requirements:
+1. Zero regression for existing Gemini functionality
+2. Minimal performance impact (<100ms added latency)
+3. Comprehensive debug logging for troubleshooting
+4. Unit test coverage for all provider formats
+5. Integration tests for end-to-end tool execution
+
+TECHNICAL DESIGN
+================
+
+1. Normalization Layer
+   - Create provider-agnostic intermediate representation (IR) for chunks
+   - Map all provider formats to unified structure
+   - Handle streaming deltas and complete messages
+
+2. Streaming Buffer Management
+   - Replace string accumulation with structured buffer
+   - Track tool call state across chunks
+   - Separate content display from tool call assembly
+
+3. Execution Flow
+   - Ensure promise chain from stream → parse → execute → complete
+   - Block CLI exit until all tool executions finish
+   - Add correlation IDs for debugging
+
+4. Provider Adapters
+   - OpenAI: handle function_call and tool_calls formats
+   - Anthropic: handle tool_use in content array
+   - Gemini: maintain existing functionCall support
+   - OpenRouter: handle passthrough of underlying model formats
+
+IMPLEMENTATION PHASES
+====================
+
+Phase 1: Debug Infrastructure (2 hours)
+- Add --debug-tools flag
+- Implement structured logging with correlation IDs
+- Create trace points at key stages
+
+Phase 2: Normalization Layer (4 hours)
+- Design NormalizedChunk interface
+- Implement normalizeProviderChunk function
+- Add provider detection logic
+
+Phase 3: Streaming Refactor (6 hours)
+- Replace string accumulation with structured buffer
+- Implement chunk assembly logic
+- Handle partial JSON across chunks
+
+Phase 4: Execution Integration (4 hours)
+- Update Turn class to use normalized tool calls
+- Fix promise chain for proper awaiting
+- Add graceful shutdown handling
+
+Phase 5: Testing & Validation (4 hours)
+- Unit tests for each provider format
+- Integration tests for tool execution
+- Manual testing with real providers
+
+SUCCESS CRITERIA
+================
+1. Tool calls execute successfully for all providers
+2. No regressions in existing functionality
+3. Debug logs clearly show tool call flow
+4. All tests pass (unit + integration)
+5. User confirms issue is resolved
+
+RISKS & MITIGATIONS
+===================
+Risk: Breaking existing Gemini functionality
+Mitigation: Comprehensive test suite before changes
+
+Risk: Provider API changes
+Mitigation: Version-aware normalization with fallbacks
+
+Risk: Performance degradation
+Mitigation: Benchmark before/after, optimize hot paths
+
+TIMELINE
+========
+Total estimated effort: 20 hours
+- Can be completed in 2-3 days with focused effort
+- Includes testing and documentation updates

@@ -1,0 +1,176 @@
+PRODUCT REQUIREMENTS DOCUMENT
+==============================
+
+Title: Sport-CLI Tool System Bug Fixes and Improvements
+Version: 1.0
+Date: 2025-01-20
+Author: Development Team
+
+## EXECUTIVE SUMMARY
+
+This PRD addresses critical bugs in the sport-cli tool system that affect user experience and system reliability. The issues include duplicate tool response display, API errors for models without tool support, and streaming JSON parsing errors.
+
+## PROBLEM STATEMENT
+
+Users are experiencing three major issues when using sport-cli with various AI models:
+
+1. Tool responses appear duplicated in the UI, creating confusion
+2. Models that don't support function calling receive tool payloads, causing 404 API errors
+3. Streaming responses occasionally fail with JSON parsing errors
+
+These issues negatively impact the user experience and prevent seamless model switching.
+
+## GOALS AND OBJECTIVES
+
+### Primary Goals:
+- Eliminate duplicate tool response display in the UI
+- Prevent tool-related API errors for incompatible models
+- Fix streaming JSON parsing errors
+
+### Success Metrics:
+- Zero duplicate tool responses in UI
+- 100% of non-tool-supporting models work without 404 errors
+- Less than 0.1% streaming parsing error rate
+
+## SCOPE
+
+### In Scope:
+- Fix UI component rendering duplicate tool responses
+- Implement model capability detection for tool support
+- Add JSON buffering for streaming responses
+- Add error handling for models without tool support
+
+### Out of Scope:
+- Adding new tool capabilities
+- Modifying tool execution logic
+- Changing the tool registration system
+
+## USER STORIES
+
+1. As a user, I want to see each tool response only once in the UI so that I can clearly understand what actions were taken.
+
+2. As a user, I want to use models that don't support tools without encountering errors so that I can seamlessly switch between different AI providers.
+
+3. As a user, I want streaming responses to work reliably without parsing errors so that I can have uninterrupted conversations.
+
+## TECHNICAL REQUIREMENTS
+
+### 1. Fix Duplicate Tool Response Display
+
+**Component**: `ToolGroupMessage.tsx`
+**Solution**: 
+- Add state tracking to prevent duplicate rendering
+- Implement unique key generation for tool responses
+- Use React memo to prevent unnecessary re-renders
+
+### 2. Model Capability Detection
+
+**Component**: `OpenRouterContentGenerator.ts`, `CustomApiContentGenerator.ts`
+**Solution**:
+- Add `supportsTools` property to model metadata
+- Check capability before including tools in requests
+- Implement fallback behavior for non-supporting models
+- Cache model capabilities to avoid repeated checks
+
+### 3. Streaming JSON Buffer
+
+**Component**: `OpenRouterContentGenerator.ts`
+**Solution**:
+- Implement chunk buffering system
+- Parse only complete JSON objects
+- Handle partial chunks gracefully
+- Add timeout for incomplete chunks
+
+### 4. Error Handling Enhancement
+
+**Component**: All content generators
+**Solution**:
+- Catch and handle 404 "No endpoints found" errors
+- Retry requests without tools when detected
+- Log capability mismatches for debugging
+
+## IMPLEMENTATION TASKS
+
+### Phase 1: Model Capability Detection (Priority: High)
+1. Create model capability registry
+2. Add capability checking before tool inclusion
+3. Implement graceful fallback for non-supporting models
+4. Add capability caching mechanism
+
+### Phase 2: Fix UI Duplicate Rendering (Priority: High)
+1. Analyze ToolGroupMessage rendering lifecycle
+2. Add unique key generation for tool responses
+3. Implement state management to track rendered tools
+4. Test with multiple tool executions
+
+### Phase 3: Streaming JSON Buffer (Priority: Medium)
+1. Design buffering system for streaming chunks
+2. Implement JSON boundary detection
+3. Add error recovery for malformed chunks
+4. Test with various streaming scenarios
+
+### Phase 4: Error Handling (Priority: Medium)
+1. Add specific error handlers for tool-related 404s
+2. Implement automatic retry without tools
+3. Add user-friendly error messages
+4. Create error logging system
+
+## TESTING REQUIREMENTS
+
+### Unit Tests:
+- Model capability detection logic
+- JSON buffer parsing
+- UI component rendering behavior
+
+### Integration Tests:
+- Model switching with/without tools
+- Streaming response handling
+- Error recovery scenarios
+
+### Manual Testing:
+- Test with models: GPT-4, Claude, Grok, Dolphin-Mistral
+- Verify no duplicate tool displays
+- Confirm smooth model switching
+- Test streaming with slow connections
+
+## RELEASE CRITERIA
+
+- All tests passing with 100% coverage of new code
+- No duplicate tool responses in any tested scenario
+- All tested models work without tool-related errors
+- Streaming works reliably across all providers
+
+## RISKS AND MITIGATION
+
+### Risk 1: Breaking existing tool functionality
+**Mitigation**: Comprehensive test suite, gradual rollout
+
+### Risk 2: Performance impact from capability checking
+**Mitigation**: Implement caching, optimize lookup logic
+
+### Risk 3: Compatibility issues with new providers
+**Mitigation**: Default to no-tools behavior for unknown models
+
+## TIMELINE
+
+- Phase 1: 2 days
+- Phase 2: 1 day
+- Phase 3: 2 days
+- Phase 4: 1 day
+- Testing: 2 days
+- Total: 8 days
+
+## APPENDIX
+
+### Affected Files:
+- `/packages/cli/src/ui/components/messages/ToolGroupMessage.tsx`
+- `/packages/core/src/providers/openRouterContentGenerator.ts`
+- `/packages/core/src/providers/customApiContentGenerator.ts`
+- `/packages/core/src/providers/types.ts`
+- `/packages/core/src/core/geminiChat.ts`
+
+### Error Examples:
+```
+[API Error: OpenRouter API error: 404 - {"error":{"message":"No endpoints found that support tool use"}}]
+Error parsing streaming response: SyntaxError: Unterminated string in JSON at position 5
+```

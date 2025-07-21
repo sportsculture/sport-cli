@@ -41,6 +41,7 @@ export interface CliArgs {
   sandbox: boolean | string | undefined;
   sandboxImage: string | undefined;
   debug: boolean | undefined;
+  debugTools: boolean | undefined;
   prompt: string | undefined;
   promptInteractive: string | undefined;
   allFiles: boolean | undefined;
@@ -99,6 +100,11 @@ export async function parseArguments(): Promise<CliArgs> {
       alias: 'd',
       type: 'boolean',
       description: 'Run in debug mode?',
+      default: false,
+    })
+    .option('debug-tools', {
+      type: 'boolean',
+      description: 'Enable debug logging for tool execution flow',
       default: false,
     })
     .option('all-files', {
@@ -379,6 +385,7 @@ export async function loadCliConfig(
     sandbox: sandboxConfig,
     targetDir: process.cwd(),
     debugMode,
+    debugTools: argv.debugTools || false,
     question: argv.promptInteractive || argv.prompt || '',
     fullContext: argv.allFiles || argv.all_files || false,
     coreTools: settings.coreTools || undefined,

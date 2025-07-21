@@ -125,11 +125,39 @@ Signal: Signal number or \`(none)\` if no signal was received.
 }
 
 export class ToolRegistry {
+  private static instances: Map<string, ToolRegistry> = new Map();
   private tools: Map<string, Tool> = new Map();
   private config: Config;
+  private initialized = false;
 
-  constructor(config: Config) {
+  private constructor(config: Config) {
     this.config = config;
+  }
+
+  isInitialized(): boolean {
+    return this.initialized;
+  }
+
+  markInitialized(): void {
+    this.initialized = true;
+  }
+
+  static getInstance(config: Config): ToolRegistry {
+    const workingDir = config.getWorkingDir();
+    if (!ToolRegistry.instances.has(workingDir)) {
+      ToolRegistry.instances.set(workingDir, new ToolRegistry(config));
+    }
+    return ToolRegistry.instances.get(workingDir)!;
+  }
+
+  // For testing purposes only
+  static clearInstances(): void {
+    ToolRegistry.instances.clear();
+  }
+
+  // For testing purposes only - creates a non-singleton instance
+  static createForTesting(config: Config): ToolRegistry {
+    return new ToolRegistry(config);
   }
 
   /**
