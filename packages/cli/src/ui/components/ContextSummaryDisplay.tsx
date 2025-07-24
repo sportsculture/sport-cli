@@ -45,10 +45,10 @@ export const ContextSummaryDisplay: React.FC<ContextSummaryDisplayProps> = ({
   }
 
   const activeFileText = (() => {
-    if (!activeFile?.filePath) {
+    if (!openFiles?.activeFile) {
       return '';
     }
-    return `Open File (${path.basename(activeFile.filePath)})`;
+    return `Open File (${path.basename(openFiles.activeFile)})`;
   })();
 
   const geminiMdText = (() => {

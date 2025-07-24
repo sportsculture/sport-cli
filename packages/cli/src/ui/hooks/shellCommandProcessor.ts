@@ -5,7 +5,7 @@
  */
 
 import { spawn } from 'child_process';
-import { StringDecoder } from 'string_decoder';
+import { TextDecoder } from 'util';
 import {
   HistoryItemWithoutId,
   IndividualToolCallDisplay,
@@ -71,8 +71,8 @@ function executeShellCommand(
     });
 
     // Use decoders to handle multi-byte characters safely (for streaming output).
-    const stdoutDecoder = new StringDecoder('utf8');
-    const stderrDecoder = new StringDecoder('utf8');
+    let stdoutDecoder: TextDecoder | null = null;
+    let stderrDecoder: TextDecoder | null = null;
 
     let stdout = '';
     let stderr = '';
@@ -85,6 +85,12 @@ function executeShellCommand(
     let sniffedBytes = 0;
 
     const handleOutput = (data: Buffer, stream: 'stdout' | 'stderr') => {
+      if (!stdoutDecoder || !stderrDecoder) {
+        const encoding = getCachedEncodingForBuffer(data);
+        stdoutDecoder = new TextDecoder(encoding);
+        stderrDecoder = new TextDecoder(encoding);
+      }
+
       outputChunks.push(data);
 
       if (streamToUi && sniffedBytes < MAX_SNIFF_SIZE) {
@@ -101,8 +107,8 @@ function executeShellCommand(
 
       const decodedChunk =
         stream === 'stdout'
-          ? stdoutDecoder.write(data)
-          : stderrDecoder.write(data);
+          ? stdoutDecoder.decode(data, { stream: true })
+          : stderrDecoder.decode(data, { stream: true });
       if (stream === 'stdout') {
         stdout += stripAnsi(decodedChunk);
       } else {
@@ -146,7 +152,7 @@ function executeShellCommand(
               process.kill(-child.pid, 'SIGKILL');
             }
           } catch (_e) {
-            // Fallback to killing just the main process if group kill fails.
+            // Fall back to killing just the main process if group kill fails.
             if (!exited) child.kill('SIGKILL');
           }
         }
@@ -160,8 +166,12 @@ function executeShellCommand(
       abortSignal.removeEventListener('abort', abortHandler);
 
       // Handle any final bytes lingering in the decoders
-      stdout += stdoutDecoder.end();
-      stderr += stderrDecoder.end();
+      if (stdoutDecoder) {
+        stdout += stdoutDecoder.decode();
+      }
+      if (stderrDecoder) {
+        stderr += stderrDecoder.decode();
+      }
 
       const finalBuffer = Buffer.concat(outputChunks);
 

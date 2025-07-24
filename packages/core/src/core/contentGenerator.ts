@@ -42,7 +42,7 @@ export interface ContentGenerator {
 
   embedContent(request: EmbedContentParameters): Promise<EmbedContentResponse>;
 
-  getTier?(): Promise<UserTierId | undefined>;
+  userTier?: UserTierId;
 }
 
 export enum AuthType {

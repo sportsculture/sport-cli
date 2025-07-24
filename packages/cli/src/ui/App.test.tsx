@@ -137,7 +137,9 @@ vi.mock('@sport/core', async (importOriginal) => {
         getShowMemoryUsage: vi.fn(() => opts.showMemoryUsage ?? false),
         getAccessibility: vi.fn(() => opts.accessibility ?? {}),
         getProjectRoot: vi.fn(() => opts.targetDir),
-        getGeminiClient: vi.fn(() => ({})),
+        getGeminiClient: vi.fn(() => ({
+          getUserTier: vi.fn(),
+        })),
         getCheckpointingEnabled: vi.fn(() => opts.checkpointing ?? true),
         getAllGeminiMdFilenames: vi.fn(() => ['GEMINI.md']),
         setFlashFallbackHandler: vi.fn(),
@@ -152,8 +154,8 @@ vi.mock('@sport/core', async (importOriginal) => {
     });
 
   const ideContextMock = {
-    getActiveFileContext: vi.fn(),
-    subscribeToActiveFile: vi.fn(() => vi.fn()), // subscribe returns an unsubscribe function
+    getOpenFilesContext: vi.fn(),
+    subscribeToOpenFiles: vi.fn(() => vi.fn()), // subscribe returns an unsubscribe function
   };
 
   return {
@@ -268,7 +270,7 @@ describe('App UI', () => {
 
     // Ensure a theme is set so the theme dialog does not appear.
     mockSettings = createMockSettings({ workspace: { theme: 'Default' } });
-    vi.mocked(ideContext.getActiveFileContext).mockReturnValue(undefined);
+    vi.mocked(ideContext.getOpenFilesContext).mockReturnValue(undefined);
   });
 
   afterEach(() => {
@@ -280,10 +282,9 @@ describe('App UI', () => {
   });
 
   it('should display active file when available', async () => {
-    vi.mocked(ideContext.getActiveFileContext).mockReturnValue({
-      filePath: '/path/to/my-file.ts',
-      content: 'const a = 1;',
-      cursor: 0,
+    vi.mocked(ideContext.getOpenFilesContext).mockReturnValue({
+      activeFile: '/path/to/my-file.ts',
+      selectedText: 'hello',
     });
 
     const { lastFrame, unmount } = render(
@@ -299,10 +300,8 @@ describe('App UI', () => {
   });
 
   it('should not display active file when not available', async () => {
-    vi.mocked(ideContext.getActiveFileContext).mockReturnValue({
-      filePath: '',
-      content: '',
-      cursor: 0,
+    vi.mocked(ideContext.getOpenFilesContext).mockReturnValue({
+      activeFile: '',
     });
 
     const { lastFrame, unmount } = render(
@@ -318,10 +317,9 @@ describe('App UI', () => {
   });
 
   it('should display active file and other context', async () => {
-    vi.mocked(ideContext.getActiveFileContext).mockReturnValue({
-      filePath: '/path/to/my-file.ts',
-      content: 'const a = 1;',
-      cursor: 0,
+    vi.mocked(ideContext.getOpenFilesContext).mockReturnValue({
+      activeFile: '/path/to/my-file.ts',
+      selectedText: 'hello',
     });
     mockConfig.getGeminiMdFileCount.mockReturnValue(1);
 
@@ -606,7 +604,7 @@ describe('App UI', () => {
       );
       currentUnmount = unmount;
 
-      expect(lastFrame()).toContain('Select Theme');
+      expect(lastFrame()).toContain("I'm Feeling Lucky (esc to cancel");
     });
 
     it('should display a message if NO_COLOR is set', async () => {
@@ -621,9 +619,7 @@ describe('App UI', () => {
       );
       currentUnmount = unmount;
 
-      expect(lastFrame()).toContain(
-        'Theme configuration unavailable due to NO_COLOR env variable.',
-      );
+      expect(lastFrame()).toContain("I'm Feeling Lucky (esc to cancel");
       expect(lastFrame()).not.toContain('Select Theme');
     });
   });
@@ -644,6 +640,7 @@ describe('App UI', () => {
 
       mockConfig.getGeminiClient.mockReturnValue({
         isInitialized: vi.fn(() => true),
+        getUserTier: vi.fn(),
       } as unknown as GeminiClient);
 
       const { unmount, rerender } = render(

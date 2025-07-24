@@ -19,9 +19,11 @@ vi.mock('os', () => ({
   default: {
     platform: () => 'linux',
     tmpdir: () => '/tmp',
+    homedir: () => '/home/user',
   },
   platform: () => 'linux',
   tmpdir: () => '/tmp',
+  homedir: () => '/home/user',
 }));
 vi.mock('@sport/core');
 vi.mock('../utils/textUtils.js', () => ({

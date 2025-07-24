@@ -9,6 +9,7 @@ import {
   GenerateContentResponse,
   FunctionCall,
   FunctionDeclaration,
+  FinishReason,
 } from '@google/genai';
 import {
   ToolCallConfirmationDetails,
@@ -50,6 +51,7 @@ export enum GeminiEventType {
   ChatCompressed = 'chat_compressed',
   Thought = 'thought',
   MaxSessionTurns = 'max_session_turns',
+  Finished = 'finished',
   LoopDetected = 'loop_detected',
 }
 
@@ -135,6 +137,11 @@ export type ServerGeminiMaxSessionTurnsEvent = {
   type: GeminiEventType.MaxSessionTurns;
 };
 
+export type ServerGeminiFinishedEvent = {
+  type: GeminiEventType.Finished;
+  value: FinishReason;
+};
+
 export type ServerGeminiLoopDetectedEvent = {
   type: GeminiEventType.LoopDetected;
 };
@@ -150,6 +157,7 @@ export type ServerGeminiStreamEvent =
   | ServerGeminiChatCompressedEvent
   | ServerGeminiThoughtEvent
   | ServerGeminiMaxSessionTurnsEvent
+  | ServerGeminiFinishedEvent
   | ServerGeminiLoopDetectedEvent;
 
 // A turn manages the agentic loop turn within the server context.
