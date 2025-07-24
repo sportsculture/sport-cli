@@ -6,6 +6,7 @@
 
 import { Config } from '@sport/core';
 import { SlashCommand } from '../ui/commands/types.js';
+import { ICommandLoader } from './types.js';
 import { memoryCommand } from '../ui/commands/memoryCommand.js';
 import { helpCommand } from '../ui/commands/helpCommand.js';
 import { clearCommand } from '../ui/commands/clearCommand.js';

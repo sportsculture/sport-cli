@@ -53,7 +53,7 @@ import { act, renderHook, waitFor } from '@testing-library/react';
 import { vi, describe, it, expect, beforeEach, type Mock } from 'vitest';
 import { useSlashCommandProcessor } from './slashCommandProcessor.js';
 import { CommandKind, SlashCommand } from '../commands/types.js';
-import { Config } from '@google/gemini-cli-core';
+import { Config } from '@sport/core';
 import { LoadedSettings } from '../../config/settings.js';
 import { MessageType } from '../types.js';
 import { BuiltinCommandLoader } from '../../services/BuiltinCommandLoader.js';

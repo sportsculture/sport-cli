@@ -395,15 +395,15 @@ export class GeminiClient {
       }
 
       if (this.config.getIdeMode()) {
-        const activeFile = ideContext.getActiveFileContext();
-        if (activeFile?.filePath) {
+        const openFiles = ideContext.getOpenFilesContext();
+        if (openFiles?.activeFile) {
           let context = `
 This is the file that the user was most recently looking at:
-- Path: ${activeFile.filePath}`;
-          if (activeFile.cursor) {
+- Path: ${openFiles.activeFile}`;
+          if (openFiles.cursor) {
             context += `
 This is the cursor position in the file:
-- Cursor Position: Line ${activeFile.cursor.line}, Character ${activeFile.cursor.character}`;
+- Cursor Position: Line ${openFiles.cursor.line}, Character ${openFiles.cursor.character}`;
           }
           request = [
             { text: context },

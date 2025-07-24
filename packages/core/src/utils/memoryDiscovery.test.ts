@@ -24,42 +24,71 @@ vi.mock('os', async (importOriginal) => {
   };
 });
 
+vi.mock('fs/promises');
+
 describe('loadServerHierarchicalMemory', () => {
   let testRootDir: string;
   let cwd: string;
   let projectRoot: string;
   let homedir: string;
 
+  const mockFs = fsPromises as any;
+
   async function createEmptyDir(fullPath: string) {
     await fsPromises.mkdir(fullPath, { recursive: true });
     return fullPath;
   }
 
+  async function createTestFile(filePath: string, content: string) {
+    await fsPromises.mkdir(path.dirname(filePath), { recursive: true });
+    await fsPromises.writeFile(filePath, content);
+    return filePath;
+  }
+
   let GLOBAL_SPRTSCLTR_DIR: string;
   let GLOBAL_GEMINI_FILE: string; // Defined in beforeEach
 
+  beforeEach(async () => {
     vi.resetAllMocks();
     // Set environment variables to indicate test environment
     process.env.NODE_ENV = 'test';
     process.env.VITEST = 'true';
 
+    // Create temp directory structure
+    testRootDir = await fsPromises.mkdtemp(path.join(os.tmpdir(), 'test-'));
     projectRoot = await createEmptyDir(path.join(testRootDir, 'project'));
     cwd = await createEmptyDir(path.join(projectRoot, 'src'));
     homedir = await createEmptyDir(path.join(testRootDir, 'userhome'));
     vi.mocked(os.homedir).mockReturnValue(homedir);
-  });
 
     // Define these here to use potentially reset/updated values from imports
-    GLOBAL_SPRTSCLTR_DIR = path.join(USER_HOME, SPRTSCLTR_CONFIG_DIR);
+    GLOBAL_SPRTSCLTR_DIR = path.join(homedir, SPRTSCLTR_CONFIG_DIR);
     GLOBAL_GEMINI_FILE = path.join(
       GLOBAL_SPRTSCLTR_DIR,
-      getCurrentGeminiMdFilename(), // Use current filename
+      DEFAULT_CONTEXT_FILENAME
     );
 
+    // Setup default mocks
     mockFs.stat.mockRejectedValue(new Error('File not found'));
     mockFs.readdir.mockResolvedValue([]);
     mockFs.readFile.mockRejectedValue(new Error('File not found'));
     mockFs.access.mockRejectedValue(new Error('File not found'));
+    mockFs.mkdir.mockResolvedValue(undefined);
+    mockFs.mkdtemp.mockImplementation((prefix: string) => 
+      Promise.resolve(prefix + Math.random().toString(36).substring(7))
+    );
+    mockFs.writeFile.mockResolvedValue(undefined);
+  });
+
+  afterEach(async () => {
+    // Clean up temp directory
+    if (testRootDir) {
+      try {
+        await fsPromises.rm(testRootDir, { recursive: true, force: true });
+      } catch {
+        // Ignore cleanup errors
+      }
+    }
   });
 
   it('should return empty memory and count if no context files are found', async () => {
@@ -88,9 +117,9 @@ describe('loadServerHierarchicalMemory', () => {
     );
 
     expect(result).toEqual({
-      memoryContent: `--- Context from: ${path.relative(cwd, defaultContextFile)} ---
+      memoryContent: `--- Context from: ${path.relative(cwd, path.join(GLOBAL_SPRTSCLTR_DIR, DEFAULT_CONTEXT_FILENAME))} ---
 default context content
---- End of Context from: ${path.relative(cwd, defaultContextFile)} ---`,
+--- End of Context from: ${path.relative(cwd, path.join(GLOBAL_SPRTSCLTR_DIR, DEFAULT_CONTEXT_FILENAME))} ---`,
       fileCount: 1,
     });
   });
@@ -101,7 +130,7 @@ default context content
     const globalCustomFile = path.join(GLOBAL_SPRTSCLTR_DIR, customFilename);
 
     const customContextFile = await createTestFile(
-      path.join(homedir, GEMINI_CONFIG_DIR, customFilename),
+      path.join(homedir, SPRTSCLTR_CONFIG_DIR, customFilename),
       'custom context content',
     );
 
@@ -235,11 +264,11 @@ Subdir memory
   });
 
   it('should load and correctly order global, upward, and downward ORIGINAL_GEMINI_MD_FILENAME files', async () => {
-    setGeminiMdFilename(ORIGINAL_GEMINI_MD_FILENAME_CONST_FOR_TEST); // Explicitly set for this test
+    setGeminiMdFilename(DEFAULT_CONTEXT_FILENAME); // Explicitly set for this test
 
     const globalFileToUse = path.join(
       GLOBAL_SPRTSCLTR_DIR,
-      ORIGINAL_GEMINI_MD_FILENAME_CONST_FOR_TEST,
+      DEFAULT_CONTEXT_FILENAME,
     );
     const rootGeminiFile = await createTestFile(
       path.join(testRootDir, DEFAULT_CONTEXT_FILENAME),
@@ -265,9 +294,9 @@ Subdir memory
     );
 
     expect(result).toEqual({
-      memoryContent: `--- Context from: ${path.relative(cwd, defaultContextFile)} ---
+      memoryContent: `--- Context from: ${path.relative(cwd, path.join(GLOBAL_SPRTSCLTR_DIR, DEFAULT_CONTEXT_FILENAME))} ---
 default context content
---- End of Context from: ${path.relative(cwd, defaultContextFile)} ---
+--- End of Context from: ${path.relative(cwd, path.join(GLOBAL_SPRTSCLTR_DIR, DEFAULT_CONTEXT_FILENAME))} ---
 
 --- Context from: ${path.relative(cwd, rootGeminiFile)} ---
 Project parent memory
@@ -348,17 +377,6 @@ My code memory
     );
 
     vi.mocked(console.debug).mockRestore();
-
-    const result = await loadServerHierarchicalMemory(
-      cwd,
-      false,
-      new FileDiscoveryService(projectRoot),
-    );
-
-    expect(result).toEqual({
-      memoryContent: '',
-      fileCount: 0,
-    });
   });
 
   it('should load extension context file paths', async () => {

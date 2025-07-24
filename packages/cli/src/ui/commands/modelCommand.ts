@@ -4,12 +4,13 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { SlashCommand, OpenDialogActionReturn } from './types.js';
+import { CommandKind, SlashCommand, OpenDialogActionReturn } from './types.js';
 import { MessageType } from '../types.js';
 
 export const modelCommand: SlashCommand = {
   name: 'model',
   description: 'show or change current AI model',
+  kind: CommandKind.BUILT_IN,
   action: async (context, args) => {
     const config = context.services.config;
     if (!config) {

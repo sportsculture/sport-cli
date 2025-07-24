@@ -5,9 +5,10 @@
  */
 
 import { MessageType } from '../types.js';
-import { SlashCommand } from './types.js';
+import { CommandKind, SlashCommand } from './types.js';
 
 export const whoamiCommand: SlashCommand = {
+  kind: CommandKind.BUILT_IN,
   name: 'whoami',
   description: 'Ask the model to identify itself',
   action: (context, args) => {

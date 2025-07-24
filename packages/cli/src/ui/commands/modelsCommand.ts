@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { SlashCommand } from './types.js';
+import { CommandKind, SlashCommand } from './types.js';
 import { MessageType } from '../types.js';
 import {
   AuthType,
@@ -193,6 +193,7 @@ async function getDynamicRecommendations(
 }
 
 export const modelsCommand: SlashCommand = {
+  kind: CommandKind.BUILT_IN,
   name: 'models',
   description: 'list available AI models',
   action: async (context, args) => {

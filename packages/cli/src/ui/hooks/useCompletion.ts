@@ -15,6 +15,7 @@ import {
   getErrorMessage,
   Config,
   FileDiscoveryService,
+  DEFAULT_FILE_FILTERING_OPTIONS,
 } from '@sport/core';
 import {
   MAX_SUGGESTIONS_TO_SHOW,

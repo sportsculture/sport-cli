@@ -27,7 +27,7 @@ import {
   UserPromptEvent,
   DEFAULT_GEMINI_FLASH_MODEL,
 } from '@sport/core';
-import { type Part, type PartListUnion } from '@google/genai';
+import { type Part, type PartListUnion, FinishReason } from '@google/genai';
 import {
   StreamingState,
   HistoryItem,

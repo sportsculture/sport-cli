@@ -540,6 +540,8 @@ export class OpenRouterContentGenerator implements IProvider {
       usage: true,
     };
 
+    const abortController = new AbortController();
+    
     const response = await fetch(`${this.baseUrl}/chat/completions`, {
       method: 'POST',
       headers: {
@@ -549,6 +551,7 @@ export class OpenRouterContentGenerator implements IProvider {
         'X-Title': 'gemini CLI',
       },
       body: JSON.stringify(openRouterRequest),
+      signal: abortController.signal,
     });
 
     if (!response.ok) {

@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { getErrorMessage } from '@sport/core';
+import { getErrorMessage, loadServerHierarchicalMemory } from '@sport/core';
 import { MessageType } from '../types.js';
 import {
   CommandKind,

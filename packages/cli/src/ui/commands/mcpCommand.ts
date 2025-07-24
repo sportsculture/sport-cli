@@ -17,6 +17,8 @@ import {
   getMCPServerStatus,
   MCPDiscoveryState,
   MCPServerStatus,
+  getErrorMessage,
+  mcpServerRequiresOAuth,
 } from '@sport/core';
 import open from 'open';
 
@@ -137,7 +139,7 @@ const getMcpStatus = async (
       needsAuthHint = true;
       try {
         const { MCPOAuthTokenStorage } = await import(
-          '@google/gemini-cli-core'
+          '@sport/core'
         );
         const hasToken = await MCPOAuthTokenStorage.getToken(serverName);
         if (hasToken) {
@@ -324,7 +326,7 @@ const authCommand: SlashCommand = {
       );
 
       // Import dynamically to avoid circular dependencies
-      const { MCPOAuthProvider } = await import('@google/gemini-cli-core');
+      const { MCPOAuthProvider } = await import('@sport/core');
 
       // Create OAuth config for authentication (will be discovered automatically)
       const oauthConfig = server.oauth || {
@@ -361,10 +363,11 @@ const authCommand: SlashCommand = {
         await toolRegistry.discoverToolsForServer(serverName);
       }
       // Update the client with the new tools
-      const geminiClient = config.getGeminiClient();
-      if (geminiClient) {
-        await geminiClient.setTools();
-      }
+      // TODO: Fix this after merge - setTools method no longer exists
+      // const geminiClient = config.getGeminiClient();
+      // if (geminiClient) {
+      //   await geminiClient.setTools();
+      // }
 
       return {
         type: 'message',

@@ -38,6 +38,19 @@ export const OpenFilesSchema = z.object({
 export type OpenFiles = z.infer<typeof OpenFilesSchema>;
 
 /**
+ * Active file context with optional metadata
+ */
+export interface ActiveFile {
+  filePath: string;
+  selectedText?: string;
+  cursor?: z.infer<typeof CursorSchema>;
+  recentOpenFiles?: Array<{
+    filePath: string;
+    timestamp: number;
+  }>;
+}
+
+/**
  * Zod schema for validating the 'ide/openFilesChanged' notification from the IDE.
  */
 export const OpenFilesNotificationSchema = z.object({

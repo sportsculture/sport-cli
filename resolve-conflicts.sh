@@ -1,3 +1,11 @@
+#!/bin/bash
+
+# Script to help resolve merge conflicts between sport-cli and upstream gemini-cli
+
+echo "Resolving merge conflicts..."
+
+# Fix clearCommand.ts - accept upstream changes but keep our package name
+cat > packages/cli/src/ui/commands/clearCommand.ts << 'EOF'
 /**
  * @license
  * Copyright 2025 Google LLC
@@ -27,3 +35,14 @@ export const clearCommand: SlashCommand = {
     context.ui.clear();
   },
 };
+EOF
+
+echo "✓ Resolved clearCommand.ts"
+
+# For package.json files, we'll need to merge dependencies carefully
+echo "Package.json files require manual resolution to preserve sport-cli dependencies"
+
+# List all conflicted files
+echo ""
+echo "Conflicted files remaining:"
+git diff --name-only --diff-filter=U | nl

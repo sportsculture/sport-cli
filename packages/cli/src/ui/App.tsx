@@ -928,7 +928,12 @@ const App = ({ config, settings, startupWarnings = [], version }: AppProps) => {
                     </Text>
                   ) : (
                     <ContextSummaryDisplay
-                      openFiles={openFiles}
+                      activeFile={openFiles?.activeFile ? {
+                        filePath: openFiles.activeFile,
+                        selectedText: openFiles.selectedText,
+                        cursor: openFiles.cursor,
+                        recentOpenFiles: openFiles.recentOpenFiles,
+                      } : undefined}
                       geminiMdFileCount={geminiMdFileCount}
                       contextFileNames={contextFileNames}
                       mcpServers={config.getMcpServers()}
