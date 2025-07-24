@@ -574,9 +574,22 @@ export class OpenRouterContentGenerator implements IProvider {
     let accumulatedToolCalls: any[] = [];
     let yieldedToolCallIds = new Set<string>(); // Track which tool calls we've already yielded
 
+    let stallTimeout = setTimeout(() => {
+      console.log('[OpenRouter] Stream stalled for 3 seconds, aborting');
+      abortController.abort();
+    }, 3000);
+
     while (true) {
       const { done, value } = await reader.read();
-      if (done) break;
+      if (done) {
+        clearTimeout(stallTimeout);
+        break;
+      }
+      clearTimeout(stallTimeout);
+      stallTimeout = setTimeout(() => {
+        console.log('[OpenRouter] Stream stalled for 3 seconds, aborting');
+        abortController.abort();
+      }, 3000);
 
       buffer += decoder.decode(value, { stream: true });
       const lines = buffer.split('\n');
