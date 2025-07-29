@@ -1,0 +1,124 @@
+diff --git a/packages/core/src/core/geminiChat.ts b/packages/core/src/core/geminiChat.ts
+index d3b2e060..311485a8 100644
+--- a/packages/core/src/core/geminiChat.ts
++++ b/packages/core/src/core/geminiChat.ts
+@@ -26,6 +26,10 @@ import {
+   logApiResponse,
+   logApiError,
+ } from '../telemetry/loggers.js';
++import {
++  getStructuredResponse,
++  getStructuredResponseFromParts,
++} from '../utils/generateContentResponseUtilities.js';
+ import {
+   ApiErrorEvent,
+   ApiRequestEvent,
+@@ -133,12 +137,17 @@ export class GeminiChat {
+     private readonly contentGenerator: ContentGenerator,
+     private readonly generationConfig: GenerateContentConfig = {},
+     private history: Content[] = [],
++    private readonly tools?: Tool[],
+   ) {
+     validateHistory(history);
+   }
+ 
+   private _getRequestTextFromContents(contents: Content[]): string {
+-    return JSON.stringify(contents);
++    return contents
++      .flatMap((content) => content.parts ?? [])
++      .map((part) => part.text)
++      .filter(Boolean)
++      .join('');
+   }
+ 
+   private async _logApiRequest(
+@@ -225,7 +234,6 @@ export class GeminiChat {
+         );
+         if (accepted !== false && accepted !== null) {
+           this.config.setModel(fallbackModel);
+-          this.config.setFallbackMode(true);
+           return fallbackModel;
+         }
+         // Check if the model was switched manually in the handler
+@@ -291,7 +299,8 @@ export class GeminiChat {
+           model: modelToUse,
+           contents: requestContents,
+           config: { ...this.generationConfig, ...params.config },
+-        });
++          tools: this.tools,
++        } as any);
+       };
+ 
+       response = await retryWithBackoff(apiCall, {
+@@ -311,7 +320,7 @@ export class GeminiChat {
+         durationMs,
+         prompt_id,
+         response.usageMetadata,
+-        JSON.stringify(response),
++        getStructuredResponse(response),
+       );
+ 
+       this.sendPromise = (async () => {
+@@ -394,11 +403,24 @@ export class GeminiChat {
+           );
+         }
+ 
++        if (process.env.DEBUG) {
++          console.log(
++            '[DEBUG] GeminiChat.sendMessageStream: Passing tools to contentGenerator:',
++            {
++              model: modelToUse,
++              toolsCount: this.tools?.length || 0,
++              toolDeclarations:
++                this.tools?.[0]?.functionDeclarations?.length || 0,
++            },
++          );
++        }
++
+         return this.contentGenerator.generateContentStream({
+           model: modelToUse,
+           contents: requestContents,
+           config: { ...this.generationConfig, ...params.config },
+-        });
++          tools: this.tools,
++        } as any);
+       };
+ 
+       // Note: Retrying streams can be complex. If generateContentStream itself doesn't handle retries
+@@ -519,8 +541,13 @@ export class GeminiChat {
+ 
+     try {
+       for await (const chunk of streamResponse) {
+-        if (isValidResponse(chunk)) {
++        // Always add chunks with usage metadata to the array, even if they don't have valid content
++        // This ensures usage tracking works for providers like OpenRouter that send usage data in the final chunk
++        if (isValidResponse(chunk) || chunk.usageMetadata) {
+           chunks.push(chunk);
++        }
++
++        if (isValidResponse(chunk)) {
+           const content = chunk.candidates?.[0]?.content;
+           if (content !== undefined) {
+             if (this.isThoughtContent(content)) {
+@@ -530,6 +557,7 @@ export class GeminiChat {
+             outputContent.push(content);
+           }
+         }
++
+         yield chunk;
+       }
+     } catch (error) {
+@@ -547,11 +575,12 @@ export class GeminiChat {
+           allParts.push(...content.parts);
+         }
+       }
++      const fullText = getStructuredResponseFromParts(allParts);
+       await this._logApiResponse(
+         durationMs,
+         prompt_id,
+         this.getFinalUsageMetadata(chunks),
+-        JSON.stringify(chunks),
++        fullText,
+       );
+     }
+     this.recordHistory(inputContent, outputContent);
