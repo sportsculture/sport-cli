@@ -13,6 +13,7 @@ import {
 import { Config } from '../config/config.js';
 import { providerRegistry } from './registry.js';
 import { createCodeAssistContentGenerator } from '../code_assist/codeAssist.js';
+import { HttpOptions } from '../code_assist/server.js';
 
 /**
  * Create a content generator using the provider registry
@@ -30,7 +31,8 @@ export async function createProviderContentGenerator(
     config.authType === AuthType.LOGIN_WITH_GOOGLE ||
     config.authType === AuthType.CLOUD_SHELL
   ) {
-    const httpOptions = config.proxy ? { proxy: config.proxy } : undefined;
+    const httpOptions: HttpOptions = {};
+    // Note: proxy configuration is handled at the global level in Config
     return createCodeAssistContentGenerator(
       httpOptions,
       config.authType!,

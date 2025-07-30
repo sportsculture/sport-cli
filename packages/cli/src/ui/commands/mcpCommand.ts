@@ -500,11 +500,8 @@ const refreshCommand: SlashCommand = {
 
     await toolRegistry.discoverMcpTools();
 
-    // Update the client with the new tools
-    const geminiClient = config.getGeminiClient();
-    if (geminiClient) {
-      await geminiClient.setTools();
-    }
+    // Tools are automatically available through the tool registry
+    // No need to update the client explicitly
 
     return getMcpStatus(context, false, false, false);
   },

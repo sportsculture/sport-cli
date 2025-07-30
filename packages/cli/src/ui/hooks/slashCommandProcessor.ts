@@ -332,6 +332,9 @@ export const useSlashCommandProcessor = (
                     case 'privacy':
                       openPrivacyNotice();
                       return { type: 'handled' };
+                    case 'model':
+                      openModelSelector();
+                      return { type: 'handled' };
                     default: {
                       const unhandled: never = result.dialog;
                       throw new Error(

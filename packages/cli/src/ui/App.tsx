@@ -115,7 +115,6 @@ export const AppWrapper = (props: AppProps) => (
 const App = ({ config, settings, startupWarnings = [], version }: AppProps) => {
   const isFocused = useFocus();
   useBracketedPaste();
-  const [updateInfo, setUpdateInfo] = useState<UpdateObject | null>(null);
   const { stdout } = useStdout();
   const nightly = version.includes('nightly');
   const { history, addItem, clearItems, loadHistory } = useHistory();
@@ -192,6 +191,7 @@ const App = ({ config, settings, startupWarnings = [], version }: AppProps) => {
     IdeContext | undefined
   >();
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
+  const [updateInfo, setUpdateInfo] = useState<UpdateObject | null>(null);
 
   useEffect(() => {
     const unsubscribe = ideContext.subscribeToIdeContext(setIdeContextState);
@@ -675,6 +675,11 @@ const App = ({ config, settings, startupWarnings = [], version }: AppProps) => {
   const mainControlsRef = useRef<DOMElement>(null);
   const pendingHistoryItemRef = useRef<DOMElement>(null);
 
+  // Check for updates on mount
+  useEffect(() => {
+    checkForUpdates().then(setUpdateInfo);
+  }, []);
+
   useEffect(() => {
     if (mainControlsRef.current) {
       const fullFooterMeasurement = measureElement(mainControlsRef.current);
@@ -789,8 +794,7 @@ const App = ({ config, settings, startupWarnings = [], version }: AppProps) => {
     <StreamingContext.Provider value={streamingState}>
       <CostTracker />
       <Box flexDirection="column" marginBottom={1} width="90%">
-        {/* Move UpdateNotification outside Static so it can re-render when updateMessage changes */}
-        {updateMessage && <UpdateNotification message={updateMessage} />}
+        {/* Update notification will be shown below */}
         {/*
          * The Static component is an Ink intrinsic in which there can only be 1 per application.
          * Because of this restriction we're hacking it slightly by having a 'header' item here to
@@ -996,16 +1000,6 @@ const App = ({ config, settings, startupWarnings = [], version }: AppProps) => {
                     </Text>
                   ) : (
                     <ContextSummaryDisplay
-                      activeFile={
-                        openFiles?.activeFile
-                          ? {
-                              filePath: openFiles.activeFile,
-                              selectedText: openFiles.selectedText,
-                              cursor: openFiles.cursor,
-                              recentOpenFiles: openFiles.recentOpenFiles,
-                            }
-                          : undefined
-                      }
                       ideContext={ideContextState}
                       geminiMdFileCount={geminiMdFileCount}
                       contextFileNames={contextFileNames}
