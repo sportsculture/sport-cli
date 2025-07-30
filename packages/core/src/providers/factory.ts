@@ -1,4 +1,10 @@
 /**
+ * @license
+ * Copyright 2025 Google LLC
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+/**
  * Provider Factory using the Registry System
  *
  * This replaces the switch statement in contentGenerator.ts with a

@@ -574,8 +574,8 @@ export class OpenRouterContentGenerator implements IProvider {
     const jsonBuffer = new StreamingJsonBuffer();
     let buffer = '';
     let accumulatedContent = '';
-    let accumulatedToolCalls: any[] = [];
-    let yieldedToolCallIds = new Set<string>(); // Track which tool calls we've already yielded
+    const accumulatedToolCalls: any[] = [];
+    const yieldedToolCallIds = new Set<string>(); // Track which tool calls we've already yielded
 
     let stallTimeout = setTimeout(() => {
       console.log('[OpenRouter] Stream stalled for 3 seconds, aborting');
@@ -692,7 +692,7 @@ export class OpenRouterContentGenerator implements IProvider {
                       functionCall: {
                         id: toolCall.id, // Include ID for tracking
                         name: toolCall.function.name,
-                        args: args,
+                        args,
                       },
                     });
                     yieldedToolCallIds.add(toolCall.id); // Mark as yielded

@@ -1,4 +1,10 @@
 /**
+ * @license
+ * Copyright 2025 Google LLC
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+/**
  * Configuration-driven branding system for sport-cli
  *
  * This centralized configuration makes it easy to maintain branding

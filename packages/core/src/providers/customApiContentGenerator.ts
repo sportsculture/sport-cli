@@ -195,7 +195,7 @@ export class CustomApiContentGenerator implements IProvider {
     return messages;
   }
 
-  private convertToCustomApiFunctions(tools?: any[]): Array<any> | undefined {
+  private convertToCustomApiFunctions(tools?: any[]): any[] | undefined {
     if (!tools) return undefined;
 
     return tools

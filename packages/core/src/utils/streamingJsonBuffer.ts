@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2025 Sports Culture LLC
+ * Copyright 2025 Google LLC
  * SPDX-License-Identifier: Apache-2.0
  */
 

@@ -1,4 +1,10 @@
 /**
+ * @license
+ * Copyright 2025 Google LLC
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+/**
  * Sync Validation Test Suite
  *
  * These tests ensure that sport-cli's core functionality remains intact

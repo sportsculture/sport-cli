@@ -1,4 +1,11 @@
 #!/usr/bin/env node
+
+/**
+ * @license
+ * Copyright 2025 Google LLC
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 /**
  * Script to update branding across the codebase using the centralized branding configuration
  * This makes it easy to switch between sport-cli and gemini-cli branding

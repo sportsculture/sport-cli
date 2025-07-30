@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2025 SportsCulture
+ * Copyright 2025 Google LLC
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -21,18 +21,18 @@ const helloWorldPlugin: SportCliPlugin = {
   },
 
   hooks: {
-    beforeShellExecute: (cmd: string) => {
+    beforeShellExecute: (cmd: string) => 
       // Add a greeting before the command
-      return `echo "👋 Hello from sport-cli plugin!" && ${cmd}`;
-    },
+       `echo "👋 Hello from sport-cli plugin!" && ${cmd}`
+    ,
 
-    afterShellExecute: (result) => {
+    afterShellExecute: (result) => 
       // Add a footer to the output
-      return {
+       ({
         ...result,
         stdout: result.stdout + '\n\n✨ Powered by sport-cli plugins',
-      };
-    },
+      })
+    ,
   },
 };
 

@@ -56,7 +56,7 @@ import {
 } from 'vitest';
 import open from 'open';
 import { useSlashCommandProcessor } from './slashCommandProcessor.js';
-import { SlashCommandProcessorResult } from '../types.js';
+import { SlashCommandProcessorResult , MessageType } from '../types.js';
 import { Config, GeminiClient, ToolConfirmationOutcome } from '@sport/core';
 import { useSessionStats } from '../contexts/SessionContext.js';
 import * as ShowMemoryCommandModule from './useShowMemoryCommand.js';
@@ -68,7 +68,6 @@ import {
   SlashCommand,
 } from '../commands/types.js';
 import { LoadedSettings } from '../../config/settings.js';
-import { MessageType } from '../types.js';
 import { BuiltinCommandLoader } from '../../services/BuiltinCommandLoader.js';
 import { FileCommandLoader } from '../../services/FileCommandLoader.js';
 import { McpPromptLoader } from '../../services/McpPromptLoader.js';
@@ -465,9 +464,7 @@ describe('useSlashCommandProcessor', () => {
       const result = setupProcessorHook([], [fileCommand]);
       await waitFor(() => expect(result.current.slashCommands).toHaveLength(1));
 
-      const commandResult = await act(async () => {
-        return await result.current.handleSlashCommand('/filecmd');
-      });
+      const commandResult = await act(async () => await result.current.handleSlashCommand('/filecmd'));
 
       expect(commandResult).toEqual({
         type: 'submit_prompt',
@@ -494,9 +491,7 @@ describe('useSlashCommandProcessor', () => {
       const result = setupProcessorHook([], [], [mcpCommand]);
       await waitFor(() => expect(result.current.slashCommands).toHaveLength(1));
 
-      const commandResult = await act(async () => {
-        return await result.current.handleSlashCommand('/mcpcmd');
-      });
+      const commandResult = await act(async () => await result.current.handleSlashCommand('/mcpcmd'));
 
       expect(commandResult).toEqual({
         type: 'submit_prompt',
@@ -532,9 +527,7 @@ describe('useSlashCommandProcessor', () => {
       const result = setupProcessorHook([shellCommand]);
       await waitFor(() => expect(result.current.slashCommands).toHaveLength(1));
 
-      const commandResult = await act(async () => {
-        return await result.current.handleSlashCommand('/shellcmd');
-      });
+      const commandResult = await act(async () => await result.current.handleSlashCommand('/shellcmd'));
 
       expect(result.current.shellConfirmationRequest).toEqual({
         commands: ['ls -la', 'pwd'],

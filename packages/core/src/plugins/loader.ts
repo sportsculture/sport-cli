@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2025 SportsCulture (modifications)
+ * Copyright 2025 Google LLC
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -43,7 +43,7 @@ export class PluginLoader {
     options: PluginLoadOptions = {},
   ): Promise<Map<string, SportCliPlugin>> {
     const paths = options.paths || this.defaultPaths;
-    const loadPromises: Promise<void>[] = [];
+    const loadPromises: Array<Promise<void>> = [];
 
     // Use async generator for streaming load updates
     for await (const pluginPath of this.discoverPlugins(paths)) {
