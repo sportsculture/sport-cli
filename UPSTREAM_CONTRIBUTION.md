@@ -29,6 +29,7 @@ export interface IProvider extends ContentGenerator {
 ```
 
 **Benefits**:
+
 - Easier unit testing with mock providers
 - Support for different Gemini deployment scenarios
 - Clean plugin architecture for extensions
@@ -48,6 +49,7 @@ export class ProviderRegistry {
 ```
 
 **Benefits**:
+
 - No core code changes needed for new providers
 - Runtime provider discovery
 - Better separation of concerns
@@ -69,6 +71,7 @@ export interface BrandingConfig {
 ```
 
 **Benefits**:
+
 - Easier white-labeling for enterprise deployments
 - Simplified configuration management
 - Better support for different environments
@@ -89,6 +92,7 @@ export interface FeatureFlags {
 ```
 
 **Benefits**:
+
 - Gradual feature rollout
 - A/B testing capabilities
 - Environment-specific configurations
@@ -156,7 +160,7 @@ export async function createContentGenerator(
   if (providerRegistry && isFeatureEnabled('providerRegistry')) {
     return providerRegistry.createProvider(config.authType, config);
   }
-  
+
   // Original implementation preserved
   if (config.authType === AuthType.USE_GEMINI) {
     const googleGenAI = new GoogleGenAI({
@@ -230,10 +234,11 @@ A: Better testability, easier maintenance, and community growth.
 ## Contact
 
 For questions or discussion:
+
 - GitHub Issue: [to be created]
 - Author: sport-cli team
 - Email: [contact email]
 
 ---
 
-*This proposal represents architectural improvements developed in sport-cli that could benefit the broader gemini-cli community. We're committed to contributing these improvements back to upstream in a way that maintains simplicity while enabling extensibility.*
+_This proposal represents architectural improvements developed in sport-cli that could benefit the broader gemini-cli community. We're committed to contributing these improvements back to upstream in a way that maintains simplicity while enabling extensibility._

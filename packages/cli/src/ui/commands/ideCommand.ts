@@ -9,9 +9,9 @@ import {
   Config,
   getMCPDiscoveryState,
   getMCPServerStatus,
-  IDE_SERVER_NAME,
   MCPDiscoveryState,
   MCPServerStatus,
+  IDEConnectionStatus,
 } from '@sport/core';
 import {
   CommandContext,
@@ -56,36 +56,31 @@ export const ideCommand = (config: Config | null): SlashCommand | null => {
         description: 'check status of IDE integration',
         kind: CommandKind.BUILT_IN,
         action: (_context: CommandContext): SlashCommandActionReturn => {
-          const status = getMCPServerStatus(IDE_SERVER_NAME);
-          const discoveryState = getMCPDiscoveryState();
-          switch (status) {
-            case MCPServerStatus.CONNECTED:
+          const connection = config.getIdeClient()?.getConnectionStatus();
+          switch (connection?.status) {
+            case IDEConnectionStatus.Connected:
               return {
                 type: 'message',
                 messageType: 'info',
                 content: `🟢 Connected`,
-              };
-            case MCPServerStatus.CONNECTING:
+              } as const;
+            case IDEConnectionStatus.Connecting:
               return {
                 type: 'message',
                 messageType: 'info',
-                content: `🔄 Initializing...`,
-              };
-            case MCPServerStatus.DISCONNECTED:
-            default:
-              if (discoveryState === MCPDiscoveryState.IN_PROGRESS) {
-                return {
-                  type: 'message',
-                  messageType: 'info',
-                  content: `🔄 Initializing...`,
-                };
-              } else {
-                return {
-                  type: 'message',
-                  messageType: 'error',
-                  content: `🔴 Disconnected`,
-                };
+                content: `🟡 Connecting...`,
+              } as const;
+            default: {
+              let content = `🔴 Disconnected`;
+              if (connection?.details) {
+                content += `: ${connection.details}`;
               }
+              return {
+                type: 'message',
+                messageType: 'error',
+                content,
+              } as const;
+            }
           }
         },
       },
@@ -149,7 +144,7 @@ export const ideCommand = (config: Config | null): SlashCommand | null => {
             context.ui.addItem(
               {
                 type: 'info',
-                text: 'VS Code companion extension installed successfully. Restart gemini-cli in a fresh terminal window.',
+                text: 'VS Code companion extension installed successfully. Restart sport-cli in a fresh terminal window.',
               },
               Date.now(),
             );

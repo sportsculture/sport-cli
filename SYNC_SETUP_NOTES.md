@@ -41,6 +41,7 @@ As of 2025-07-29, the three-branch workflow has been partially implemented for t
 ### Immediate Actions Required
 
 1. **Push sport-upstream to origin**
+
    ```bash
    git checkout sport-upstream
    git push origin sport-upstream
@@ -59,6 +60,7 @@ As of 2025-07-29, the three-branch workflow has been partially implemented for t
 ### Optional Improvements
 
 1. **Consider branch rename**
+
    ```bash
    # If you want to use sport-main instead of main
    git branch -m main sport-main
@@ -78,26 +80,34 @@ As of 2025-07-29, the three-branch workflow has been partially implemented for t
 ## Script Usage Guide
 
 ### Check Current Divergence
+
 ```bash
 ./scripts/check-divergence.sh
 ```
+
 Shows commits and files that differ between sport-cli and upstream.
 
 ### Perform Upstream Sync
+
 ```bash
 ./scripts/sync-upstream-simple.sh
 ```
+
 Executes the three-branch sync workflow:
+
 1. Updates sport-upstream to match upstream/main
 2. Creates a sync branch from main
 3. Merges upstream changes
 4. Runs tests if merge succeeds
 
 ### Resolve Conflicts
+
 ```bash
 ./scripts/resolve-conflicts-helper.sh
 ```
+
 Interactive helper that:
+
 - Categorizes conflicts by type
 - Offers automated resolution for common patterns
 - Provides guidance for manual resolution
@@ -106,14 +116,14 @@ Interactive helper that:
 
 Based on the codebase analysis:
 
-| File Pattern | Resolution Strategy | Reason |
-|--------------|-------------------|---------|
-| `packages/core/src/providers/*` | Keep sport-cli | Core multi-provider functionality |
-| `packages/core/src/contentGenerator.ts` | Merge carefully | Has provider injections |
-| `package.json` | Merge both | Keep all dependencies |
-| `README.md` | Take upstream, re-add sport section | Minimize divergence |
-| Test files | Merge both | Keep all tests |
-| `CLAUDE.md` | Keep sport-cli | Fork-specific documentation |
+| File Pattern                            | Resolution Strategy                 | Reason                            |
+| --------------------------------------- | ----------------------------------- | --------------------------------- |
+| `packages/core/src/providers/*`         | Keep sport-cli                      | Core multi-provider functionality |
+| `packages/core/src/contentGenerator.ts` | Merge carefully                     | Has provider injections           |
+| `package.json`                          | Merge both                          | Keep all dependencies             |
+| `README.md`                             | Take upstream, re-add sport section | Minimize divergence               |
+| Test files                              | Merge both                          | Keep all tests                    |
+| `CLAUDE.md`                             | Keep sport-cli                      | Fork-specific documentation       |
 
 ## Known Issues
 

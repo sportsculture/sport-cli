@@ -65,7 +65,7 @@ describe('loadServerHierarchicalMemory', () => {
     GLOBAL_SPRTSCLTR_DIR = path.join(homedir, SPRTSCLTR_CONFIG_DIR);
     GLOBAL_GEMINI_FILE = path.join(
       GLOBAL_SPRTSCLTR_DIR,
-      DEFAULT_CONTEXT_FILENAME
+      DEFAULT_CONTEXT_FILENAME,
     );
 
     // Setup default mocks
@@ -74,8 +74,8 @@ describe('loadServerHierarchicalMemory', () => {
     mockFs.readFile.mockRejectedValue(new Error('File not found'));
     mockFs.access.mockRejectedValue(new Error('File not found'));
     mockFs.mkdir.mockResolvedValue(undefined);
-    mockFs.mkdtemp.mockImplementation((prefix: string) => 
-      Promise.resolve(prefix + Math.random().toString(36).substring(7))
+    mockFs.mkdtemp.mockImplementation((prefix: string) =>
+      Promise.resolve(prefix + Math.random().toString(36).substring(7)),
     );
     mockFs.writeFile.mockResolvedValue(undefined);
   });

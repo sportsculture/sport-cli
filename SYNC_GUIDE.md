@@ -40,12 +40,14 @@ git fetch upstream
 ### 3. Set Up Authentication
 
 For HTTPS (GitHub Personal Access Token):
+
 ```bash
 git config --global credential.helper store
 # You'll be prompted for credentials on first push
 ```
 
 For SSH (Recommended):
+
 ```bash
 git remote set-url origin git@github.com:sportsculture/gemini-cli.git
 ```
@@ -95,6 +97,7 @@ The repository includes an automated sync workflow that runs weekly:
 ```
 
 This interactive script will:
+
 1. Check current status
 2. Fetch latest changes
 3. Update sport-upstream
@@ -159,12 +162,12 @@ gh pr create --title "🔄 Sync with upstream" --body "..."
 
 ### Common Conflict Patterns
 
-| File Type | Resolution Strategy | Tools |
-|-----------|-------------------|-------|
-| Provider files | Keep sport-cli version | `git checkout --ours` |
+| File Type         | Resolution Strategy             | Tools                   |
+| ----------------- | ------------------------------- | ----------------------- |
+| Provider files    | Keep sport-cli version          | `git checkout --ours`   |
 | Core gemini files | Take upstream, re-apply patches | `git checkout --theirs` |
-| package.json | Merge both | Manual merge |
-| Tests | Keep both test suites | Merge carefully |
+| package.json      | Merge both                      | Manual merge            |
+| Tests             | Keep both test suites           | Merge carefully         |
 
 ### Using the Conflict Resolution Helper
 
@@ -173,6 +176,7 @@ gh pr create --title "🔄 Sync with upstream" --body "..."
 ```
 
 This tool will:
+
 - Categorize conflicts by type
 - Suggest resolution strategies
 - Offer automated fixes for common patterns
@@ -180,17 +184,20 @@ This tool will:
 ### Manual Conflict Resolution
 
 1. **List conflicted files:**
+
    ```bash
    git diff --name-only --diff-filter=U
    ```
 
 2. **For provider files (always keep ours):**
+
    ```bash
    git checkout --ours packages/core/src/providers/
    git add packages/core/src/providers/
    ```
 
 3. **For upstream files (usually take theirs):**
+
    ```bash
    git checkout --theirs packages/core/src/someUpstreamFile.ts
    # Then re-apply our modifications if needed
@@ -212,6 +219,7 @@ npm test -- tests/sync-validation.test.ts
 ```
 
 This validates:
+
 - All provider files exist
 - Multi-provider functionality works
 - Build system succeeds
@@ -236,7 +244,7 @@ export GEMINI_API_KEY="your-key"
 npm start
 > Hello, test the Gemini provider
 
-# Test OpenRouter provider  
+# Test OpenRouter provider
 export OPENROUTER_API_KEY="your-key"
 npm start
 > /model claude-3-sonnet
@@ -325,6 +333,7 @@ git commit -m "Sync with upstream google-gemini/gemini-cli
 ### 4. PR Reviews
 
 Always have sync PRs reviewed for:
+
 - Correct conflict resolution
 - No lost sport-cli features
 - Tests passing
@@ -364,6 +373,7 @@ git log --oneline main..upstream/main
 ### Contribute Back
 
 Consider upstreaming:
+
 - General bug fixes
 - Architecture improvements
 - Test enhancements

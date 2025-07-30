@@ -5,6 +5,7 @@ This document systematically catalogues all locations where sport-cli modifies t
 ## Overview
 
 sport-cli modifications are organized into these categories:
+
 1. **Provider Abstraction** - Core multi-provider functionality
 2. **Branding** - Package names, CLI commands, and display text
 3. **Configuration** - Settings and model defaults
@@ -18,6 +19,7 @@ sport-cli modifications are organized into these categories:
 **Purpose**: Central factory for creating content generators
 
 **Modifications**:
+
 ```typescript
 // Line 7-14: Added imports for providers
 import { OpenRouterContentGenerator } from '../providers/openRouterContentGenerator.js';
@@ -31,8 +33,8 @@ export enum AuthType {
   USE_GEMINI = 'gemini-api-key',
   USE_VERTEX_AI = 'vertex-ai',
   CLOUD_SHELL = 'cloud-shell',
-  USE_OPENROUTER = 'openrouter',     // sport-cli addition
-  USE_CUSTOM_API = 'custom-api',     // sport-cli addition
+  USE_OPENROUTER = 'openrouter', // sport-cli addition
+  USE_CUSTOM_API = 'custom-api', // sport-cli addition
 }
 
 // Line 70-73: Added provider API key handling
@@ -59,6 +61,7 @@ if (config.authType === AuthType.USE_OPENROUTER) {
 **Purpose**: Main chat interface that needs to support multiple providers
 
 **Modifications**:
+
 ```typescript
 // Line 135-137: Added tools parameter to constructor
 constructor(
@@ -90,11 +93,12 @@ if (process.env.DEBUG) {
 **Purpose**: Package metadata and CLI binary name
 
 **Modifications**:
+
 ```json
 {
-  "name": "@sport/sport-cli",  // was: "@google/gemini-cli"
+  "name": "@sport/sport-cli", // was: "@google/gemini-cli"
   "bin": {
-    "sport": "bundle/gemini.js"  // was: "gemini": "bundle/gemini.js"
+    "sport": "bundle/gemini.js" // was: "gemini": "bundle/gemini.js"
   },
   "repository": {
     "url": "git+https://github.com/sportsculture/gemini-cli.git"
@@ -109,6 +113,7 @@ if (process.env.DEBUG) {
 **Purpose**: Project documentation
 
 **Modifications**:
+
 - Title changed to "sport-cli - Multi-Provider AI CLI"
 - Added OpenRouter setup section
 - Added fork maintenance section
@@ -121,6 +126,7 @@ if (process.env.DEBUG) {
 **Purpose**: CLI command definitions
 
 **Modifications**:
+
 ```typescript
 // Added commands for provider management
 {
@@ -142,6 +148,7 @@ if (process.env.DEBUG) {
 **Purpose**: Model defaults and constants
 
 **Modifications**:
+
 ```typescript
 // Line 10-12: Added provider-specific defaults
 export const DEFAULT_OPENROUTER_MODEL = 'anthropic/claude-3.5-sonnet';
@@ -155,6 +162,7 @@ export const DEFAULT_CUSTOM_API_MODEL = 'gpt-4';
 **Purpose**: Handle chat commands including model switching
 
 **Modifications**:
+
 - Added `/model` command handling
 - Added `/models` command handling
 - Enhanced model switching logic
@@ -166,6 +174,7 @@ export const DEFAULT_CUSTOM_API_MODEL = 'gpt-4';
 These files are entirely new in sport-cli:
 
 ### Provider System
+
 - `packages/core/src/providers/types.ts`
 - `packages/core/src/providers/registry.ts`
 - `packages/core/src/providers/factory.ts`
@@ -178,12 +187,15 @@ These files are entirely new in sport-cli:
 - `packages/core/src/providers/*.registry.ts`
 
 ### Configuration
+
 - `packages/core/src/config/branding.ts`
 
 ### Compatibility
+
 - `packages/cli/src/bin/gemini-wrapper.ts`
 
 ### Documentation
+
 - `CLAUDE.md`
 - `SYNC_WORKFLOW.md`
 - `SYNC_GUIDE.md`
@@ -191,6 +203,7 @@ These files are entirely new in sport-cli:
 - `CHANGELOG.md`
 
 ### Scripts
+
 - `scripts/check-divergence.sh`
 - `scripts/sync-upstream-simple.sh`
 - `scripts/manual-sync-helper.sh`
@@ -208,6 +221,7 @@ To minimize future conflicts:
 4. **Clear Markers**: Always mark modifications with comments
 
 Example marker:
+
 ```typescript
 // sport-cli: provider injection - START
 if (config.authType === AuthType.USE_OPENROUTER) {

@@ -46,7 +46,7 @@ jobs:
           # Count new commits from upstream
           COMMIT_COUNT=$(git rev-list --count HEAD..upstream/main)
           echo "commit_count=$COMMIT_COUNT" >> $GITHUB_OUTPUT
-          
+
           if [ "$COMMIT_COUNT" -gt 0 ]; then
             echo "has_changes=true" >> $GITHUB_OUTPUT
             echo "Found $COMMIT_COUNT new commits from upstream"
@@ -60,16 +60,16 @@ jobs:
         run: |
           mkdir -p reports
           ./scripts/check-divergence.sh > reports/divergence-report.txt || true
-          
+
           # Create summary for PR description
           cat > reports/sync-summary.md << 'EOF'
           ## Upstream Sync Summary
-          
+
           **New commits from upstream:** ${{ steps.check.outputs.commit_count }}
-          
+
           ### Recent Upstream Changes
           EOF
-          
+
           git log HEAD..upstream/main --oneline --max-count=10 >> reports/sync-summary.md || true
 
       - name: Upload Divergence Report
@@ -114,7 +114,7 @@ jobs:
           SYNC_DATE=$(date +%Y%m%d)
           SYNC_BRANCH="sync/upstream-$SYNC_DATE"
           echo "sync_branch=$SYNC_BRANCH" >> $GITHUB_OUTPUT
-          
+
           git checkout main
           git checkout -b "$SYNC_BRANCH"
 
@@ -178,21 +178,21 @@ jobs:
           title: '🔄 Sync with upstream google-gemini/gemini-cli'
           body: |
             ## Automated Upstream Sync
-            
+
             This PR syncs sport-cli with the latest changes from [google-gemini/gemini-cli](https://github.com/google-gemini/gemini-cli).
-            
+
             **Commits from upstream:** ${{ needs.check-divergence.outputs.commit_count }}
             **Merge status:** ${{ steps.merge.outputs.merge_success == 'true' && '✅ Successful' || '⚠️ Has conflicts' }}
             **Tests status:** ${{ steps.tests.outputs.tests_passed == '0' && '✅ Passing' || '⚠️ Failing' }}
-            
+
             ${{ steps.merge.outputs.merge_success == 'false' && '### ⚠️ Manual Conflict Resolution Required\n\nPlease check out this branch locally and resolve the conflicts.' || '' }}
-            
+
             ### Next Steps
             1. Review the changes carefully
             2. Ensure all sport-cli features still work
             3. Run manual tests if needed
             4. Merge when ready
-            
+
             ---
             *This PR was automatically created by the upstream sync workflow.*
           labels: |
@@ -221,7 +221,7 @@ jobs:
             STATUS="❌ Failed"
             COLOR="danger"
           fi
-          
+
           curl -X POST $SLACK_WEBHOOK_URL \
             -H 'Content-Type: application/json' \
             -d "{

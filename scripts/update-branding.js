@@ -43,11 +43,11 @@ console.log(`Updating branding to: ${branding.displayName}`);
 function updateRootPackageJson() {
   const packagePath = join(rootDir, 'package.json');
   const packageJson = JSON.parse(readFileSync(packagePath, 'utf-8'));
-  
+
   packageJson.name = branding.packageName;
   packageJson.bin = { [branding.binName]: 'bundle/gemini.js' };
   packageJson.repository.url = `git+${branding.repository}`;
-  
+
   writeFileSync(packagePath, JSON.stringify(packageJson, null, 2) + '\n');
   console.log('✓ Updated root package.json');
 }
@@ -55,28 +55,34 @@ function updateRootPackageJson() {
 // Update workspace package.json files
 function updateWorkspacePackages() {
   const workspaces = ['packages/cli', 'packages/core'];
-  
-  workspaces.forEach(workspace => {
+
+  workspaces.forEach((workspace) => {
     const packagePath = join(rootDir, workspace, 'package.json');
     if (existsSync(packagePath)) {
       const packageJson = JSON.parse(readFileSync(packagePath, 'utf-8'));
-      
+
       // Update package name to match pattern
       if (packageJson.name.includes('gemini-cli')) {
-        packageJson.name = packageJson.name.replace('@google/gemini-cli', branding.packageName);
+        packageJson.name = packageJson.name.replace(
+          '@google/gemini-cli',
+          branding.packageName,
+        );
       }
-      
+
       // Update dependencies
       if (packageJson.dependencies) {
-        Object.keys(packageJson.dependencies).forEach(dep => {
+        Object.keys(packageJson.dependencies).forEach((dep) => {
           if (dep.includes('@google/gemini-cli')) {
-            const newDep = dep.replace('@google/gemini-cli', branding.packageName);
+            const newDep = dep.replace(
+              '@google/gemini-cli',
+              branding.packageName,
+            );
             packageJson.dependencies[newDep] = packageJson.dependencies[dep];
             if (newDep !== dep) delete packageJson.dependencies[dep];
           }
         });
       }
-      
+
       writeFileSync(packagePath, JSON.stringify(packageJson, null, 2) + '\n');
       console.log(`✓ Updated ${workspace}/package.json`);
     }
@@ -88,17 +94,24 @@ function updateCliMain() {
   const cliMainPath = join(rootDir, 'packages/cli/src/cliMain.tsx');
   if (existsSync(cliMainPath)) {
     let content = readFileSync(cliMainPath, 'utf-8');
-    
+
     // Add import if not present
-    if (!content.includes("import { BRANDING }")) {
-      const importStatement = "import { BRANDING } from '@sport/sport-cli-core/config/branding.js';\n";
+    if (!content.includes('import { BRANDING }')) {
+      const importStatement =
+        "import { BRANDING } from '@sport/sport-cli-core/config/branding.js';\n";
       content = importStatement + content;
     }
-    
+
     // Update hardcoded strings to use BRANDING
-    content = content.replace(/configDir: ['"]\.gemini['"]/, 'configDir: BRANDING.configDir');
-    content = content.replace(/configDir: ['"]\.sport['"]/, 'configDir: BRANDING.configDir');
-    
+    content = content.replace(
+      /configDir: ['"]\.gemini['"]/,
+      'configDir: BRANDING.configDir',
+    );
+    content = content.replace(
+      /configDir: ['"]\.sport['"]/,
+      'configDir: BRANDING.configDir',
+    );
+
     writeFileSync(cliMainPath, content);
     console.log('✓ Updated CLI main to use branding config');
   }
@@ -145,7 +158,7 @@ try {
   updateWorkspacePackages();
   updateCliMain();
   createBrandingReport();
-  
+
   console.log('\n✅ Branding update complete!');
   console.log(`The project is now branded as: ${branding.displayName}`);
 } catch (error) {

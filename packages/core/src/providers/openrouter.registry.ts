@@ -10,7 +10,7 @@ export function registerOpenRouterProvider(registry: ProviderRegistry): void {
   registry.register({
     id: 'openrouter',
     name: 'OpenRouter',
-    description: 'Access 300+ AI models through OpenRouter\'s unified API',
+    description: "Access 300+ AI models through OpenRouter's unified API",
     authType: AuthType.USE_OPENROUTER,
     requiredEnvVars: ['OPENROUTER_API_KEY'],
     optionalEnvVars: ['OPENROUTER_BASE_URL'],

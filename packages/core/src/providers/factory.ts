@@ -1,11 +1,15 @@
 /**
  * Provider Factory using the Registry System
- * 
+ *
  * This replaces the switch statement in contentGenerator.ts with a
  * plugin-based approach that's easier to maintain and extend.
  */
 
-import { ContentGenerator, ContentGeneratorConfig, AuthType } from '../core/contentGenerator.js';
+import {
+  ContentGenerator,
+  ContentGeneratorConfig,
+  AuthType,
+} from '../core/contentGenerator.js';
 import { Config } from '../config/config.js';
 import { providerRegistry } from './registry.js';
 import { createCodeAssistContentGenerator } from '../code_assist/codeAssist.js';
@@ -28,10 +32,9 @@ export async function createProviderContentGenerator(
   ) {
     const httpOptions = config.proxy ? { proxy: config.proxy } : undefined;
     return createCodeAssistContentGenerator(
-      gcConfig,
       httpOptions,
-      config.model,
-      config.userTier,
+      config.authType!,
+      gcConfig,
       sessionId,
     );
   }
@@ -42,11 +45,11 @@ export async function createProviderContentGenerator(
       config.authType!,
       config,
       gcConfig,
-      sessionId
+      sessionId,
     );
   } catch (error) {
     throw new Error(
-      `Error creating contentGenerator: ${error instanceof Error ? error.message : 'Unknown error'}`
+      `Error creating contentGenerator: ${error instanceof Error ? error.message : 'Unknown error'}`,
     );
   }
 }

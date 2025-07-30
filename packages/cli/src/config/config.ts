@@ -19,8 +19,7 @@ import {
   FileDiscoveryService,
   TelemetryTarget,
   FileFilteringOptions,
-  MCPServerConfig,
-  IDE_SERVER_NAME,
+  IdeClient,
 } from '@sport/core';
 import { Settings } from './settings.js';
 
@@ -275,6 +274,11 @@ export async function loadCliConfig(
     process.env.TERM_PROGRAM === 'vscode' &&
     !process.env.SANDBOX;
 
+  let ideClient: IdeClient | undefined;
+  if (ideMode) {
+    ideClient = new IdeClient();
+  }
+
   const allExtensions = annotateActiveExtensions(
     extensions,
     argv.extensions || [],
@@ -366,37 +370,6 @@ export async function loadCliConfig(
     }
   }
 
-  if (ideMode) {
-    if (mcpServers[IDE_SERVER_NAME]) {
-      logger.warn(
-        `Ignoring user-defined MCP server config for "${IDE_SERVER_NAME}" as it is a reserved name.`,
-      );
-    }
-    const companionPort = process.env.GEMINI_CLI_IDE_SERVER_PORT;
-    if (companionPort) {
-      const httpUrl = `http://localhost:${companionPort}/mcp`;
-      mcpServers[IDE_SERVER_NAME] = new MCPServerConfig(
-        undefined, // command
-        undefined, // args
-        undefined, // env
-        undefined, // cwd
-        undefined, // url
-        httpUrl, // httpUrl
-        undefined, // headers
-        undefined, // tcp
-        undefined, // timeout
-        false, // trust
-        'IDE connection', // description
-        undefined, // includeTools
-        undefined, // excludeTools
-      );
-    } else {
-      logger.warn(
-        'Could not connect to IDE. Make sure you have the companion VS Code extension installed from the marketplace or via /ide install.',
-      );
-    }
-  }
-
   const sandboxConfig = await loadSandboxConfig(settings, argv);
 
   return new Config({
@@ -463,6 +436,7 @@ export async function loadCliConfig(
     noBrowser: !!process.env.NO_BROWSER,
     summarizeToolOutput: settings.summarizeToolOutput,
     ideMode,
+    ideClient,
   });
 }
 

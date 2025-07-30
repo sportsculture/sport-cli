@@ -1,11 +1,15 @@
 /**
  * Provider Registry System
- * 
+ *
  * This plugin-style architecture allows for easy addition of new providers
  * without modifying core code, minimizing merge conflicts with upstream.
  */
 
-import { ContentGenerator, ContentGeneratorConfig, AuthType } from '../core/contentGenerator.js';
+import {
+  ContentGenerator,
+  ContentGeneratorConfig,
+  AuthType,
+} from '../core/contentGenerator.js';
 import { IProvider, ProviderStatus, ModelInfo } from './types.js';
 import { Config } from '../config/config.js';
 
@@ -15,7 +19,7 @@ import { Config } from '../config/config.js';
 export type ProviderFactory = (
   config: ContentGeneratorConfig,
   gcConfig: Config,
-  sessionId?: string
+  sessionId?: string,
 ) => Promise<IProvider>;
 
 /**
@@ -87,16 +91,17 @@ export class ProviderRegistry {
    * Get enabled providers based on configuration
    */
   getEnabledProviders(): ProviderMetadata[] {
-    return this.getProviders().filter(provider => {
+    return this.getProviders().filter((provider) => {
       // Check if provider is explicitly disabled
-      const isDisabled = process.env[`DISABLE_${provider.id.toUpperCase()}_PROVIDER`] === 'true';
+      const isDisabled =
+        process.env[`DISABLE_${provider.id.toUpperCase()}_PROVIDER`] === 'true';
       if (isDisabled) return false;
 
       // Check if it's enabled by default or has required configuration
       if (provider.enabledByDefault) return true;
 
       // Check if required environment variables are set
-      return provider.requiredEnvVars.every(envVar => process.env[envVar]);
+      return provider.requiredEnvVars.every((envVar) => process.env[envVar]);
     });
   }
 
@@ -114,7 +119,7 @@ export class ProviderRegistry {
     authType: AuthType,
     config: ContentGeneratorConfig,
     gcConfig: Config,
-    sessionId?: string
+    sessionId?: string,
   ): Promise<IProvider> {
     const metadata = this.providers.get(authType);
     if (!metadata) {
@@ -141,9 +146,13 @@ export class ProviderRegistry {
   /**
    * Check configuration for a specific provider
    */
-  private async checkProviderConfiguration(metadata: ProviderMetadata): Promise<ProviderStatus> {
+  private async checkProviderConfiguration(
+    metadata: ProviderMetadata,
+  ): Promise<ProviderStatus> {
     // Check required environment variables
-    const missingVars = metadata.requiredEnvVars.filter(envVar => !process.env[envVar]);
+    const missingVars = metadata.requiredEnvVars.filter(
+      (envVar) => !process.env[envVar],
+    );
 
     if (missingVars.length > 0) {
       return {
@@ -167,8 +176,12 @@ export class ProviderRegistry {
 
     // Import providers dynamically to avoid circular dependencies
     const { registerGeminiProvider } = await import('./gemini.registry.js');
-    const { registerOpenRouterProvider } = await import('./openrouter.registry.js');
-    const { registerCustomApiProvider } = await import('./customapi.registry.js');
+    const { registerOpenRouterProvider } = await import(
+      './openrouter.registry.js'
+    );
+    const { registerCustomApiProvider } = await import(
+      './customapi.registry.js'
+    );
 
     // Register default providers
     registerGeminiProvider(this);
@@ -192,7 +205,9 @@ export class ProviderRegistry {
     try {
       // This would load external provider modules
       // For now, we'll just log that we checked
-      console.debug(`Checking for external providers at: ${externalProvidersPath}`);
+      console.debug(
+        `Checking for external providers at: ${externalProvidersPath}`,
+      );
     } catch (error) {
       console.warn('Failed to load external providers:', error);
     }
@@ -214,7 +229,7 @@ export class ProviderRegistry {
         const provider = await this.createProvider(
           metadata.authType,
           config,
-          gcConfig
+          gcConfig,
         );
 
         const models = await provider.getAvailableModels();

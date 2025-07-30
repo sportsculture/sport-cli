@@ -1,6 +1,6 @@
 /**
  * Sync Validation Test Suite
- * 
+ *
  * These tests ensure that sport-cli's core functionality remains intact
  * after syncing with upstream google-gemini/gemini-cli
  */
@@ -39,16 +39,19 @@ describe('Upstream Sync Validation', () => {
         'packages/core/src/providers/modelCapabilities.ts',
       ];
 
-      providerFiles.forEach(file => {
+      providerFiles.forEach((file) => {
         const filePath = join(rootDir, file);
         expect(existsSync(filePath), `Missing file: ${file}`).toBe(true);
       });
     });
 
     it('should have modified contentGenerator.ts with provider support', () => {
-      const filePath = join(rootDir, 'packages/core/src/core/contentGenerator.ts');
+      const filePath = join(
+        rootDir,
+        'packages/core/src/core/contentGenerator.ts',
+      );
       expect(existsSync(filePath)).toBe(true);
-      
+
       const content = readFileSync(filePath, 'utf-8');
       // Check for sport-cli specific imports
       expect(content).toContain('OpenRouterContentGenerator');
@@ -60,7 +63,7 @@ describe('Upstream Sync Validation', () => {
     it('should have sport-cli branding in package.json', () => {
       const packagePath = join(rootDir, 'package.json');
       const packageJson = JSON.parse(readFileSync(packagePath, 'utf-8'));
-      
+
       expect(packageJson.name).toBe('@sport/sport-cli');
       expect(packageJson.bin).toHaveProperty('sport');
       expect(packageJson.repository.url).toContain('sportsculture');
@@ -70,8 +73,10 @@ describe('Upstream Sync Validation', () => {
   describe('Provider Integration', () => {
     it('should export all provider auth types', async () => {
       // Dynamic import to test actual exports
-      const { AuthType } = await import('../packages/core/src/core/contentGenerator.js');
-      
+      const { AuthType } = await import(
+        '../packages/core/src/core/contentGenerator.js'
+      );
+
       expect(AuthType).toHaveProperty('USE_GEMINI');
       expect(AuthType).toHaveProperty('USE_OPENROUTER');
       expect(AuthType).toHaveProperty('USE_CUSTOM_API');
@@ -79,7 +84,9 @@ describe('Upstream Sync Validation', () => {
     });
 
     it('should have provider factory function', async () => {
-      const { createContentGenerator } = await import('../packages/core/src/core/contentGenerator.js');
+      const { createContentGenerator } = await import(
+        '../packages/core/src/core/contentGenerator.js'
+      );
       expect(typeof createContentGenerator).toBe('function');
     });
   });
@@ -88,7 +95,7 @@ describe('Upstream Sync Validation', () => {
     it('should have /model command in commands list', () => {
       const commandsPath = join(rootDir, 'packages/cli/src/utils/commands.ts');
       const content = readFileSync(commandsPath, 'utf-8');
-      
+
       expect(content).toContain('/model');
       expect(content).toContain('Switch AI model/provider');
     });
@@ -96,7 +103,7 @@ describe('Upstream Sync Validation', () => {
     it('should have /models command for listing', () => {
       const commandsPath = join(rootDir, 'packages/cli/src/utils/commands.ts');
       const content = readFileSync(commandsPath, 'utf-8');
-      
+
       expect(content).toContain('/models');
       expect(content).toContain('List available models');
     });
@@ -106,7 +113,7 @@ describe('Upstream Sync Validation', () => {
     it('should have multi-provider model defaults', () => {
       const modelsPath = join(rootDir, 'packages/core/src/config/models.ts');
       const content = readFileSync(modelsPath, 'utf-8');
-      
+
       expect(content).toContain('DEFAULT_OPENROUTER_MODEL');
       expect(content).toContain('DEFAULT_CUSTOM_API_MODEL');
     });
@@ -119,9 +126,12 @@ describe('Upstream Sync Validation', () => {
 
   describe('Backward Compatibility', () => {
     it('should maintain gemini wrapper for compatibility', () => {
-      const wrapperPath = join(rootDir, 'packages/cli/src/bin/gemini-wrapper.ts');
+      const wrapperPath = join(
+        rootDir,
+        'packages/cli/src/bin/gemini-wrapper.ts',
+      );
       expect(existsSync(wrapperPath)).toBe(true);
-      
+
       const content = readFileSync(wrapperPath, 'utf-8');
       expect(content).toContain('sport-cli wrapper for gemini command');
     });
@@ -129,10 +139,13 @@ describe('Upstream Sync Validation', () => {
     it('should have both .sport and .gemini config fallback', () => {
       // This would be tested in the actual config loading logic
       // For now, we just check if the pattern exists in code
-      const configFiles = execSync('grep -r "\\.gemini" packages/core/src/config || true', {
-        encoding: 'utf-8',
-        cwd: rootDir,
-      });
+      const configFiles = execSync(
+        'grep -r "\\.gemini" packages/core/src/config || true',
+        {
+          encoding: 'utf-8',
+          cwd: rootDir,
+        },
+      );
       expect(configFiles).toBeTruthy();
     });
   });
@@ -175,9 +188,11 @@ describe('Upstream Sync Validation', () => {
         'patches/004-tools-and-features',
       ];
 
-      patchDirs.forEach(dir => {
+      patchDirs.forEach((dir) => {
         const dirPath = join(rootDir, dir);
-        expect(existsSync(dirPath), `Missing patch directory: ${dir}`).toBe(true);
+        expect(existsSync(dirPath), `Missing patch directory: ${dir}`).toBe(
+          true,
+        );
       });
     });
 
@@ -189,13 +204,9 @@ describe('Upstream Sync Validation', () => {
 
   describe('Documentation', () => {
     it('should have sport-cli specific documentation', () => {
-      const docs = [
-        'CLAUDE.md',
-        'SYNC_WORKFLOW.md',
-        'README.md',
-      ];
+      const docs = ['CLAUDE.md', 'SYNC_WORKFLOW.md', 'README.md'];
 
-      docs.forEach(doc => {
+      docs.forEach((doc) => {
         const docPath = join(rootDir, doc);
         expect(existsSync(docPath), `Missing documentation: ${doc}`).toBe(true);
       });
@@ -204,7 +215,7 @@ describe('Upstream Sync Validation', () => {
     it('should have sport-cli content in README', () => {
       const readmePath = join(rootDir, 'README.md');
       const content = readFileSync(readmePath, 'utf-8');
-      
+
       expect(content).toContain('sport-cli');
       expect(content).toContain('multi-provider');
       expect(content).toContain('OpenRouter');
@@ -214,9 +225,11 @@ describe('Upstream Sync Validation', () => {
 
 describe('Provider Functionality Tests', () => {
   it('should create GeminiContentGenerator correctly', async () => {
-    const { createContentGenerator, AuthType } = await import('../packages/core/src/core/contentGenerator.js');
+    const { createContentGenerator, AuthType } = await import(
+      '../packages/core/src/core/contentGenerator.js'
+    );
     const { Config } = await import('../packages/core/src/config/config.js');
-    
+
     const config = new Config();
     const generator = await createContentGenerator(
       {
@@ -224,17 +237,19 @@ describe('Provider Functionality Tests', () => {
         authType: AuthType.USE_GEMINI,
         apiKey: 'test-key',
       },
-      config
+      config,
     );
-    
+
     expect(generator).toBeDefined();
     expect(generator.generateContent).toBeDefined();
   });
 
   it('should create OpenRouterContentGenerator correctly', async () => {
-    const { createContentGenerator, AuthType } = await import('../packages/core/src/core/contentGenerator.js');
+    const { createContentGenerator, AuthType } = await import(
+      '../packages/core/src/core/contentGenerator.js'
+    );
     const { Config } = await import('../packages/core/src/config/config.js');
-    
+
     const config = new Config();
     const generator = await createContentGenerator(
       {
@@ -242,9 +257,9 @@ describe('Provider Functionality Tests', () => {
         authType: AuthType.USE_OPENROUTER,
         apiKey: 'test-key',
       },
-      config
+      config,
     );
-    
+
     expect(generator).toBeDefined();
     expect(generator.generateContent).toBeDefined();
   });

@@ -5,15 +5,19 @@ This directory contains patches that represent sport-cli's modifications to the 
 ## Patch Categories
 
 ### 001-provider-abstraction
+
 Core multi-provider functionality that allows sport-cli to work with OpenRouter, custom APIs, and other AI providers.
 
 ### 002-branding
+
 Branding changes including package names, binary names, and documentation updates.
 
 ### 003-configuration
+
 Configuration system enhancements for provider selection and model management.
 
 ### 004-tools-and-features
+
 Additional tools and features specific to sport-cli like enhanced model commands.
 
 ## Applying Patches

@@ -1,6 +1,6 @@
 /**
  * Configuration-driven branding system for sport-cli
- * 
+ *
  * This centralized configuration makes it easy to maintain branding
  * across the codebase and minimize merge conflicts with upstream.
  */
@@ -40,7 +40,7 @@ export interface BrandingConfig {
 export function getBrandingConfig(): BrandingConfig {
   // Allow environment variable override for testing upstream compatibility
   const brandingMode = process.env.BRANDING_MODE || 'sport';
-  
+
   if (brandingMode === 'gemini') {
     // Original gemini-cli branding (useful for testing upstream compatibility)
     return {
@@ -55,7 +55,7 @@ export function getBrandingConfig(): BrandingConfig {
       isFork: false,
     };
   }
-  
+
   // Default sport-cli branding
   return {
     cliName: 'sport',
@@ -92,11 +92,11 @@ export function getConfigDirectory(): string {
 export function getAllConfigDirectories(): string[] {
   const config = getBrandingConfig();
   const dirs = [config.configDir];
-  
+
   if (config.fallbackConfigDir) {
     dirs.push(config.fallbackConfigDir);
   }
-  
+
   return dirs;
 }
 
@@ -116,7 +116,7 @@ export function formatBrandedText(template: string): string {
  */
 export function getAsciiArt(): string {
   const config = getBrandingConfig();
-  
+
   if (config.cliName === 'sport') {
     return `
 ╔═╗╔═╗╔═╗╦═╗╔╦╗   ╔═╗╦  ╦
@@ -124,7 +124,7 @@ export function getAsciiArt(): string {
 ╚═╝╩  ╚═╝╩╚═ ╩    ╚═╝╩═╝╩
 Multi-Provider AI CLI`;
   }
-  
+
   // Default/original ASCII art
   return `
 ╔═╗┌─┐┌┬┐┬┌┐┌┬  ╔═╗╦  ╦

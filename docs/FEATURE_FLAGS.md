@@ -5,6 +5,7 @@ sport-cli uses a feature flag system to manage functionality, allowing gradual r
 ## Overview
 
 Feature flags can be controlled through:
+
 1. Environment variables (highest priority)
 2. User configuration file (`~/.sport/features.json`)
 3. Project configuration file (`.sport/features.json`)
@@ -12,18 +13,18 @@ Feature flags can be controlled through:
 
 ## Available Feature Flags
 
-| Flag | Default | Description |
-|------|---------|-------------|
-| `multiProvider` | `true` | Enable multi-provider AI support (OpenRouter, Custom APIs) |
-| `customCommands` | `true` | Enable sport-cli specific commands (`/model`, `/models`) |
-| `advancedMemory` | `false` | Enable experimental memory/context features |
-| `providerPlugins` | `true` | Enable the provider plugin system |
-| `backwardCompat` | `true` | Enable backward compatibility with gemini-cli |
-| `experimental` | `false` | Enable experimental features |
-| `debugLogging` | `false` | Enable debug logging output |
-| `telemetry` | `true` | Enable usage telemetry |
-| `autoUpdate` | `false` | Enable automatic update checks |
-| `upstreamNotifications` | `true` | Show notifications about upstream updates |
+| Flag                    | Default | Description                                                |
+| ----------------------- | ------- | ---------------------------------------------------------- |
+| `multiProvider`         | `true`  | Enable multi-provider AI support (OpenRouter, Custom APIs) |
+| `customCommands`        | `true`  | Enable sport-cli specific commands (`/model`, `/models`)   |
+| `advancedMemory`        | `false` | Enable experimental memory/context features                |
+| `providerPlugins`       | `true`  | Enable the provider plugin system                          |
+| `backwardCompat`        | `true`  | Enable backward compatibility with gemini-cli              |
+| `experimental`          | `false` | Enable experimental features                               |
+| `debugLogging`          | `false` | Enable debug logging output                                |
+| `telemetry`             | `true`  | Enable usage telemetry                                     |
+| `autoUpdate`            | `false` | Enable automatic update checks                             |
+| `upstreamNotifications` | `true`  | Show notifications about upstream updates                  |
 
 ## Configuration Methods
 
@@ -47,6 +48,7 @@ export SPORT_FF_DEBUG_LOGGING=true
 Create a `features.json` file in your sport-cli config directory:
 
 **User-level config** (`~/.sport/features.json`):
+
 ```json
 {
   "features": {
@@ -58,6 +60,7 @@ Create a `features.json` file in your sport-cli config directory:
 ```
 
 **Project-level config** (`.sport/features.json`):
+
 ```json
 {
   "features": {
@@ -70,6 +73,7 @@ Create a `features.json` file in your sport-cli config directory:
 ### Priority Order
 
 Feature flags are loaded in this priority order (highest to lowest):
+
 1. Environment variables
 2. User configuration (`~/.sport/features.json`)
 3. Project configuration (`.sport/features.json`)
@@ -94,11 +98,11 @@ import { useFeature } from '@sport/sport-cli-core/config/features.js';
 
 function ModelSelector() {
   const multiProviderEnabled = useFeature('multiProvider');
-  
+
   if (!multiProviderEnabled) {
     return <Text>Using default Gemini provider</Text>;
   }
-  
+
   return <ProviderSelector />;
 }
 ```
@@ -180,6 +184,7 @@ Create a production features.json:
 5. Use the flag in your code
 
 Example:
+
 ```typescript
 // In features.ts
 export interface FeatureFlags {
@@ -212,11 +217,13 @@ const envMap: Record<string, keyof FeatureFlags> = {
 ### Features Not Working
 
 1. Check if the feature is enabled:
+
    ```bash
    sport --feature-flags
    ```
 
 2. Verify environment variables:
+
    ```bash
    env | grep SPORT_FF_
    ```

@@ -10,7 +10,7 @@ export function registerGeminiProvider(registry: ProviderRegistry): void {
   registry.register({
     id: 'gemini',
     name: 'Gemini',
-    description: 'Google\'s Gemini AI models with native integration',
+    description: "Google's Gemini AI models with native integration",
     authType: AuthType.USE_GEMINI,
     requiredEnvVars: ['GEMINI_API_KEY'],
     optionalEnvVars: [],
@@ -25,7 +25,7 @@ export function registerGeminiProvider(registry: ProviderRegistry): void {
   registry.register({
     id: 'vertex-ai',
     name: 'Vertex AI',
-    description: 'Google\'s Vertex AI for enterprise use',
+    description: "Google's Vertex AI for enterprise use",
     authType: AuthType.USE_VERTEX_AI,
     requiredEnvVars: ['GOOGLE_CLOUD_PROJECT', 'GOOGLE_CLOUD_LOCATION'],
     optionalEnvVars: ['GOOGLE_API_KEY'],

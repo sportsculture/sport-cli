@@ -10,7 +10,7 @@ This document describes the three-branch Git workflow designed to maintain the s
 upstream/main ─────┬─────────────────┬─────────────────┐
                    │                 │                 │
 sport-upstream ────┴─────────────────┴─────────────────┘
-     │                                   
+     │
      ├─ (cherry-pick upstream changes)
      │
 sport-main ────────────────────────────────────────────
@@ -45,6 +45,7 @@ git push origin sport-upstream
 ### 3. Protect Branches
 
 Configure branch protection rules on GitHub:
+
 - **sport-upstream**: No direct pushes, only sync from upstream
 - **sport-main**: Require PR reviews, status checks
 
@@ -53,6 +54,7 @@ Configure branch protection rules on GitHub:
 ### Weekly Automated Sync
 
 1. **Update sport-upstream**:
+
    ```bash
    git checkout sport-upstream
    git fetch upstream
@@ -61,17 +63,20 @@ Configure branch protection rules on GitHub:
    ```
 
 2. **Create Sync Branch**:
+
    ```bash
    git checkout sport-main
    git checkout -b sync/upstream-$(date +%Y%m%d)
    ```
 
 3. **Merge Upstream Changes**:
+
    ```bash
    git merge sport-upstream
    ```
 
 4. **Apply Patches** (if using patch system):
+
    ```bash
    for patch in patches/*/*.patch; do
      git apply $patch || echo "Conflict in $patch"
@@ -95,13 +100,13 @@ Configure branch protection rules on GitHub:
 
 ### By File Type
 
-| File Pattern | Strategy | Reason |
-|--------------|----------|---------|
-| `packages/core/src/providers/*` | Keep sport-cli | Our core value-add |
-| `packages/core/src/contentGenerator.ts` | Merge carefully | Has provider injections |
-| `package.json` | Merge both | Keep our deps + upstream |
-| `README.md` | Take upstream, re-add our section | Minimize changes |
-| Tests | Merge both | Keep all tests |
+| File Pattern                            | Strategy                          | Reason                   |
+| --------------------------------------- | --------------------------------- | ------------------------ |
+| `packages/core/src/providers/*`         | Keep sport-cli                    | Our core value-add       |
+| `packages/core/src/contentGenerator.ts` | Merge carefully                   | Has provider injections  |
+| `package.json`                          | Merge both                        | Keep our deps + upstream |
+| `README.md`                             | Take upstream, re-add our section | Minimize changes         |
+| Tests                                   | Merge both                        | Keep all tests           |
 
 ### By Change Type
 
@@ -145,6 +150,7 @@ git push origin sport-main
 ### Automated Notifications
 
 Set up GitHub Actions to notify when:
+
 - Upstream has new releases
 - Upstream has security updates
 - Weekly sync fails
@@ -187,6 +193,7 @@ git push origin sport-main --force-with-lease
 Create these helper scripts in `scripts/`:
 
 ### sync-upstream.sh
+
 ```bash
 #!/bin/bash
 set -e
@@ -210,6 +217,7 @@ echo "Please resolve any conflicts and create a PR"
 ```
 
 ### check-divergence.sh
+
 ```bash
 #!/bin/bash
 echo "Fetching latest..."

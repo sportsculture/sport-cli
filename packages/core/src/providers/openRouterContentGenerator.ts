@@ -541,7 +541,7 @@ export class OpenRouterContentGenerator implements IProvider {
     };
 
     const abortController = new AbortController();
-    
+
     const response = await fetch(`${this.baseUrl}/chat/completions`, {
       method: 'POST',
       headers: {
@@ -617,7 +617,7 @@ export class OpenRouterContentGenerator implements IProvider {
 
             if (choice.delta.tool_calls) {
               hasNewContent = true;
-              
+
               // Enhanced debugging for Grok duplicate detection
               if (process.env.DEBUG_TOOLS === 'true') {
                 console.error('[GROK DEBUG] Tool call delta received:', {
@@ -636,7 +636,7 @@ export class OpenRouterContentGenerator implements IProvider {
                   })),
                 });
               }
-              
+
               toolLogger.debug('OpenRouter: Tool call delta received', {
                 count: choice.delta.tool_calls.length,
                 toolCalls: choice.delta.tool_calls.map((tc) => ({
@@ -678,10 +678,16 @@ export class OpenRouterContentGenerator implements IProvider {
             if (accumulatedToolCalls.length > 0) {
               // Only yield tool calls that haven't been yielded yet
               for (const toolCall of accumulatedToolCalls.filter((tc) => tc)) {
-                if (toolCall.function.name && toolCall.id && !yieldedToolCallIds.has(toolCall.id)) {
+                if (
+                  toolCall.function.name &&
+                  toolCall.id &&
+                  !yieldedToolCallIds.has(toolCall.id)
+                ) {
                   // Check if this tool call has complete arguments before yielding
                   try {
-                    const args = toolCall.function.arguments ? JSON.parse(toolCall.function.arguments) : {};
+                    const args = toolCall.function.arguments
+                      ? JSON.parse(toolCall.function.arguments)
+                      : {};
                     parts.push({
                       functionCall: {
                         id: toolCall.id, // Include ID for tracking
@@ -692,11 +698,14 @@ export class OpenRouterContentGenerator implements IProvider {
                     yieldedToolCallIds.add(toolCall.id); // Mark as yielded
                   } catch (e) {
                     // Arguments not complete yet, skip this iteration
-                    toolLogger.debug('OpenRouter: Skipping incomplete tool call', {
-                      id: toolCall.id,
-                      name: toolCall.function.name,
-                      error: e
-                    });
+                    toolLogger.debug(
+                      'OpenRouter: Skipping incomplete tool call',
+                      {
+                        id: toolCall.id,
+                        name: toolCall.function.name,
+                        error: e,
+                      },
+                    );
                   }
                 }
               }

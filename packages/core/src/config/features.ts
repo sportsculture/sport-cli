@@ -1,6 +1,6 @@
 /**
  * Feature Flags System for sport-cli
- * 
+ *
  * This allows us to:
  * 1. Gradually roll out new features
  * 2. Disable features that might conflict with upstream
@@ -19,31 +19,31 @@ import { BRANDING } from './branding.js';
 export interface FeatureFlags {
   /** Enable multi-provider support */
   multiProvider: boolean;
-  
+
   /** Enable custom commands (/model, /models) */
   customCommands: boolean;
-  
+
   /** Enable advanced memory/context features */
   advancedMemory: boolean;
-  
+
   /** Enable provider plugin system */
   providerPlugins: boolean;
-  
+
   /** Enable backward compatibility features */
   backwardCompat: boolean;
-  
+
   /** Enable experimental features */
   experimental: boolean;
-  
+
   /** Enable debug logging */
   debugLogging: boolean;
-  
+
   /** Enable telemetry */
   telemetry: boolean;
-  
+
   /** Enable auto-update checks */
   autoUpdate: boolean;
-  
+
   /** Enable upstream sync notifications */
   upstreamNotifications: boolean;
 }
@@ -177,7 +177,10 @@ class FeatureFlagsManager {
   /**
    * Update source tracking
    */
-  private updateSources(flags: Partial<FeatureFlags>, source: FlagSource): void {
+  private updateSources(
+    flags: Partial<FeatureFlags>,
+    source: FlagSource,
+  ): void {
     for (const key of Object.keys(flags) as Array<keyof FeatureFlags>) {
       this.sources.set(key, source);
     }
@@ -224,9 +227,10 @@ class FeatureFlagsManager {
    */
   getSummary(): string {
     const lines: string[] = ['Feature Flags Summary:'];
-    
+
     for (const [key, value] of Object.entries(this.flags)) {
-      const source = this.sources.get(key as keyof FeatureFlags) || FlagSource.DEFAULT;
+      const source =
+        this.sources.get(key as keyof FeatureFlags) || FlagSource.DEFAULT;
       const status = value ? '✓' : '✗';
       lines.push(`  ${status} ${key}: ${value} (${source})`);
     }
@@ -266,7 +270,11 @@ export function useFeature(feature: keyof FeatureFlags): boolean {
  * Decorator to conditionally enable features
  */
 export function requiresFeature(feature: keyof FeatureFlags) {
-  return function (target: any, propertyKey: string, descriptor: PropertyDescriptor) {
+  return function (
+    target: any,
+    propertyKey: string,
+    descriptor: PropertyDescriptor,
+  ) {
     const originalMethod = descriptor.value;
 
     descriptor.value = function (...args: any[]) {
