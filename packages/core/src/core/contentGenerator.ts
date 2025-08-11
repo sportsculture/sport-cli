@@ -25,6 +25,7 @@ import { OpenRouterContentGenerator } from '../providers/openRouterContentGenera
 import { CustomApiContentGenerator } from '../providers/customApiContentGenerator.js';
 import { GeminiContentGenerator } from '../providers/geminiContentGenerator.js';
 import { IProvider } from '../providers/types.js';
+import { LoggingContentGenerator } from './loggingContentGenerator.js';
 
 /**
  * Interface abstracting the core functionalities for generating content and counting tokens.
@@ -32,10 +33,12 @@ import { IProvider } from '../providers/types.js';
 export interface ContentGenerator {
   generateContent(
     request: GenerateContentParameters,
+    userPromptId: string,
   ): Promise<GenerateContentResponse>;
 
   generateContentStream(
     request: GenerateContentParameters,
+    userPromptId: string,
   ): Promise<AsyncGenerator<GenerateContentResponse>>;
 
   countTokens(request: CountTokensParameters): Promise<CountTokensResponse>;
@@ -160,11 +163,14 @@ export async function createContentGenerator(
     config.authType === AuthType.LOGIN_WITH_GOOGLE ||
     config.authType === AuthType.CLOUD_SHELL
   ) {
-    return createCodeAssistContentGenerator(
-      httpOptions,
-      config.authType,
+    return new LoggingContentGenerator(
+      await createCodeAssistContentGenerator(
+        httpOptions,
+        config.authType,
+        gcConfig,
+        sessionId,
+      ),
       gcConfig,
-      sessionId,
     );
   }
 
@@ -182,7 +188,6 @@ export async function createContentGenerator(
   if (config.authType === AuthType.USE_CUSTOM_API) {
     return new CustomApiContentGenerator(config);
   }
-
   throw new Error(
     `Error creating contentGenerator: Unsupported authType: ${config.authType}`,
   );

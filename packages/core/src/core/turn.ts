@@ -16,6 +16,7 @@ import {
   ToolResult,
   ToolResultDisplay,
 } from '../tools/tools.js';
+import { ToolErrorType } from '../tools/tool-error.js';
 import { getResponseText } from '../utils/generateContentResponseUtilities.js';
 import { reportError } from '../utils/errorReporting.js';
 import {
@@ -24,7 +25,6 @@ import {
   toFriendlyError,
 } from '../utils/errors.js';
 import { GeminiChat } from './geminiChat.js';
-import { toolLogger } from '../utils/logger.js';
 
 // Define a structure for tools passed to the server
 export interface ServerTool {
@@ -77,6 +77,7 @@ export interface ToolCallResponseInfo {
   responseParts: PartListUnion;
   resultDisplay: ToolResultDisplay | undefined;
   error: Error | undefined;
+  errorType: ToolErrorType | undefined;
 }
 
 export interface ServerToolCallConfirmationDetails {
@@ -164,6 +165,7 @@ export type ServerGeminiStreamEvent =
 export class Turn {
   readonly pendingToolCalls: ToolCallRequestInfo[];
   private debugResponses: GenerateContentResponse[];
+  finishReason: FinishReason | undefined;
 
   constructor(
     private readonly chat: GeminiChat,
@@ -171,6 +173,7 @@ export class Turn {
   ) {
     this.pendingToolCalls = [];
     this.debugResponses = [];
+    this.finishReason = undefined;
   }
   // The run method yields simpler events suitable for server logic
   async *run(
@@ -178,13 +181,6 @@ export class Turn {
     signal: AbortSignal,
   ): AsyncGenerator<ServerGeminiStreamEvent> {
     try {
-      // Start a new correlation for this turn
-      const correlationId = toolLogger.startNewCorrelation();
-      toolLogger.debug('Starting new turn', {
-        prompt_id: this.prompt_id,
-        correlationId,
-      });
-
       const responseStream = await this.chat.sendMessageStream(
         {
           message: req,
@@ -195,9 +191,7 @@ export class Turn {
         this.prompt_id,
       );
 
-      let chunkIndex = 0;
       for await (const resp of responseStream) {
-        toolLogger.traceChunkReception(resp, chunkIndex++);
         if (signal?.aborted) {
           yield { type: GeminiEventType.UserCancelled };
           // Do not add resp to debugResponses if aborted before processing
@@ -234,44 +228,22 @@ export class Turn {
 
         // Handle function calls (requesting tool execution)
         const functionCalls = resp.functionCalls ?? [];
-        if (functionCalls.length > 0) {
-          toolLogger.info('Gemini function calls detected', {
-            count: functionCalls.length,
-            calls: functionCalls.map((fc) => ({ name: fc.name, id: fc.id })),
-          });
-        }
         for (const fnCall of functionCalls) {
-          toolLogger.traceToolCallDetection(fnCall);
           const event = this.handlePendingFunctionCall(fnCall);
           if (event) {
             yield event;
           }
         }
 
-        // Also check for tool calls from non-Gemini providers
-        // These providers may include tool calls in a different format
-        const toolCalls = (resp as any)._toolCalls;
-        if (toolCalls && Array.isArray(toolCalls)) {
-          toolLogger.info('Non-Gemini tool calls detected', {
-            count: toolCalls.length,
-            provider: 'non-gemini',
-            calls: toolCalls.map((tc) => ({
-              name: tc.function?.name,
-              id: tc.id,
-            })),
-          });
-          for (const toolCall of toolCalls) {
-            const fnCall: FunctionCall = {
-              name: toolCall.function.name,
-              args: JSON.parse(toolCall.function.arguments),
-              id: toolCall.id,
-            };
-            toolLogger.traceToolCallDetection(fnCall);
-            const event = this.handlePendingFunctionCall(fnCall);
-            if (event) {
-              yield event;
-            }
-          }
+        // Check if response was truncated or stopped for various reasons
+        const finishReason = resp.candidates?.[0]?.finishReason;
+
+        if (finishReason) {
+          this.finishReason = finishReason;
+          yield {
+            type: GeminiEventType.Finished,
+            value: finishReason as FinishReason,
+          };
         }
       }
     } catch (e) {
@@ -303,6 +275,7 @@ export class Turn {
         message: getErrorMessage(error),
         status,
       };
+      await this.chat.maybeIncludeSchemaDepthContext(structuredError);
       yield { type: GeminiEventType.Error, value: { error: structuredError } };
       return;
     }
@@ -324,13 +297,6 @@ export class Turn {
       isClientInitiated: false,
       prompt_id: this.prompt_id,
     };
-
-    toolLogger.debug('Creating tool call request', {
-      callId,
-      name,
-      hasArgs: Object.keys(args).length > 0,
-      prompt_id: this.prompt_id,
-    });
 
     this.pendingToolCalls.push(toolCallRequest);
 

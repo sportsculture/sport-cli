@@ -27,6 +27,7 @@ import { useSlashCommandProcessor } from './hooks/slashCommandProcessor.js';
 import { useAutoAcceptIndicator } from './hooks/useAutoAcceptIndicator.js';
 import { useConsoleMessages } from './hooks/useConsoleMessages.js';
 import { useModelSelector } from './hooks/useModelSelector.js';
+import { useFolderTrust } from './hooks/useFolderTrust.js';
 import { Header } from './components/Header.js';
 import { LoadingIndicator } from './components/LoadingIndicator.js';
 import { AutoAcceptIndicator } from './components/AutoAcceptIndicator.js';
@@ -39,6 +40,7 @@ import { ApiKeyDialog } from './components/ApiKeyDialog.js';
 import { AuthInProgress } from './components/AuthInProgress.js';
 import { EditorSettingsDialog } from './components/EditorSettingsDialog.js';
 import { ModelSelector } from './components/ModelSelector.js';
+import { FolderTrustDialog } from './components/FolderTrustDialog.js';
 import { ShellConfirmationDialog } from './components/ShellConfirmationDialog.js';
 import { Colors } from './colors.js';
 import { Help } from './components/Help.js';
@@ -289,6 +291,13 @@ const App = ({ config, settings, startupWarnings = [], version }: AppProps) => {
     closeModelSelector,
     handleModelSelect,
   } = useModelSelector(config, addItem);
+
+  const {
+    showFolderTrustDialog,
+    folderTrustPath,
+    handleFolderTrust,
+    handleFolderReject,
+  } = useFolderTrust(config);
 
   const performMemoryRefresh = useCallback(async () => {
     addItem(
@@ -877,6 +886,12 @@ const App = ({ config, settings, startupWarnings = [], version }: AppProps) => {
 
           {shellConfirmationRequest ? (
             <ShellConfirmationDialog request={shellConfirmationRequest} />
+          ) : showFolderTrustDialog && folderTrustPath ? (
+            <FolderTrustDialog
+              path={folderTrustPath}
+              onTrust={handleFolderTrust}
+              onReject={handleFolderReject}
+            />
           ) : isThemeDialogOpen ? (
             <Box flexDirection="column">
               {themeError && (

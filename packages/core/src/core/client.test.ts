@@ -199,9 +199,14 @@ describe('Gemini Client (client.ts)', () => {
       setQuotaErrorOccurred: vi.fn(),
       getNoBrowser: vi.fn().mockReturnValue(false),
       getUsageStatisticsEnabled: vi.fn().mockReturnValue(true),
-      getIdeMode: vi.fn().mockReturnValue(false),
+      getIdeModeFeature: vi.fn().mockReturnValue(false),
+      getIdeMode: vi.fn().mockReturnValue(true),
+      getWorkspaceContext: vi.fn().mockReturnValue({
+        getDirectories: vi.fn().mockReturnValue(['/test/dir']),
+      }),
       getGeminiClient: vi.fn(),
       setFallbackMode: vi.fn(),
+      getChatCompression: vi.fn().mockReturnValue(undefined),
     };
     const MockedConfig = vi.mocked(Config, true);
     MockedConfig.mockImplementation(
@@ -210,7 +215,9 @@ describe('Gemini Client (client.ts)', () => {
 
     // We can instantiate the client here since Config is mocked
     // and the constructor will use the mocked GoogleGenAI
-    client = new GeminiClient(new Config({} as never));
+    client = new GeminiClient(
+      new Config({ sessionId: 'test-session-id' } as never),
+    );
     mockConfigObject.getGeminiClient.mockReturnValue(client);
 
     await client.initialize(contentGeneratorConfig);
@@ -349,16 +356,19 @@ describe('Gemini Client (client.ts)', () => {
 
       await client.generateContent(contents, generationConfig, abortSignal);
 
-      expect(mockGenerateContentFn).toHaveBeenCalledWith({
-        model: 'test-model',
-        config: {
-          abortSignal,
-          systemInstruction: getCoreSystemPrompt(''),
-          temperature: 0.5,
-          topP: 1,
+      expect(mockGenerateContentFn).toHaveBeenCalledWith(
+        {
+          model: 'test-model',
+          config: {
+            abortSignal,
+            systemInstruction: getCoreSystemPrompt(''),
+            temperature: 0.5,
+            topP: 1,
+          },
+          contents,
         },
-        contents,
-      });
+        'test-session-id',
+      );
     });
   });
 
@@ -377,18 +387,21 @@ describe('Gemini Client (client.ts)', () => {
 
       await client.generateJson(contents, schema, abortSignal);
 
-      expect(mockGenerateContentFn).toHaveBeenCalledWith({
-        model: 'test-model', // Should use current model from config
-        config: {
-          abortSignal,
-          systemInstruction: getCoreSystemPrompt(''),
-          temperature: 0,
-          topP: 1,
-          responseSchema: schema,
-          responseMimeType: 'application/json',
+      expect(mockGenerateContentFn).toHaveBeenCalledWith(
+        {
+          model: 'test-model', // Should use current model from config
+          config: {
+            abortSignal,
+            systemInstruction: getCoreSystemPrompt(''),
+            temperature: 0,
+            topP: 1,
+            responseSchema: schema,
+            responseMimeType: 'application/json',
+          },
+          contents,
         },
-        contents,
-      });
+        'test-session-id',
+      );
     });
 
     it('should allow overriding model and config', async () => {
@@ -412,19 +425,22 @@ describe('Gemini Client (client.ts)', () => {
         customConfig,
       );
 
-      expect(mockGenerateContentFn).toHaveBeenCalledWith({
-        model: customModel,
-        config: {
-          abortSignal,
-          systemInstruction: getCoreSystemPrompt(''),
-          temperature: 0.9,
-          topP: 1, // from default
-          topK: 20,
-          responseSchema: schema,
-          responseMimeType: 'application/json',
+      expect(mockGenerateContentFn).toHaveBeenCalledWith(
+        {
+          model: customModel,
+          config: {
+            abortSignal,
+            systemInstruction: getCoreSystemPrompt(''),
+            temperature: 0.9,
+            topP: 1, // from default
+            topK: 20,
+            responseSchema: schema,
+            responseMimeType: 'application/json',
+          },
+          contents,
         },
-        contents,
-      });
+        'test-session-id',
+      );
     });
   });
 
@@ -516,14 +532,19 @@ describe('Gemini Client (client.ts)', () => {
       expect(newChat).toBe(initialChat);
     });
 
-    it('should trigger summarization if token count is at threshold', async () => {
+    it('should trigger summarization if token count is at threshold with contextPercentageThreshold setting', async () => {
       const MOCKED_TOKEN_LIMIT = 1000;
+      const MOCKED_CONTEXT_PERCENTAGE_THRESHOLD = 0.5;
       vi.mocked(tokenLimit).mockReturnValue(MOCKED_TOKEN_LIMIT);
+      vi.spyOn(client['config'], 'getChatCompression').mockReturnValue({
+        contextPercentageThreshold: MOCKED_CONTEXT_PERCENTAGE_THRESHOLD,
+      });
       mockGetHistory.mockReturnValue([
         { role: 'user', parts: [{ text: '...history...' }] },
       ]);
 
-      const originalTokenCount = 1000 * 0.7;
+      const originalTokenCount =
+        MOCKED_TOKEN_LIMIT * MOCKED_CONTEXT_PERCENTAGE_THRESHOLD;
       const newTokenCount = 100;
 
       mockCountTokens
@@ -646,7 +667,7 @@ describe('Gemini Client (client.ts)', () => {
   });
 
   describe('sendMessageStream', () => {
-    it('should include IDE context when ideMode is enabled', async () => {
+    it('should include IDE context when ideModeFeature is enabled', async () => {
       // Arrange
       vi.mocked(ideContext.getIdeContext).mockReturnValue({
         workspaceState: {
@@ -670,7 +691,7 @@ describe('Gemini Client (client.ts)', () => {
         },
       });
 
-      vi.spyOn(client['config'], 'getIdeMode').mockReturnValue(true);
+      vi.spyOn(client['config'], 'getIdeModeFeature').mockReturnValue(true);
 
       const mockStream = (async function* () {
         yield { type: 'content', value: 'Hello' };
@@ -721,7 +742,7 @@ Here are some other files the user has open, with the most recent at the top:
       );
     });
 
-    it('should not add context if ideMode is enabled but no open files', async () => {
+    it('should not add context if ideModeFeature is enabled but no open files', async () => {
       // Arrange
       vi.mocked(ideContext.getIdeContext).mockReturnValue({
         workspaceState: {
@@ -729,7 +750,7 @@ Here are some other files the user has open, with the most recent at the top:
         },
       });
 
-      vi.spyOn(client['config'], 'getIdeMode').mockReturnValue(true);
+      vi.spyOn(client['config'], 'getIdeModeFeature').mockReturnValue(true);
 
       const mockStream = (async function* () {
         yield { type: 'content', value: 'Hello' };
@@ -768,7 +789,7 @@ Here are some other files the user has open, with the most recent at the top:
       );
     });
 
-    it('should add context if ideMode is enabled and there is one active file', async () => {
+    it('should add context if ideModeFeature is enabled and there is one active file', async () => {
       // Arrange
       vi.mocked(ideContext.getIdeContext).mockReturnValue({
         workspaceState: {
@@ -784,7 +805,7 @@ Here are some other files the user has open, with the most recent at the top:
         },
       });
 
-      vi.spyOn(client['config'], 'getIdeMode').mockReturnValue(true);
+      vi.spyOn(client['config'], 'getIdeModeFeature').mockReturnValue(true);
 
       const mockStream = (async function* () {
         yield { type: 'content', value: 'Hello' };
@@ -832,7 +853,7 @@ This is the selected text in the file:
       );
     });
 
-    it('should add context if ideMode is enabled and there are open files but no active file', async () => {
+    it('should add context if ideModeFeature is enabled and there are open files but no active file', async () => {
       // Arrange
       vi.mocked(ideContext.getIdeContext).mockReturnValue({
         workspaceState: {
@@ -849,7 +870,7 @@ This is the selected text in the file:
         },
       });
 
-      vi.spyOn(client['config'], 'getIdeMode').mockReturnValue(true);
+      vi.spyOn(client['config'], 'getIdeModeFeature').mockReturnValue(true);
 
       const mockStream = (async function* () {
         yield { type: 'content', value: 'Hello' };
@@ -1192,11 +1213,14 @@ Here are some files the user has open, with the most recent at the top:
         config: expect.any(Object),
         contents,
       });
-      expect(mockGenerateContentFn).toHaveBeenCalledWith({
-        model: currentModel,
-        config: expect.any(Object),
-        contents,
-      });
+      expect(mockGenerateContentFn).toHaveBeenCalledWith(
+        {
+          model: currentModel,
+          config: expect.any(Object),
+          contents,
+        },
+        'test-session-id',
+      );
     });
   });
 
