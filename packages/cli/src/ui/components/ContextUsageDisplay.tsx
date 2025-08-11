@@ -6,7 +6,7 @@
 
 import { Text } from 'ink';
 import { Colors } from '../colors.js';
-import { tokenLimit } from '@google/gemini-cli-core';
+import { tokenLimit } from '@sport/core';
 
 export const ContextUsageDisplay = ({
   promptTokenCount,

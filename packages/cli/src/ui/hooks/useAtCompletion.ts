@@ -5,7 +5,7 @@
  */
 
 import { useEffect, useReducer, useRef } from 'react';
-import { Config, FileSearch, escapePath } from '@google/gemini-cli-core';
+import { Config, FileSearch, escapePath } from '@sport/core';
 import {
   Suggestion,
   MAX_SUGGESTIONS_TO_SHOW,

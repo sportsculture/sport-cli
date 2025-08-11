@@ -52,7 +52,7 @@ import { registerCleanup } from '../utils/cleanup.js';
 import { DetailedMessagesDisplay } from './components/DetailedMessagesDisplay.js';
 import { HistoryItemDisplay } from './components/HistoryItemDisplay.js';
 import { ContextSummaryDisplay } from './components/ContextSummaryDisplay.js';
-import { IDEContextDetailDisplay } from './components/IDEContextDetailDisplay.js';
+// import { IDEContextDetailDisplay } from './components/IDEContextDetailDisplay.js';
 import { useHistory } from './hooks/useHistoryManager.js';
 import process from 'node:process';
 import {
@@ -1036,9 +1036,9 @@ const App = ({ config, settings, startupWarnings = [], version }: AppProps) => {
                   {shellModeActive && <ShellModeIndicator />}
                 </Box>
               </Box>
-              {showIDEContextDetail && (
+              {/* {showIDEContextDetail && (
                 <IDEContextDetailDisplay ideContext={ideContextState} />
-              )}
+              )} */}
               {showErrorDetails && (
                 <OverflowProvider>
                   <Box flexDirection="column">

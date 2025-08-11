@@ -45,7 +45,10 @@ import { DEFAULT_GEMINI_FLASH_MODEL } from '../config/models.js';
 import { LoopDetectionService } from '../services/loopDetectionService.js';
 import { ideContext } from '../ide/ideContext.js';
 import { toolLogger } from '../utils/logger.js';
-import { logFlashDecidedToContinue, logNextSpeakerCheck } from '../telemetry/loggers.js';
+import {
+  logFlashDecidedToContinue,
+  logNextSpeakerCheck,
+} from '../telemetry/loggers.js';
 import {
   FlashDecidedToContinueEvent,
   MalformedJsonResponseEvent,
@@ -231,72 +234,6 @@ export class GeminiClient {
 
     // Create new chat with updated content generator and preserved history
     this.chat = await this.startChat(handoffHistory);
-  }
-
-<<<<<<< HEAD
-  private async getEnvironment(): Promise<Part[]> {
-    const cwd = this.config.getWorkingDir();
-    const today = new Date().toLocaleDateString(undefined, {
-      weekday: 'long',
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-    });
-    const platform = process.platform;
-    const folderStructure = await getFolderStructure(cwd, {
-      fileService: this.config.getFileService(),
-    });
-    const modelName = this.config.getModel();
-    const context = `
-  This is a command-line interface using ${modelName}. We are setting up the context for our chat.
-  Today's date is ${today}.
-  My operating system is: ${platform}
-  I'm currently working in the directory: ${cwd}
-  ${folderStructure}
-          `.trim();
-
-    const initialParts: Part[] = [{ text: context }];
-    const toolRegistry = await this.config.getToolRegistry();
-
-    // Add full file context if the flag is set
-    if (this.config.getFullContext()) {
-      try {
-        const readManyFilesTool = toolRegistry.getTool(
-          'read_many_files',
-        ) as ReadManyFilesTool;
-        if (readManyFilesTool) {
-          // Read all files in the target directory
-          const result = await readManyFilesTool.execute(
-            {
-              paths: ['**/*'], // Read everything recursively
-              useDefaultExcludes: true, // Use default excludes
-            },
-            AbortSignal.timeout(30000),
-          );
-          if (result.llmContent) {
-            initialParts.push({
-              text: `\n--- Full File Context ---\n${result.llmContent}`,
-            });
-          } else {
-            console.warn(
-              'Full context requested, but read_many_files returned no content.',
-            );
-          }
-        } else {
-          console.warn(
-            'Full context requested, but read_many_files tool not found.',
-          );
-        }
-      } catch (error) {
-        // Not using reportError here as it's a startup/config phase, not a chat/generation phase error.
-        console.error('Error reading full file context:', error);
-        initialParts.push({
-          text: '\n--- Error reading full file context ---',
-        });
-      }
-    }
-
-    return initialParts;
   }
 
   async addDirectoryContext(): Promise<void> {

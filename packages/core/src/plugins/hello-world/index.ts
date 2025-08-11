@@ -21,18 +21,15 @@ const helloWorldPlugin: SportCliPlugin = {
   },
 
   hooks: {
-    beforeShellExecute: (cmd: string) => 
+    beforeShellExecute: (cmd: string) =>
       // Add a greeting before the command
-       `echo "👋 Hello from sport-cli plugin!" && ${cmd}`
-    ,
-
-    afterShellExecute: (result) => 
+      `echo "👋 Hello from sport-cli plugin!" && ${cmd}`,
+    afterShellExecute: (result) =>
       // Add a footer to the output
-       ({
+      ({
         ...result,
         stdout: result.stdout + '\n\n✨ Powered by sport-cli plugins',
-      })
-    ,
+      }),
   },
 };
 

@@ -10,7 +10,7 @@ import * as path from 'path';
 import { homedir } from 'os';
 import { bfsFileSearch } from './bfsFileSearch.js';
 import {
-  GEMINI_CONFIG_DIR,
+  SPRTSCLTR_CONFIG_DIR,
   getAllGeminiMdFilenames,
 } from '../tools/memoryTool.js';
 import { FileDiscoveryService } from '../services/fileDiscoveryService.js';
@@ -127,7 +127,7 @@ async function getGeminiMdFilePathsInternalForEachDir(
     const resolvedHome = path.resolve(userHomePath);
     const globalMemoryPath = path.join(
       resolvedHome,
-      GEMINI_CONFIG_DIR,
+      SPRTSCLTR_CONFIG_DIR,
       geminiMdFilename,
     );
 
@@ -163,7 +163,7 @@ async function getGeminiMdFilePathsInternalForEachDir(
         : path.dirname(resolvedHome);
 
       while (currentDir && currentDir !== path.dirname(currentDir)) {
-        if (currentDir === path.join(resolvedHome, GEMINI_CONFIG_DIR)) {
+        if (currentDir === path.join(resolvedHome, SPRTSCLTR_CONFIG_DIR)) {
           break;
         }
 

@@ -5,7 +5,7 @@
  */
 
 import * as vscode from 'vscode';
-import { IdeContextNotificationSchema } from '@google/gemini-cli-core';
+import { IdeContextNotificationSchema } from '@sport/core';
 import { isInitializeRequest } from '@modelcontextprotocol/sdk/types.js';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';

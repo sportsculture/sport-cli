@@ -69,12 +69,9 @@ export interface CliArgs {
   experimentalAcp: boolean | undefined;
   extensions: string[] | undefined;
   listExtensions: boolean | undefined;
-<<<<<<< HEAD
   ideMode: boolean | undefined;
   models: boolean | undefined;
-=======
   ideModeFeature: boolean | undefined;
->>>>>>> upstream/main
   proxy: string | undefined;
   includeDirectories: string[] | undefined;
 }
@@ -85,153 +82,13 @@ export async function parseArguments(): Promise<CliArgs> {
     .usage(
       'Usage: gemini [options] [command]\n\nGemini CLI - Launch an interactive CLI, use -p/--prompt for non-interactive mode',
     )
-<<<<<<< HEAD
-    .option('model', {
-      alias: 'm',
-      type: 'string',
-      description: `Model`,
-      default: process.env.GEMINI_MODEL || DEFAULT_GEMINI_MODEL,
-    })
-    .option('prompt', {
-      alias: 'p',
-      type: 'string',
-      description: 'Prompt. Appended to input on stdin (if any).',
-    })
-    .option('prompt-interactive', {
-      alias: 'i',
-      type: 'string',
-      description:
-        'Execute the provided prompt and continue in interactive mode',
-    })
-    .option('sandbox', {
-      alias: 's',
-      type: 'boolean',
-      description: 'Run in sandbox?',
-    })
-    .option('sandbox-image', {
-      type: 'string',
-      description: 'Sandbox image URI.',
-    })
-    .option('debug', {
-      alias: 'd',
-      type: 'boolean',
-      description: 'Run in debug mode?',
-      default: false,
-    })
-    .option('debug-tools', {
-      type: 'boolean',
-      description: 'Enable debug logging for tool execution flow',
-      default: false,
-    })
-    .option('all-files', {
-      alias: ['a'],
-      type: 'boolean',
-      description: 'Include ALL files in context?',
-      default: false,
-    })
-    .option('all_files', {
-      type: 'boolean',
-      description: 'Include ALL files in context?',
-      default: false,
-    })
-    .deprecateOption(
-      'all_files',
-      'Use --all-files instead. We will be removing --all_files in the coming weeks.',
-    )
-    .option('show-memory-usage', {
-      type: 'boolean',
-      description: 'Show memory usage in status bar',
-      default: false,
-    })
-    .option('show_memory_usage', {
-      type: 'boolean',
-      description: 'Show memory usage in status bar',
-      default: false,
-    })
-    .deprecateOption(
-      'show_memory_usage',
-      'Use --show-memory-usage instead. We will be removing --show_memory_usage in the coming weeks.',
-    )
-    .option('yolo', {
-      alias: 'y',
-      type: 'boolean',
-      description:
-        'Automatically accept all actions (aka YOLO mode, see https://www.youtube.com/watch?v=xvFZjo5PgG0 for more details)?',
-      default: false,
-    })
-    .option('telemetry', {
-      type: 'boolean',
-      description:
-        'Enable telemetry? This flag specifically controls if telemetry is sent. Other --telemetry-* flags set specific values but do not enable telemetry on their own.',
-    })
-    .option('telemetry-target', {
-      type: 'string',
-      choices: ['local', 'gcp'],
-      description:
-        'Set the telemetry target (local or gcp). Overrides settings files.',
-    })
-    .option('telemetry-otlp-endpoint', {
-      type: 'string',
-      description:
-        'Set the OTLP endpoint for telemetry. Overrides environment variables and settings files.',
-    })
-    .option('telemetry-log-prompts', {
-      type: 'boolean',
-      description:
-        'Enable or disable logging of user prompts for telemetry. Overrides settings files.',
-    })
-    .option('telemetry-outfile', {
-      type: 'string',
-      description: 'Redirect all telemetry output to the specified file.',
-    })
-    .option('checkpointing', {
-      alias: 'c',
-      type: 'boolean',
-      description: 'Enables checkpointing of file edits',
-      default: false,
-    })
-    .option('experimental-acp', {
-      type: 'boolean',
-      description: 'Starts the agent in ACP mode',
-    })
-    .option('allowed-mcp-server-names', {
-      type: 'array',
-      string: true,
-      description: 'Allowed MCP server names',
-    })
-    .option('extensions', {
-      alias: 'e',
-      type: 'array',
-      string: true,
-      description:
-        'A list of extensions to use. If not provided, all extensions are used.',
-    })
-    .option('list-extensions', {
-      alias: 'l',
-      type: 'boolean',
-      description: 'List all available extensions and exit.',
-    })
-    .option('ide-mode', {
-      type: 'boolean',
-      description: 'Run in IDE mode?',
-    })
-    .option('models', {
-      type: 'boolean',
-      description: 'List all available AI models and exit.',
-    })
-    .option('proxy', {
-      type: 'string',
-      description:
-        'Proxy for gemini client, like schema://user:password@host:port',
-    })
-=======
     .command('$0', 'Launch Gemini CLI', (yargsInstance) =>
       yargsInstance
         .option('model', {
           alias: 'm',
           type: 'string',
           description: `Model`,
-          default: process.env.GEMINI_MODEL,
+          default: process.env.GEMINI_MODEL || DEFAULT_GEMINI_MODEL,
         })
         .option('prompt', {
           alias: 'p',
@@ -257,6 +114,11 @@ export async function parseArguments(): Promise<CliArgs> {
           alias: 'd',
           type: 'boolean',
           description: 'Run in debug mode?',
+          default: false,
+        })
+        .option('debug-tools', {
+          type: 'boolean',
+          description: 'Enable debug logging for tool execution flow',
           default: false,
         })
         .option('all-files', {
@@ -347,6 +209,14 @@ export async function parseArguments(): Promise<CliArgs> {
           type: 'boolean',
           description: 'List all available extensions and exit.',
         })
+        .option('ide-mode', {
+          type: 'boolean',
+          description: 'Run in IDE mode?',
+        })
+        .option('models', {
+          type: 'boolean',
+          description: 'List all available AI models and exit.',
+        })
         .option('ide-mode-feature', {
           type: 'boolean',
           description: 'Run in IDE mode?',
@@ -376,7 +246,6 @@ export async function parseArguments(): Promise<CliArgs> {
     )
     // Register MCP subcommands
     .command(mcpCommand)
->>>>>>> upstream/main
     .version(await getCliVersion()) // This will enable the --version flag based on package.json
     .alias('v', 'version')
     .help()
@@ -566,12 +435,8 @@ export async function loadCliConfig(
     loadMemoryFromIncludeDirectories:
       settings.loadMemoryFromIncludeDirectories || false,
     debugMode,
-<<<<<<< HEAD
     debugTools: argv.debugTools || false,
-    question: argv.promptInteractive || argv.prompt || '',
-=======
     question,
->>>>>>> upstream/main
     fullContext: argv.allFiles || argv.all_files || false,
     coreTools: settings.coreTools || undefined,
     excludeTools,
@@ -580,13 +445,8 @@ export async function loadCliConfig(
     mcpServerCommand: settings.mcpServerCommand,
     mcpServers,
     userMemory: memoryContent,
-<<<<<<< HEAD
-    sprtscltrMdFileCount: fileCount,
-    approvalMode: argv.yolo || false ? ApprovalMode.YOLO : ApprovalMode.DEFAULT,
-=======
     geminiMdFileCount: fileCount,
     approvalMode,
->>>>>>> upstream/main
     showMemoryUsage:
       argv.showMemoryUsage ||
       argv.show_memory_usage ||

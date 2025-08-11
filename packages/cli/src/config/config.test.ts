@@ -8,7 +8,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import * as os from 'os';
 import * as fs from 'fs';
 import * as path from 'path';
-import { ShellTool, EditTool, WriteFileTool } from '@google/gemini-cli-core';
+import { ShellTool, EditTool, WriteFileTool } from '@sport/core';
 import { loadCliConfig, parseArguments } from './config.js';
 import { Settings } from './settings.js';
 import { Extension } from './extension.js';

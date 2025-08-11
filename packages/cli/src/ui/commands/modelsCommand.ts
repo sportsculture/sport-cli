@@ -11,10 +11,10 @@ import {
   createContentGenerator,
   createContentGeneratorConfig,
   isProvider,
-
   getTopRecommendations,
   scoreModels,
-  formatModelForDisplay} from '@sport/core';
+  formatModelForDisplay,
+} from '@sport/core';
 
 // Helper function to get dynamic recommendations
 async function getDynamicRecommendations(

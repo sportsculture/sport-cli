@@ -15,7 +15,7 @@ import { isSlashCommand } from '../utils/commandUtils.js';
 import { toCodePoints } from '../utils/textUtils.js';
 import { useAtCompletion } from './useAtCompletion.js';
 import { useSlashCompletion } from './useSlashCompletion.js';
-import { Config } from '@google/gemini-cli-core';
+import { Config } from '@sport/core';
 import { useCompletion } from './useCompletion.js';
 
 export enum CompletionMode {
