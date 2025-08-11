@@ -202,6 +202,8 @@ export async function main() {
     }> = [];
     let totalConfigured = 0;
     let totalProviders = 0;
+    const configuredProviders: string[] = [];
+    const unconfiguredProviders: string[] = [];
 
     for (const checkAuthType of authTypes) {
       try {
@@ -220,6 +222,7 @@ export async function main() {
 
           if (status.isConfigured) {
             totalConfigured++;
+            configuredProviders.push(providerName);
             const models = await generator.getAvailableModels();
             models.forEach((model) => {
               allModels.push({
@@ -229,6 +232,7 @@ export async function main() {
               });
             });
           } else {
+            unconfiguredProviders.push(providerName);
             allModels.push({
               model: null,
               provider: providerName,
@@ -246,7 +250,77 @@ export async function main() {
     }
 
     if (!showAll) {
-      // Show curated recommendations
+      // Get configured models
+      const configuredModels = allModels.filter(m => m.configured && m.model);
+      
+      // Score models for programming
+      const programmingModels = configuredModels
+        .filter(m => {
+          const id = m.model.id.toLowerCase();
+          // Prioritize models known for programming
+          return id.includes('code') || 
+                 id.includes('coder') || 
+                 id.includes('gpt-4') ||
+                 id.includes('claude') ||
+                 id.includes('deepseek') ||
+                 id.includes('sonnet') ||
+                 id.includes('opus');
+        })
+        .map(m => ({
+          ...m.model,
+          programmingScore: 
+            (m.model.id.includes('gpt-4o') ? 100 : 0) +
+            (m.model.id.includes('claude-3.5-sonnet') ? 95 : 0) +
+            (m.model.id.includes('deepseek-coder') ? 90 : 0) +
+            (m.model.id.includes('claude-3-opus') ? 85 : 0) +
+            (m.model.id.includes('gpt-4-turbo') ? 80 : 0) +
+            (m.model.capabilities?.contextWindow || 0) / 10000
+        }))
+        .sort((a, b) => b.programmingScore - a.programmingScore);
+      
+      // Get cheapest models from top 20 programming models
+      const top20Programming = programmingModels.slice(0, 20);
+      const cheapestProgramming = [...top20Programming]
+        .filter(m => m.pricing?.inputPer1k)
+        .sort((a, b) => {
+          const aCost = parseFloat(a.pricing.inputPer1k) + parseFloat(a.pricing.outputPer1k);
+          const bCost = parseFloat(b.pricing.inputPer1k) + parseFloat(b.pricing.outputPer1k);
+          return aCost - bCost;
+        })
+        .slice(0, 3);
+
+      // Combine recommendations
+      const recommendations = [];
+      
+      // Add top 3 programming models
+      if (programmingModels.length > 0) {
+        recommendations.push(
+          { model: programmingModels[0], recommendedFor: '🏆 Best for Programming' },
+          { model: programmingModels[1], recommendedFor: '🥈 Programming Runner-up' },
+          { model: programmingModels[2], recommendedFor: '🥉 Programming 3rd Place' }
+        );
+      }
+      
+      // Add cheapest 3 from top 20
+      cheapestProgramming.forEach((model, i) => {
+        recommendations.push({
+          model,
+          recommendedFor: i === 0 ? '💰 Most Affordable (Top 20)' : 
+                         i === 1 ? '💵 Budget Option (Top 20)' :
+                         '💸 Value Choice (Top 20)'
+        });
+      });
+      
+      // Add any Gemini free models if available
+      const geminiModels = configuredModels.filter(m => m.provider === 'Gemini' && m.model);
+      if (geminiModels.length > 0) {
+        recommendations.push({
+          model: geminiModels[0].model,
+          recommendedFor: '🆓 Free Tier Available'
+        });
+      }
+      
+      // Show recommendations
       console.log('Recommended Models:\n');
       console.log(
         '  Model ID                          Recommended For         Context   Cost (per 1M tokens, In/Out)',
@@ -255,67 +329,43 @@ export async function main() {
         '  --------------------------------- ----------------------- --------- --------------------------',
       );
 
-      // Define curated recommendations
-      const recommendations = [
-        {
-          id: 'openai/gpt-4o',
-          recommendedFor: 'Advanced Reasoning',
-          provider: 'OpenRouter',
-        },
-        {
-          id: 'anthropic/claude-3-haiku',
-          recommendedFor: 'Fast & Cheap Chat',
-          provider: 'OpenRouter',
-        },
-        {
-          id: 'gemini-2.5-flash',
-          recommendedFor: 'Balanced Performance',
-          provider: 'Gemini',
-        },
-        {
-          id: 'deepseek/deepseek-coder',
-          recommendedFor: 'Code Generation',
-          provider: 'OpenRouter',
-        },
-        {
-          id: 'mistralai/mistral-large',
-          recommendedFor: 'Creative Writing',
-          provider: 'OpenRouter',
-        },
-        {
-          id: 'deepseek/deepseek-chat',
-          recommendedFor: 'Cost-effective Chat',
-          provider: 'OpenRouter',
-        },
-      ];
+      for (const rec of recommendations.slice(0, 7)) { // Show max 7 recommendations
+        if (!rec.model) continue;
+        
+        const model = rec.model;
+        const context = model.capabilities?.contextWindow
+          ? `${(model.capabilities.contextWindow / 1000).toFixed(0)}k`
+          : 'N/A';
 
-      for (const rec of recommendations) {
-        const found = allModels.find(
-          (m) => m.model && m.model.id === rec.id && m.configured,
-        );
-
-        if (found && found.model) {
-          const model = found.model;
-          const context = model.capabilities?.contextWindow
-            ? `${(model.capabilities.contextWindow / 1000).toFixed(0)}k`
-            : 'N/A';
-
-          let pricing = 'N/A';
-          if (model.pricing?.inputPer1k && model.pricing?.outputPer1k) {
-            const inputCost = (model.pricing.inputPer1k * 1000).toFixed(2);
-            const outputCost = (model.pricing.outputPer1k * 1000).toFixed(2);
-            pricing = `$${inputCost} / $${outputCost}`;
-          }
-
-          console.log(
-            `  ${model.id.padEnd(33)} ${rec.recommendedFor.padEnd(23)} ${context.padEnd(9)} ${pricing}`,
-          );
+        let pricing = 'N/A';
+        if (model.pricing?.inputPer1k && model.pricing?.outputPer1k) {
+          const inputCost = (model.pricing.inputPer1k * 1000).toFixed(2);
+          const outputCost = (model.pricing.outputPer1k * 1000).toFixed(2);
+          pricing = `$${inputCost} / $${outputCost}`;
+        } else if (rec.recommendedFor.includes('Free')) {
+          pricing = 'Free';
         }
+
+        console.log(
+          `  ${(model.id || '').padEnd(33)} ${rec.recommendedFor.padEnd(23)} ${context.padEnd(9)} ${pricing}`,
+        );
       }
 
-      console.log(
-        `\n📊 Summary: ${totalConfigured} of ${totalProviders} providers configured`,
-      );
+      // Show provider status
+      console.log('\n📊 Provider Status:');
+      if (configuredProviders.length > 0) {
+        console.log(`  ✅ Configured: ${configuredProviders.join(', ')}`);
+      }
+      if (unconfiguredProviders.length > 0) {
+        console.log(`  ❌ Not configured: ${unconfiguredProviders.join(', ')}`);
+      }
+      
+      // Show how recommendations work
+      console.log('\n💡 How recommendations work:');
+      console.log('  • Models are scored based on capabilities, cost, and performance');
+      console.log('  • Top models from each provider are selected');
+      console.log('  • Recommendations update based on available models');
+      
       console.log(
         '\nTo see all available models grouped by provider, run: sport --models --all\n',
       );

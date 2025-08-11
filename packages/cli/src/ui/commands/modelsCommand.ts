@@ -231,6 +231,8 @@ export const modelsCommand: SlashCommand = {
     }> = [];
     let totalConfigured = 0;
     let totalProviders = 0;
+    const configuredProviders: string[] = [];
+    const unconfiguredProviders: string[] = [];
 
     for (const checkAuthType of authTypes) {
       try {
@@ -249,6 +251,7 @@ export const modelsCommand: SlashCommand = {
 
           if (status.isConfigured) {
             totalConfigured++;
+            configuredProviders.push(providerName);
             const models = await generator.getAvailableModels();
             models.forEach((model) => {
               allModels.push({
@@ -258,6 +261,7 @@ export const modelsCommand: SlashCommand = {
               });
             });
           } else {
+            unconfiguredProviders.push(providerName);
             allModels.push({
               model: null,
               provider: providerName,
@@ -339,7 +343,23 @@ export const modelsCommand: SlashCommand = {
       }
 
       modelsContent += `🔗 \x1b[1m[View all OpenRouter models](https://openrouter.ai/models)\x1b[0m\n\n`;
-      modelsContent += `📊 \x1b[1mSummary\x1b[0m: ${totalConfigured} of ${totalProviders} providers configured\n\n`;
+      
+      // Show detailed provider status
+      modelsContent += `📊 \x1b[1mProvider Status:\x1b[0m\n`;
+      if (configuredProviders.length > 0) {
+        modelsContent += `  ✅ Configured: ${configuredProviders.join(', ')}\n`;
+      }
+      if (unconfiguredProviders.length > 0) {
+        modelsContent += `  ❌ Not configured: ${unconfiguredProviders.join(', ')}\n`;
+      }
+      modelsContent += `\n`;
+      
+      // Add explanation of recommendations
+      modelsContent += `💡 \x1b[1mHow recommendations work:\x1b[0m\n`;
+      modelsContent += `  • Models are scored based on capabilities, cost, and performance\n`;
+      modelsContent += `  • Top models from each provider are selected\n`;
+      modelsContent += `  • Recommendations update based on available models\n\n`;
+      
       modelsContent +=
         '_💡 \x1b[1mTip\x1b[0m: Type `/models all` to see all available models grouped by provider._\n\n';
     } else {
