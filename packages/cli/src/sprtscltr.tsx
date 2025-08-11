@@ -250,33 +250,84 @@ export async function main() {
     }
 
     if (!showAll) {
+      // Try to fetch rankings from the scraped data
+      let rankingsData: any = null;
+      try {
+        const response = await fetch('https://gist.githubusercontent.com/sportsculture/a8f3bac998db4178457d3bd9f0a0d705/raw/openrouter-rankings.json');
+        if (response.ok) {
+          rankingsData = await response.json();
+        }
+      } catch (err) {
+        // Fall back to default recommendations if rankings fetch fails
+        if (config.getDebugMode()) {
+          console.debug('Failed to fetch rankings:', err);
+        }
+      }
+
       // Get configured models
       const configuredModels = allModels.filter(m => m.configured && m.model);
       
-      // Score models for programming
-      const programmingModels = configuredModels
-        .filter(m => {
-          const id = m.model.id.toLowerCase();
-          // Prioritize models known for programming
-          return id.includes('code') || 
-                 id.includes('coder') || 
-                 id.includes('gpt-4') ||
-                 id.includes('claude') ||
-                 id.includes('deepseek') ||
-                 id.includes('sonnet') ||
-                 id.includes('opus');
-        })
-        .map(m => ({
-          ...m.model,
-          programmingScore: 
-            (m.model.id.includes('gpt-4o') ? 100 : 0) +
-            (m.model.id.includes('claude-3.5-sonnet') ? 95 : 0) +
-            (m.model.id.includes('deepseek-coder') ? 90 : 0) +
-            (m.model.id.includes('claude-3-opus') ? 85 : 0) +
-            (m.model.id.includes('gpt-4-turbo') ? 80 : 0) +
-            (m.model.capabilities?.contextWindow || 0) / 10000
-        }))
-        .sort((a, b) => b.programmingScore - a.programmingScore);
+      // If we have rankings data, use that to prioritize models
+      let programmingModels;
+      if (rankingsData?.currentSnapshot?.rankings) {
+        const rankedModelIds = rankingsData.currentSnapshot.rankings.map((r: any) => r.modelId.toLowerCase());
+        
+        // Sort configured models based on rankings
+        programmingModels = configuredModels
+          .filter(m => {
+            const id = m.model.id.toLowerCase();
+            // Check if model is in top rankings or is a programming model
+            return rankedModelIds.some((rankedId: string) => id.includes(rankedId.split('/').pop())) ||
+                   id.includes('code') || 
+                   id.includes('coder') || 
+                   id.includes('gpt-4') ||
+                   id.includes('claude') ||
+                   id.includes('deepseek') ||
+                   id.includes('sonnet') ||
+                   id.includes('opus');
+          })
+          .map(m => {
+            const modelId = m.model.id.toLowerCase();
+            const rankingIndex = rankedModelIds.findIndex((rankedId: string) => 
+              modelId.includes(rankedId.split('/').pop())
+            );
+            
+            // Calculate score: higher for models in rankings, lower rank = higher score
+            const rankingScore = rankingIndex >= 0 ? (10 - rankingIndex) * 100 : 0;
+            
+            return {
+              ...m.model,
+              programmingScore: rankingScore +
+                (m.model.capabilities?.contextWindow || 0) / 10000
+            };
+          })
+          .sort((a, b) => b.programmingScore - a.programmingScore);
+      } else {
+        // Fallback to original scoring logic
+        programmingModels = configuredModels
+          .filter(m => {
+            const id = m.model.id.toLowerCase();
+            // Prioritize models known for programming
+            return id.includes('code') || 
+                   id.includes('coder') || 
+                   id.includes('gpt-4') ||
+                   id.includes('claude') ||
+                   id.includes('deepseek') ||
+                   id.includes('sonnet') ||
+                   id.includes('opus');
+          })
+          .map(m => ({
+            ...m.model,
+            programmingScore: 
+              (m.model.id.includes('gpt-4o') ? 100 : 0) +
+              (m.model.id.includes('claude-3.5-sonnet') ? 95 : 0) +
+              (m.model.id.includes('deepseek-coder') ? 90 : 0) +
+              (m.model.id.includes('claude-3-opus') ? 85 : 0) +
+              (m.model.id.includes('gpt-4-turbo') ? 80 : 0) +
+              (m.model.capabilities?.contextWindow || 0) / 10000
+          }))
+          .sort((a, b) => b.programmingScore - a.programmingScore);
+      }
       
       // Get cheapest models from top 20 programming models
       const top20Programming = programmingModels.slice(0, 20);
@@ -292,8 +343,29 @@ export async function main() {
       // Combine recommendations
       const recommendations = [];
       
-      // Add top 3 programming models
-      if (programmingModels.length > 0) {
+      // Add top models based on rankings or defaults
+      if (rankingsData?.currentSnapshot?.rankings && programmingModels.length > 0) {
+        // Use actual rankings data to label recommendations
+        const rankings = rankingsData.currentSnapshot.rankings;
+        for (let i = 0; i < Math.min(3, programmingModels.length); i++) {
+          const model = programmingModels[i];
+          const ranking = rankings.find((r: any) => 
+            model.id.toLowerCase().includes(r.modelId.split('/').pop().toLowerCase())
+          );
+          
+          let label;
+          if (ranking) {
+            label = `#${ranking.rank} ${ranking.modelName}`;
+          } else {
+            label = i === 0 ? '🏆 Best for Programming' :
+                   i === 1 ? '🥈 Programming Runner-up' :
+                   '🥉 Programming 3rd Place';
+          }
+          
+          recommendations.push({ model, recommendedFor: label });
+        }
+      } else if (programmingModels.length > 0) {
+        // Fallback to default labels
         recommendations.push(
           { model: programmingModels[0], recommendedFor: '🏆 Best for Programming' },
           { model: programmingModels[1], recommendedFor: '🥈 Programming Runner-up' },
@@ -362,9 +434,46 @@ export async function main() {
       
       // Show how recommendations work
       console.log('\n💡 How recommendations work:');
-      console.log('  • Models are scored based on capabilities, cost, and performance');
+      if (rankingsData?.currentSnapshot) {
+        console.log('  • Rankings based on OpenRouter real-time usage data');
+        console.log(`  • Updated: ${new Date(rankingsData.lastUpdated).toLocaleDateString()}`);
+      } else {
+        console.log('  • Models are scored based on capabilities, cost, and performance');
+      }
       console.log('  • Top models from each provider are selected');
       console.log('  • Recommendations update based on available models');
+      
+      // Show top 10 rankings if available
+      if (rankingsData?.currentSnapshot?.rankings) {
+        console.log('\n🏆 Top 10 OpenRouter Programming Rankings:');
+        console.log(
+          '  Rank  Model                           Provider     Tokens    Growth   Cost ($/MTok)',
+        );
+        console.log(
+          '  ----  ------------------------------  -----------  --------  -------  -------------',
+        );
+        
+        rankingsData.currentSnapshot.rankings.slice(0, 10).forEach((ranking: any) => {
+          const rank = String(ranking.rank).padEnd(4);
+          const modelName = ranking.modelName.substring(0, 30).padEnd(30);
+          const provider = ranking.provider.substring(0, 11).padEnd(11);
+          const tokens = ranking.usage?.totalTokens 
+            ? `${(ranking.usage.totalTokens / 1e9).toFixed(0)}B`.padEnd(8)
+            : 'N/A'.padEnd(8);
+          const growth = ranking.usage?.percentageChange !== undefined
+            ? `${ranking.usage.percentageChange > 0 ? '+' : ''}${ranking.usage.percentageChange}%`.padEnd(7)
+            : 'stable'.padEnd(7);
+          const cost = ranking.cost?.input === 0 
+            ? 'Free'
+            : ranking.cost 
+              ? `$${ranking.cost.input}/$${ranking.cost.output}`
+              : 'N/A';
+          
+          console.log(`  ${rank}  ${modelName}  ${provider}  ${tokens}  ${growth}  ${cost}`);
+        });
+        
+        console.log('\n  💡 Cost format: Input/Output per million tokens');
+      }
       
       console.log(
         '\nTo see all available models grouped by provider, run: sport --models --all\n',

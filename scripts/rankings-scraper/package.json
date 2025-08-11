@@ -1,0 +1,26 @@
+{
+  "name": "sport-cli-rankings-scraper",
+  "version": "1.0.0",
+  "description": "Rankings scraper for OpenRouter model popularity",
+  "type": "module",
+  "scripts": {
+    "scrape": "tsx scrape-rankings.ts",
+    "scrape:puppeteer": "tsx scrape-with-puppeteer.ts",
+    "update-gist": "tsx update-gist.ts",
+    "build": "tsc",
+    "test": "tsx test-scraper.ts"
+  },
+  "dependencies": {
+    "2": "^3.0.0",
+    "@octokit/rest": "^20.0.2",
+    "cheerio": "^1.0.0-rc.12",
+    "dotenv": "^17.2.1",
+    "node-fetch": "^3.3.2",
+    "puppeteer": "^22.15.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.0",
+    "tsx": "^4.7.0",
+    "typescript": "^5.3.3"
+  }
+}
