@@ -445,7 +445,6 @@ export async function loadCliConfig(
     mcpServerCommand: settings.mcpServerCommand,
     mcpServers,
     userMemory: memoryContent,
-    geminiMdFileCount: fileCount,
     approvalMode,
     showMemoryUsage:
       argv.showMemoryUsage ||

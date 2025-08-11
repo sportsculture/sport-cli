@@ -447,7 +447,7 @@ export async function main() {
           process.exit(1);
         }
       }
-      await start_sandbox(sandboxConfig, memoryArgs, config);
+      await start_sandbox(sandboxConfig, memoryArgs);
       process.exit(0);
     } else {
       // Not in a sandbox and not entering one, so relaunch with additional

@@ -46,11 +46,9 @@ import { LoopDetectionService } from '../services/loopDetectionService.js';
 import { ideContext } from '../ide/ideContext.js';
 import { toolLogger } from '../utils/logger.js';
 import {
-  logFlashDecidedToContinue,
   logNextSpeakerCheck,
 } from '../telemetry/loggers.js';
 import {
-  FlashDecidedToContinueEvent,
   MalformedJsonResponseEvent,
   NextSpeakerCheckEvent,
 } from '../telemetry/types.js';

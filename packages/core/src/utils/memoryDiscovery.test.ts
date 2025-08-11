@@ -10,7 +10,7 @@ import * as os from 'os';
 import * as path from 'path';
 import { loadServerHierarchicalMemory } from './memoryDiscovery.js';
 import {
-  GEMINI_CONFIG_DIR,
+  SPRTSCLTR_CONFIG_DIR,
   setGeminiMdFilename,
   DEFAULT_CONTEXT_FILENAME,
 } from '../tools/memoryTool.js';
@@ -80,7 +80,7 @@ describe('loadServerHierarchicalMemory', () => {
 
   it('should load only the global context file if present and others are not (default filename)', async () => {
     const defaultContextFile = await createTestFile(
-      path.join(homedir, GEMINI_CONFIG_DIR, DEFAULT_CONTEXT_FILENAME),
+      path.join(homedir, SPRTSCLTR_CONFIG_DIR, DEFAULT_CONTEXT_FILENAME),
       'default context content',
     );
 
@@ -102,7 +102,7 @@ describe('loadServerHierarchicalMemory', () => {
     setGeminiMdFilename(customFilename);
 
     const customContextFile = await createTestFile(
-      path.join(homedir, GEMINI_CONFIG_DIR, customFilename),
+      path.join(homedir, SPRTSCLTR_CONFIG_DIR, customFilename),
       'custom context content',
     );
 
@@ -216,7 +216,7 @@ describe('loadServerHierarchicalMemory', () => {
 
   it('should load and correctly order global, upward, and downward ORIGINAL_GEMINI_MD_FILENAME files', async () => {
     const defaultContextFile = await createTestFile(
-      path.join(homedir, GEMINI_CONFIG_DIR, DEFAULT_CONTEXT_FILENAME),
+      path.join(homedir, SPRTSCLTR_CONFIG_DIR, DEFAULT_CONTEXT_FILENAME),
       'default context content',
     );
     const rootGeminiFile = await createTestFile(

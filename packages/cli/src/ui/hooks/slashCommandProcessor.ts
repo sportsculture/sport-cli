@@ -130,7 +130,8 @@ export const useSlashCommandProcessor = (
       } else {
         historyItemContent = {
           type: message.type,
-          text: message.content,
+          text: message.content || '',
+          timestamp: message.timestamp,
         };
       }
       addItem(historyItemContent, message.timestamp.getTime());
@@ -335,6 +336,16 @@ export const useSlashCommandProcessor = (
                     case 'model':
                       openModelSelector();
                       return { type: 'handled' };
+                    case 'settings':
+                      // TODO: Implement settings dialog
+                      addItem(
+                        {
+                          type: MessageType.INFO,
+                          text: 'Settings dialog is not yet implemented.',
+                        },
+                        Date.now(),
+                      );
+                      return { type: 'handled' };
                     default: {
                       const unhandled: never = result.dialog;
                       throw new Error(
@@ -403,6 +414,17 @@ export const useSlashCommandProcessor = (
                     // Pass the approved commands as a one-time grant for this execution.
                     new Set(approvedCommands),
                   );
+                }
+                case 'confirm_action': {
+                  // TODO: Implement generic confirmation dialog
+                  addItem(
+                    {
+                      type: MessageType.INFO,
+                      text: 'Generic confirmation is not yet implemented. Please re-run the command.',
+                    },
+                    Date.now(),
+                  );
+                  return { type: 'handled' };
                 }
                 default: {
                   const unhandled: never = result;

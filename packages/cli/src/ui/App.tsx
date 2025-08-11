@@ -293,11 +293,9 @@ const App = ({ config, settings, startupWarnings = [], version }: AppProps) => {
   } = useModelSelector(config, addItem);
 
   const {
-    showFolderTrustDialog,
-    folderTrustPath,
-    handleFolderTrust,
-    handleFolderReject,
-  } = useFolderTrust(config);
+    isFolderTrustDialogOpen,
+    handleFolderTrustSelect,
+  } = useFolderTrust(settings);
 
   const performMemoryRefresh = useCallback(async () => {
     addItem(
@@ -310,16 +308,16 @@ const App = ({ config, settings, startupWarnings = [], version }: AppProps) => {
     try {
       const { memoryContent, fileCount } = await loadHierarchicalGeminiMemory(
         process.cwd(),
+        [],
         config.getDebugMode(),
         config.getFileService(),
         settings.merged,
         config.getExtensionContextFilePaths(),
+        'tree',
         config.getFileFilteringOptions(),
       );
 
       config.setUserMemory(memoryContent);
-      config.setGeminiMdFileCount(fileCount);
-      setGeminiMdFileCount(fileCount);
 
       addItem(
         {
@@ -527,7 +525,6 @@ const App = ({ config, settings, startupWarnings = [], version }: AppProps) => {
     config.getGeminiClient(),
     history,
     addItem,
-    setShowHelp,
     config,
     setDebugMessage,
     handleSlashCommand,
@@ -537,6 +534,8 @@ const App = ({ config, settings, startupWarnings = [], version }: AppProps) => {
     performMemoryRefresh,
     modelSwitchedFromQuotaError,
     setModelSwitchedFromQuotaError,
+    () => {}, // onEditorClose
+    () => {}, // onCancelSubmit
   );
 
   // Input handling
@@ -821,7 +820,6 @@ const App = ({ config, settings, startupWarnings = [], version }: AppProps) => {
             <Box flexDirection="column" key="header">
               {!settings.merged.hideBanner && (
                 <Header
-                  terminalWidth={terminalWidth}
                   version={version}
                   nightly={nightly}
                 />
@@ -886,11 +884,9 @@ const App = ({ config, settings, startupWarnings = [], version }: AppProps) => {
 
           {shellConfirmationRequest ? (
             <ShellConfirmationDialog request={shellConfirmationRequest} />
-          ) : showFolderTrustDialog && folderTrustPath ? (
+          ) : isFolderTrustDialogOpen ? (
             <FolderTrustDialog
-              path={folderTrustPath}
-              onTrust={handleFolderTrust}
-              onReject={handleFolderReject}
+              onSelect={handleFolderTrustSelect}
             />
           ) : isThemeDialogOpen ? (
             <Box flexDirection="column">

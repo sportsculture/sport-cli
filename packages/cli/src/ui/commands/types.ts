@@ -66,6 +66,8 @@ export interface CommandContext {
     /** A transient list of shell commands the user has approved for this session. */
     sessionShellAllowlist: Set<string>;
   };
+  /** Indicates whether the user has confirmed to overwrite an existing resource. */
+  overwriteConfirmed?: boolean;
 }
 
 /**
@@ -98,7 +100,7 @@ export interface MessageActionReturn {
  */
 export interface OpenDialogActionReturn {
   type: 'dialog';
-  dialog: 'help' | 'auth' | 'theme' | 'editor' | 'privacy' | 'model';
+  dialog: 'help' | 'auth' | 'theme' | 'editor' | 'privacy' | 'model' | 'settings';
 }
 
 /**
@@ -134,6 +136,20 @@ export interface ConfirmShellCommandsActionReturn {
   };
 }
 
+/**
+ * The return type for a command action that needs to pause and request
+ * generic user confirmation before proceeding.
+ */
+export interface ConfirmActionReturn {
+  type: 'confirm_action';
+  /** The prompt to display to the user for confirmation. */
+  prompt: React.ReactNode;
+  /** The original invocation context to be re-run after confirmation. */
+  originalInvocation: {
+    raw: string;
+  };
+}
+
 export type SlashCommandActionReturn =
   | ToolActionReturn
   | MessageActionReturn
@@ -141,7 +157,8 @@ export type SlashCommandActionReturn =
   | OpenDialogActionReturn
   | LoadHistoryActionReturn
   | SubmitPromptActionReturn
-  | ConfirmShellCommandsActionReturn;
+  | ConfirmShellCommandsActionReturn
+  | ConfirmActionReturn;
 
 export enum CommandKind {
   BUILT_IN = 'built-in',
