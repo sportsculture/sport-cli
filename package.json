@@ -1,6 +1,6 @@
 {
   "name": "@sport/sport-cli",
-  "version": "0.1.18",
+  "version": "0.1.18-sport.1",
   "engines": {
     "node": ">=20.0.0"
   },
@@ -11,7 +11,7 @@
   "private": "true",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/sportsculture/gemini-cli.git"
+    "url": "git+https://github.com/sportsculture/sport-cli.git"
   },
   "config": {
     "sandboxImageUri": "us-docker.pkg.dev/gemini-code-dev/gemini-cli/sandbox:0.1.18"

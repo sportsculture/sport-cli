@@ -2,12 +2,12 @@
   "name": "sport-cli-vscode-ide-companion",
   "displayName": "sport-cli VSCode IDE Companion",
   "description": "Enable sport-cli with direct access to your VS Code workspace.",
-  "version": "0.0.1",
+  "version": "0.1.18-sport.1",
   "publisher": "google",
   "icon": "assets/icon.png",
   "repository": {
     "type": "git",
-    "url": "https://github.com/sportsculture/gemini-cli.git",
+    "url": "https://github.com/sportsculture/sport-cli.git",
     "directory": "packages/vscode-ide-companion"
   },
   "engines": {

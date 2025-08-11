@@ -1,6 +1,6 @@
 # sport-cli - Multi-Provider AI CLI
 
-[![sport-cli CI](https://github.com/sportsculture/gemini-cli/actions/workflows/ci.yml/badge.svg)](https://github.com/sportsculture/gemini-cli/actions/workflows/ci.yml)
+[![sport-cli CI](https://github.com/sportsculture/sport-cli/actions/workflows/ci.yml/badge.svg)](https://github.com/sportsculture/sport-cli/actions/workflows/ci.yml)
 
 ![sport-cli Screenshot](./docs/assets/sport-screenshot.png)
 
@@ -32,7 +32,7 @@ You have two options to install Gemini CLI.
 2. **Run the CLI:** Execute the following command in your terminal:
 
    ```bash
-   npx https://github.com/sportsculture/gemini-cli
+   npx https://github.com/sportsculture/sport-cli
    ```
 
    Or install it globally:

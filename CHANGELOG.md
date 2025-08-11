@@ -1,5 +1,8 @@
 # Changelog
 
+> **Note**: This is the sport-cli enhanced fork of gemini-cli.  
+> For sport-cli specific features and changes, see [CHANGELOG-SPORT.md](./CHANGELOG-SPORT.md)
+
 All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
