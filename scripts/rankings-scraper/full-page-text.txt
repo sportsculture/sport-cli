@@ -1,0 +1,331 @@
+Skip to content
+OpenRouter
+/
+Models
+Chat
+Rankings
+Enterprise
+Docs
+Sign in
+Leaderboard
+
+Token usage across models on OpenRouter 
+
+Top this week
+Top today
+Top this week
+Top this month
+Trending
+Aug 19, 2024
+Sep 30
+Nov 11
+Dec 23
+Feb 3
+Mar 17
+Apr 28
+Jun 9
+Jul 21
+900B
+1.8T
+2.7T
+3.6T
+1.
+Claude Sonnet 4
+by
+anthropic
+506B tokens
+9%
+2.
+Gemini 2.0 Flash
+by
+google
+274B tokens
+3%
+3.
+Gemini 2.5 Flash
+by
+google
+267B tokens
+8%
+4.
+DeepSeek V3 0324
+by
+deepseek
+178B tokens
+13%
+5.
+DeepSeek V3 0324 (free)
+by
+deepseek
+164B tokens
+21%
+6.
+Gemini 2.5 Pro
+by
+google
+149B tokens
+6%
+7.
+Qwen3 Coder
+by
+qwen
+146B tokens
+21%
+8.
+Claude 3.7 Sonnet
+by
+anthropic
+140B tokens
+6%
+9.
+R1 0528 (free)
+by
+deepseek
+104B tokens
+24%
+10.
+Kimi K2
+by
+moonshotai
+96B tokens
+107%
+Show more
+Market Share
+
+Compare OpenRouter token share by model author
+
+Aug 11, 2024
+Sep 22
+Nov 3
+Dec 15
+Jan 26
+Mar 9
+Apr 20
+Jun 1
+Jul 13
+30%
+60%
+100%
+1.
+google
+25.8%
+2.
+anthropic
+22.4%
+3.
+deepseek
+16.2%
+4.
+openai
+10.9%
+5.
+qwen
+10.3%
+6.
+moonshotai
+3.4%
+7.
+others
+3.2%
+8.
+z-ai
+3.0%
+9.
+mistralai
+2.8%
+10.
+meta-llama
+2.0%
+Categories
+
+Compare models by usecase on OpenRouter 
+
+Programming
+Programming
+Roleplay
+Marketing
+Marketing/Seo
+Technology
+Science
+Translation
+Legal
+Finance
+Health
+Trivia
+Academia
+Mar 24
+Apr 7
+Apr 21
+May 5
+May 19
+Jun 2
+Jun 16
+Jun 30
+Jul 14
+Jul 28
+Aug 11
+30%
+60%
+100%
+1.
+Claude Sonnet 4
+by
+anthropic
+357B tokens
+14%
+2.
+Qwen3 Coder
+by
+qwen
+184B tokens
+33%
+3.
+Horizon Beta
+by
+openrouter
+81.3B tokens
+45%
+4.
+Kimi K2
+by
+moonshotai
+80.2B tokens
+120%
+5.
+Gemini 2.5 Pro
+by
+google
+69.1B tokens
+10%
+6.
+Gemini 2.5 Flash
+by
+google
+55.9B tokens
+4%
+7.
+GPT-5
+by
+openai
+46.8B tokens
+new
+8.
+Claude 3.7 Sonnet
+by
+anthropic
+43.1B tokens
+7%
+9.
+GLM 4.5
+by
+z-ai
+38.1B tokens
+9%
+10.
+GLM 4.5 Air
+by
+z-ai
+38B tokens
+54%
+Show more
+Top Apps
+
+Largest public apps opting into usage tracking on OpenRouter
+
+Today
+Today
+This Week
+This Month
+1.
+Kilo Code 
+AI coding agent for VS Code
+60.6Btokens
+2.
+Cline 
+Autonomous coding agent right in your IDE
+36.5Btokens
+3.
+Roo Code 
+A whole dev team of AI agents in your editor
+32Btokens
+4.
+liteLLM 
+Open-source library to simplify LLM calls
+20.8Btokens
+5.
+SillyTavern 
+LLM frontend for power users
+8.28Btokens
+6.
+Instant.site AI Generation 
+new
+7.02Btokens
+7.
+HammerAI 
+Chat with AI characters for free
+3.59Btokens
+8.
+Chub AI 
+GenAI for everyone
+3.42Btokens
+9.
+Zread.AI 
+new
+2.57Btokens
+10.
+Koalai Multi-Agent System 
+new
+2.48Btokens
+11.
+OpenRouter: Chatroom 
+Chat with multiple LLMs at once
+2.31Btokens
+12.
+OpenCode 
+AI coding agent built for the terminal
+2.22Btokens
+13.
+RolePlai - Ai Chat 
+new
+2.17Btokens
+14.
+forge 
+Lightweight AI assistant for the terminal
+1.55Btokens
+15.
+GDevelop 
+AI-powered game engine
+1.48Btokens
+16.
+New API 
+new
+1.23Btokens
+17.
+Etals 
+new
+1.23Btokens
+18.
+Open WebUI 
+Extensible, self-hosted AI interface
+1.16Btokens
+19.
+Quack 
+Design and interact with characters
+1.07Btokens
+20.
+Caveduck 
+AI character chat
+988Mtokens
+Status
+Announcements
+Docs
+About
+Partners
+Enterprise
+Careers
+Pricing
+Privacy
+Terms
+ 
+© 2023 – 2025 OpenRouter, Inc
+Aug 11

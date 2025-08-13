@@ -183,7 +183,7 @@ async function updateGistWithTop10() {
   
   const rankingsData: RankingsData = {
     lastUpdated: new Date().toISOString(),
-    source: 'OpenRouter Rankings - Programming',
+    source: 'OpenRouter Rankings - Programming (Weekly)',
     currentSnapshot: snapshot,
     historicalSnapshots: [] // We'll preserve existing history when we fetch
   };

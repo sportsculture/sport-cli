@@ -445,12 +445,12 @@ export async function main() {
       
       // Show top 10 rankings if available
       if (rankingsData?.currentSnapshot?.rankings) {
-        console.log('\n🏆 Top 10 OpenRouter Programming Rankings:');
+        console.log('\n🏆 Top 10 OpenRouter Programming Rankings (Weekly):');
         console.log(
-          '  Rank  Model                           Provider     Tokens    Growth   Cost ($/MTok)',
+          '  Rank  Model                           Provider     Tokens    Growth    Cost ($/MTok)',
         );
         console.log(
-          '  ----  ------------------------------  -----------  --------  -------  -------------',
+          '  ----  ------------------------------  -----------  --------  --------  -------------',
         );
         
         rankingsData.currentSnapshot.rankings.slice(0, 10).forEach((ranking: any) => {
@@ -461,8 +461,8 @@ export async function main() {
             ? `${(ranking.usage.totalTokens / 1e9).toFixed(0)}B`.padEnd(8)
             : 'N/A'.padEnd(8);
           const growth = ranking.usage?.percentageChange !== undefined
-            ? `${ranking.usage.percentageChange > 0 ? '+' : ''}${ranking.usage.percentageChange}%`.padEnd(7)
-            : 'stable'.padEnd(7);
+            ? `${ranking.usage.percentageChange > 0 ? '+' : ''}${ranking.usage.percentageChange}%`.padEnd(8)
+            : 'stable'.padEnd(8);
           const cost = ranking.cost?.input === 0 
             ? 'Free'
             : ranking.cost 
@@ -473,6 +473,7 @@ export async function main() {
         });
         
         console.log('\n  💡 Cost format: Input/Output per million tokens');
+        console.log('  📈 Growth: Week-over-week percentage change in usage');
       }
       
       console.log(
