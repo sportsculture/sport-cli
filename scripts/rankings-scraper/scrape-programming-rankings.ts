@@ -28,18 +28,62 @@ interface ModelRanking {
   };
 }
 
-// Known model pricing (per million tokens)
-const MODEL_PRICING: Record<string, { input: number; output: number }> = {
-  'claude-sonnet-4': { input: 3.00, output: 15.00 },
-  'claude-3.7-sonnet': { input: 3.00, output: 15.00 },
-  'qwen3-coder': { input: 0.18, output: 0.18 },
-  'horizon-beta': { input: 0.50, output: 1.50 },
-  'kimi-k2': { input: 0.30, output: 0.30 }, // Estimate
-  'gemini-2.5-pro': { input: 0.00, output: 0.00 }, // Free
-  'gemini-2.5-flash': { input: 0.00, output: 0.00 }, // Free
-  'gpt-5': { input: 15.00, output: 60.00 }, // Estimate
-  'glm-4.5': { input: 0.50, output: 0.50 }, // Estimate
-  'glm-4.5-air': { input: 0.30, output: 0.30 }, // Estimate
+// Known model ID mappings and pricing (per million tokens)
+const MODEL_MAPPINGS: Record<string, { 
+  modelId: string; 
+  pricing?: { input: number; output: number };
+  verified?: boolean;
+}> = {
+  'claude-sonnet-4': { 
+    modelId: 'anthropic/claude-3.5-sonnet-20241022',
+    pricing: { input: 3.00, output: 15.00 },
+    verified: true
+  },
+  'claude-3.7-sonnet': { 
+    modelId: 'anthropic/claude-3.5-sonnet',
+    pricing: { input: 3.00, output: 15.00 },
+    verified: true
+  },
+  'qwen3-coder': { 
+    modelId: 'qwen/qwen-2.5-coder-32b-instruct',
+    pricing: { input: 0.18, output: 0.18 },
+    verified: false
+  },
+  'horizon-beta': { 
+    modelId: 'openrouter/auto',
+    pricing: { input: 0.50, output: 1.50 },
+    verified: false
+  },
+  'kimi-k2': { 
+    modelId: 'moonshotai/moonshot-v1-128k',
+    pricing: { input: 0.30, output: 0.30 },
+    verified: false
+  },
+  'gemini-2.5-pro': { 
+    modelId: 'google/gemini-2.0-flash-exp',
+    pricing: { input: 0.00, output: 0.00 },
+    verified: false
+  },
+  'gemini-2.5-flash': { 
+    modelId: 'google/gemini-2.0-flash',
+    pricing: { input: 0.00, output: 0.00 },
+    verified: false
+  },
+  'gpt-5': { 
+    modelId: 'openai/gpt-4o-preview',
+    pricing: { input: 15.00, output: 60.00 },
+    verified: false
+  },
+  'glm-4.5': { 
+    modelId: 'glm/glm-4-flash',
+    pricing: { input: 0.50, output: 0.50 },
+    verified: false
+  },
+  'glm-4.5-air': { 
+    modelId: 'glm/glm-4-air',
+    pricing: { input: 0.30, output: 0.30 },
+    verified: false
+  },
 };
 
 async function scrapeProgrammingRankings(): Promise<ModelRanking[]> {
@@ -204,14 +248,15 @@ async function scrapeProgrammingRankings(): Promise<ModelRanking[]> {
     
     // Convert to our format
     const modelRankings: ModelRanking[] = rankings.map(r => {
-      // Create model ID from name
-      const modelId = `${r.provider}/${r.modelName.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')}`;
-      
-      // Get pricing if known
+      // Get mapping if known
       const modelKey = r.modelName.toLowerCase()
         .replace(/\s+/g, '-')
         .replace(/[^a-z0-9-]/g, '');
-      const pricing = MODEL_PRICING[modelKey];
+      const mapping = MODEL_MAPPINGS[modelKey];
+      
+      // Use mapped ID or generate one
+      const modelId = mapping?.modelId || 
+        `${r.provider}/${r.modelName.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')}`;
       
       return {
         rank: r.rank,
@@ -222,7 +267,7 @@ async function scrapeProgrammingRankings(): Promise<ModelRanking[]> {
           totalTokens: r.totalTokens,
           percentageChange: r.percentageChange
         },
-        ...(pricing && { cost: pricing })
+        ...(mapping?.pricing && { cost: mapping.pricing })
       };
     });
     

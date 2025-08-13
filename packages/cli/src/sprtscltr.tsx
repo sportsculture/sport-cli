@@ -447,16 +447,16 @@ export async function main() {
       if (rankingsData?.currentSnapshot?.rankings) {
         console.log('\n🏆 Top 10 OpenRouter Programming Rankings (Weekly):');
         console.log(
-          '  Rank  Model                           Provider     Tokens    Growth    Cost ($/MTok)',
+          '  Rank  Model                           Model ID                              Tokens    Growth    Cost ($/MTok)',
         );
         console.log(
-          '  ----  ------------------------------  -----------  --------  --------  -------------',
+          '  ----  ------------------------------  ------------------------------------  --------  --------  -------------',
         );
         
         rankingsData.currentSnapshot.rankings.slice(0, 10).forEach((ranking: any) => {
           const rank = String(ranking.rank).padEnd(4);
           const modelName = ranking.modelName.substring(0, 30).padEnd(30);
-          const provider = ranking.provider.substring(0, 11).padEnd(11);
+          const modelId = (ranking.modelId || `${ranking.provider}/unknown`).substring(0, 36).padEnd(36);
           const tokens = ranking.usage?.totalTokens 
             ? `${(ranking.usage.totalTokens / 1e9).toFixed(0)}B`.padEnd(8)
             : 'N/A'.padEnd(8);
@@ -467,13 +467,18 @@ export async function main() {
             ? 'Free'
             : ranking.cost 
               ? `$${ranking.cost.input}/$${ranking.cost.output}`
-              : 'N/A';
+              : 'Check site';
           
-          console.log(`  ${rank}  ${modelName}  ${provider}  ${tokens}  ${growth}  ${cost}`);
+          console.log(`  ${rank}  ${modelName}  ${modelId}  ${tokens}  ${growth}  ${cost}`);
         });
         
         console.log('\n  💡 Cost format: Input/Output per million tokens');
         console.log('  📈 Growth: Week-over-week percentage change in usage');
+        console.log('\n  🚀 To use a model: sport --model <model-id>');
+        console.log('     Example: sport --model anthropic/claude-3.5-sonnet-20241022');
+        console.log('     Or use /model command during your session');
+        console.log('\n  📖 Browse all models at: https://openrouter.ai/models');
+        console.log('     Find exact model IDs, pricing, and capabilities');
       }
       
       console.log(
