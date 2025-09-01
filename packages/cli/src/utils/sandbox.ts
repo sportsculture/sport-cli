@@ -23,6 +23,7 @@ function getContainerPath(hostPath: string): string {
   if (os.platform() !== 'win32') {
     return hostPath;
   }
+
   const withForwardSlashes = hostPath.replace(/\\/g, '/');
   const match = withForwardSlashes.match(/^([A-Z]):\/(.*)/i);
   if (match) {
@@ -62,7 +63,7 @@ const BUILTIN_SEATBELT_PROFILES = [
  * @returns {Promise<boolean>} A promise that resolves to true if the current user's UID/GID should be used, false otherwise.
  */
 async function shouldUseCurrentUserInSandbox(): Promise<boolean> {
-  const envVar = process.env.SANDBOX_SET_UID_GID?.toLowerCase().trim();
+  const envVar = process.env['SANDBOX_SET_UID_GID']?.toLowerCase().trim();
 
   if (envVar === '1' || envVar === 'true') {
     return true;
@@ -107,21 +108,21 @@ function parseImageName(image: string): string {
 }
 
 function ports(): string[] {
-  return (process.env.SANDBOX_PORTS ?? '')
+  return (process.env['SANDBOX_PORTS'] ?? '')
     .split(',')
     .filter((p) => p.trim())
     .map((p) => p.trim());
 }
 
-function entrypoint(workdir: string): string[] {
+function entrypoint(workdir: string, cliArgs: string[]): string[] {
   const isWindows = os.platform() === 'win32';
   const containerWorkdir = getContainerPath(workdir);
   const shellCmds = [];
   const pathSeparator = isWindows ? ';' : ':';
 
   let pathSuffix = '';
-  if (process.env.PATH) {
-    const paths = process.env.PATH.split(pathSeparator);
+  if (process.env['PATH']) {
+    const paths = process.env['PATH'].split(pathSeparator);
     for (const p of paths) {
       const containerPath = getContainerPath(p);
       if (
@@ -136,8 +137,8 @@ function entrypoint(workdir: string): string[] {
   }
 
   let pythonPathSuffix = '';
-  if (process.env.PYTHONPATH) {
-    const paths = process.env.PYTHONPATH.split(pathSeparator);
+  if (process.env['PYTHONPATH']) {
+    const paths = process.env['PYTHONPATH'].split(pathSeparator);
     for (const p of paths) {
       const containerPath = getContainerPath(p);
       if (
@@ -165,18 +166,17 @@ function entrypoint(workdir: string): string[] {
     ),
   );
 
-  const cliArgs = process.argv.slice(2).map((arg) => quote([arg]));
+  const quotedCliArgs = cliArgs.slice(2).map((arg) => quote([arg]));
   const cliCmd =
-    process.env.NODE_ENV === 'development'
-      ? process.env.DEBUG
+    process.env['NODE_ENV'] === 'development'
+      ? process.env['DEBUG']
         ? 'npm run debug --'
         : 'npm rebuild && npm run start --'
-      : process.env.DEBUG
-        ? `node --inspect-brk=0.0.0.0:${process.env.DEBUG_PORT || '9229'} $(which gemini)`
+      : process.env['DEBUG']
+        ? `node --inspect-brk=0.0.0.0:${process.env['DEBUG_PORT'] || '9229'} $(which gemini)`
         : 'gemini';
 
-  const args = [...shellCmds, cliCmd, ...cliArgs];
-
+  const args = [...shellCmds, cliCmd, ...quotedCliArgs];
   return ['bash', '-c', args.join(' ')];
 }
 
@@ -204,7 +204,6 @@ export async function start_sandbox(
       console.error(
         `ERROR: missing macos seatbelt profile file '${profileFile}'`,
       );
-      process.exit(1);
     }
     // Log on STDERR so it doesn't clutter the output on STDOUT
     console.error(`using macos seatbelt (profile: ${profile}) ...`);
@@ -284,7 +283,9 @@ export async function start_sandbox(
         if (sandboxProcess?.pid) {
           process.kill(-sandboxProcess.pid, 'SIGTERM');
         }
-        process.exit(1);
+        throw new FatalSandboxError(
+          `Proxy container command '${proxyContainerCommand}' exited with code ${code}, signal ${signal}`,
+        );
       });
       console.log('waiting for proxy to start ...');
       await execAsync(

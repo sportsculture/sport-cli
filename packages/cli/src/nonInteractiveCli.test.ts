@@ -198,7 +198,7 @@ describe('runNonInteractive', () => {
 
     expect(mockCoreExecuteToolCall).toHaveBeenCalled();
     expect(consoleErrorSpy).toHaveBeenCalledWith(
-      'Error executing tool errorTool: Tool execution failed badly',
+      'Error executing tool errorTool: Execution failed',
     );
     expect(mockChat.sendMessageStream).toHaveBeenLastCalledWith(
       expect.objectContaining({
@@ -339,5 +339,49 @@ describe('runNonInteractive', () => {
  Reached max session turns for this session. Increase the number of turns by specifying maxSessionTurns in settings.json.`,
     );
     expect(mockProcessExit).not.toHaveBeenCalled();
+  });
+
+  it('should preprocess @include commands before sending to the model', async () => {
+    // 1. Mock the imported atCommandProcessor
+    const { handleAtCommand } = await import(
+      './ui/hooks/atCommandProcessor.js'
+    );
+    const mockHandleAtCommand = vi.mocked(handleAtCommand);
+
+    // 2. Define the raw input and the expected processed output
+    const rawInput = 'Summarize @file.txt';
+    const processedParts: Part[] = [
+      { text: 'Summarize @file.txt' },
+      { text: '\n--- Content from referenced files ---\n' },
+      { text: 'This is the content of the file.' },
+      { text: '\n--- End of content ---' },
+    ];
+
+    // 3. Setup the mock to return the processed parts
+    mockHandleAtCommand.mockResolvedValue({
+      processedQuery: processedParts,
+      shouldProceed: true,
+    });
+
+    // Mock a simple stream response from the Gemini client
+    const events: ServerGeminiStreamEvent[] = [
+      { type: GeminiEventType.Content, value: 'Summary complete.' },
+    ];
+    mockGeminiClient.sendMessageStream.mockReturnValue(
+      createStreamFromEvents(events),
+    );
+
+    // 4. Run the non-interactive mode with the raw input
+    await runNonInteractive(mockConfig, rawInput, 'prompt-id-7');
+
+    // 5. Assert that sendMessageStream was called with the PROCESSED parts, not the raw input
+    expect(mockGeminiClient.sendMessageStream).toHaveBeenCalledWith(
+      processedParts,
+      expect.any(AbortSignal),
+      'prompt-id-7',
+    );
+
+    // 6. Assert the final output is correct
+    expect(processStdoutSpy).toHaveBeenCalledWith('Summary complete.');
   });
 });

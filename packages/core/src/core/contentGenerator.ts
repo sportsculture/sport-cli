@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import {
+import type {
   CountTokensResponse,
   GenerateContentResponse,
   GenerateContentParameters,
@@ -12,6 +12,7 @@ import {
   EmbedContentResponse,
   EmbedContentParameters,
 } from '@google/genai';
+import { GoogleGenAI } from '@google/genai';
 import { createCodeAssistContentGenerator } from '../code_assist/codeAssist.js';
 import {
   DEFAULT_GEMINI_MODEL,
@@ -26,6 +27,7 @@ import { CustomApiContentGenerator } from '../providers/customApiContentGenerato
 import { GeminiContentGenerator } from '../providers/geminiContentGenerator.js';
 import { IProvider } from '../providers/types.js';
 import { LoggingContentGenerator } from './loggingContentGenerator.js';
+import { InstallationManager } from '../utils/installationManager.js';
 
 /**
  * Interface abstracting the core functionalities for generating content and counting tokens.
@@ -109,11 +111,6 @@ export function createContentGeneratorConfig(
   if (authType === AuthType.USE_GEMINI && geminiApiKey) {
     contentGeneratorConfig.apiKey = geminiApiKey;
     contentGeneratorConfig.vertexai = false;
-    getEffectiveModel(
-      contentGeneratorConfig.apiKey,
-      contentGeneratorConfig.model,
-      contentGeneratorConfig.proxy,
-    );
 
     return contentGeneratorConfig;
   }
@@ -153,16 +150,17 @@ export async function createContentGenerator(
   gcConfig: Config,
   sessionId?: string,
 ): Promise<ContentGenerator> {
-  const version = process.env.CLI_VERSION || process.version;
-  const httpOptions = {
-    headers: {
-      'User-Agent': `GeminiCLI/${version} (${process.platform}; ${process.arch})`,
-    },
+  const version = process.env['CLI_VERSION'] || process.version;
+  const userAgent = `GeminiCLI/${version} (${process.platform}; ${process.arch})`;
+  const baseHeaders: Record<string, string> = {
+    'User-Agent': userAgent,
   };
+
   if (
     config.authType === AuthType.LOGIN_WITH_GOOGLE ||
     config.authType === AuthType.CLOUD_SHELL
   ) {
+    const httpOptions = { headers: baseHeaders };
     return new LoggingContentGenerator(
       await createCodeAssistContentGenerator(
         httpOptions,

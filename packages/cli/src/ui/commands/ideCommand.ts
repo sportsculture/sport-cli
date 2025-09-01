@@ -17,7 +17,6 @@ import {
   CommandContext,
   SlashCommand,
   SlashCommandActionReturn,
-  CommandKind,
 } from './types.js';
 import * as child_process from 'child_process';
 import * as process from 'process';

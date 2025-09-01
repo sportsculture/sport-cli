@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React from 'react';
+import type React from 'react';
 import type { HistoryItem } from '../types.js';
 import { UserMessage } from './messages/UserMessage.js';
 import { UserShellMessage } from './messages/UserShellMessage.js';
@@ -27,7 +27,7 @@ interface HistoryItemDisplayProps {
   availableTerminalHeight?: number;
   terminalWidth: number;
   isPending: boolean;
-  config?: Config;
+  config: Config;
   isFocused?: boolean;
 }
 
@@ -69,6 +69,7 @@ export const HistoryItemDisplay: React.FC<HistoryItemDisplayProps> = ({
         modelVersion={item.modelVersion}
         selectedAuthType={item.selectedAuthType}
         gcpProject={item.gcpProject}
+        ideClient={item.ideClient}
       />
     )}
     {item.type === 'stats' && <StatsDisplay duration={item.duration} />}

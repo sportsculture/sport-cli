@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import {
+import type {
   Config,
   ToolCallRequestInfo,
   ExecutingToolCall,
@@ -13,7 +13,6 @@ import {
   WaitingToolCall,
   CompletedToolCall,
   CancelledToolCall,
-  CoreToolScheduler,
   OutputUpdateHandler,
   AllToolCallsCompleteHandler,
   ToolCallsUpdateHandler,
@@ -22,12 +21,12 @@ import {
   EditorType,
 } from '@sport/core';
 import { useCallback, useState, useMemo } from 'react';
-import {
+import type {
   HistoryItemToolGroup,
   IndividualToolCallDisplay,
-  ToolCallStatus,
   HistoryItemWithoutId,
 } from '../types.js';
+import { ToolCallStatus } from '../types.js';
 
 export type ScheduleFn = (
   request: ToolCallRequestInfo | ToolCallRequestInfo[],
@@ -134,7 +133,6 @@ export function useReactToolScheduler(
   const scheduler = useMemo(
     () =>
       new CoreToolScheduler({
-        toolRegistry: config.getToolRegistry(),
         outputUpdateHandler,
         onAllToolCallsComplete: allToolCallsCompleteHandler,
         onToolCallsUpdate: toolCallsUpdateHandler,

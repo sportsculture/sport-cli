@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React from 'react';
+import type React from 'react';
 import { Box, Text } from 'ink';
 import { Colors } from '../colors.js';
 import { shortenPath, tildeifyPath, tokenLimit } from '@sport/core';
@@ -26,6 +26,7 @@ interface FooterProps {
   promptTokenCount: number;
   nightly: boolean;
   vimMode?: string;
+  isTrustedFolder?: boolean;
 }
 
 export const Footer: React.FC<FooterProps> = ({
@@ -41,6 +42,7 @@ export const Footer: React.FC<FooterProps> = ({
   promptTokenCount,
   nightly,
   vimMode,
+  isTrustedFolder,
 }) => {
   const limit = tokenLimit(model);
   const percentage = promptTokenCount / limit;
@@ -69,16 +71,19 @@ export const Footer: React.FC<FooterProps> = ({
         )}
       </Box>
 
-      {/* Middle Section: Centered Sandbox Info */}
+      {/* Middle Section: Centered Trust/Sandbox Info */}
       <Box
         flexGrow={1}
         alignItems="center"
         justifyContent="center"
         display="flex"
       >
-        {process.env.SANDBOX && process.env.SANDBOX !== 'sandbox-exec' ? (
+        {isTrustedFolder === false ? (
+          <Text color={theme.status.warning}>untrusted</Text>
+        ) : process.env['SANDBOX'] &&
+          process.env['SANDBOX'] !== 'sandbox-exec' ? (
           <Text color="green">
-            {process.env.SANDBOX.replace(/^gemini-(?:cli-)?/, '')}
+            {process.env['SANDBOX'].replace(/^gemini-(?:cli-)?/, '')}
           </Text>
         ) : process.env.SANDBOX === 'sandbox-exec' ? (
           <Text color={Colors.AccentYellow}>

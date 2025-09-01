@@ -4,11 +4,9 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+import type { Config, ToolCallRequestInfo } from '@google/gemini-cli-core';
 import {
-  Config,
-  ToolCallRequestInfo,
   executeToolCall,
-  ToolRegistry,
   shutdownTelemetry,
   isTelemetrySdkInitialized,
 } from '@sport/core';
@@ -71,12 +69,11 @@ export async function runNonInteractive(
         config.getMaxSessionTurns() > 0 &&
         turnCount > config.getMaxSessionTurns()
       ) {
-        console.error(
-          '\n Reached max session turns for this session. Increase the number of turns by specifying maxSessionTurns in settings.json.',
+        throw new FatalTurnLimitedError(
+          'Reached max session turns for this session. Increase the number of turns by specifying maxSessionTurns in settings.json.',
         );
-        return;
       }
-      const functionCalls: FunctionCall[] = [];
+      const toolCallRequests: ToolCallRequestInfo[] = [];
 
       const responseStream = await chat.sendMessageStream(
         {
@@ -105,23 +102,12 @@ export async function runNonInteractive(
         }
       }
 
-      if (functionCalls.length > 0) {
+      if (toolCallRequests.length > 0) {
         const toolResponseParts: Part[] = [];
-
-        for (const fc of functionCalls) {
-          const callId = fc.id ?? `${fc.name}-${Date.now()}`;
-          const requestInfo: ToolCallRequestInfo = {
-            callId,
-            name: fc.name as string,
-            args: (fc.args ?? {}) as Record<string, unknown>,
-            isClientInitiated: false,
-            prompt_id,
-          };
-
+        for (const requestInfo of toolCallRequests) {
           const toolResponse = await executeToolCall(
             config,
             requestInfo,
-            toolRegistry,
             abortController.signal,
           );
 
@@ -130,7 +116,7 @@ export async function runNonInteractive(
               'not found in registry',
             );
             console.error(
-              `Error executing tool ${fc.name}: ${toolResponse.resultDisplay || toolResponse.error.message}`,
+              `Error executing tool ${requestInfo.name}: ${toolResponse.resultDisplay || toolResponse.error.message}`,
             );
             if (!isToolNotFound) {
               process.exit(1);
@@ -138,16 +124,7 @@ export async function runNonInteractive(
           }
 
           if (toolResponse.responseParts) {
-            const parts = Array.isArray(toolResponse.responseParts)
-              ? toolResponse.responseParts
-              : [toolResponse.responseParts];
-            for (const part of parts) {
-              if (typeof part === 'string') {
-                toolResponseParts.push({ text: part });
-              } else if (part) {
-                toolResponseParts.push(part);
-              }
-            }
+            toolResponseParts.push(...toolResponse.responseParts);
           }
         }
         currentMessages = [{ role: 'user', parts: toolResponseParts }];
@@ -163,10 +140,10 @@ export async function runNonInteractive(
         config.getContentGeneratorConfig()?.authType,
       ),
     );
-    process.exit(1);
+    throw error;
   } finally {
     if (isTelemetrySdkInitialized()) {
-      await shutdownTelemetry();
+      await shutdownTelemetry(config);
     }
   }
 }

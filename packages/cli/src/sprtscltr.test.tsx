@@ -4,7 +4,6 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import stripAnsi from 'strip-ansi';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { main, setupUnhandledRejectionHandler } from './sprtscltr.js';
 import {
@@ -13,6 +12,8 @@ import {
   loadSettings,
 } from './config/settings.js';
 import { appEvents, AppEvent } from './utils/events.js';
+import type { Config } from '@google/gemini-cli-core';
+import { FatalConfigError } from '@google/gemini-cli-core';
 
 // Custom error to identify mock process.exit calls
 class MockProcessExitError extends Error {
@@ -89,12 +90,11 @@ describe('sprtscltr.tsx main function', () => {
     loadSettingsMock = vi.mocked(loadSettings);
 
     // Store and clear sandbox-related env variables to ensure a consistent test environment
-    originalEnvGeminiSandbox = process.env.GEMINI_SANDBOX;
-    originalEnvSandbox = process.env.SANDBOX;
-    delete process.env.GEMINI_SANDBOX;
-    delete process.env.SANDBOX;
+    originalEnvGeminiSandbox = process.env['GEMINI_SANDBOX'];
+    originalEnvSandbox = process.env['SANDBOX'];
+    delete process.env['GEMINI_SANDBOX'];
+    delete process.env['SANDBOX'];
 
-    consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
     initialUnhandledRejectionListeners =
       process.listeners('unhandledRejection');
   });
@@ -102,14 +102,14 @@ describe('sprtscltr.tsx main function', () => {
   afterEach(() => {
     // Restore original env variables
     if (originalEnvGeminiSandbox !== undefined) {
-      process.env.GEMINI_SANDBOX = originalEnvGeminiSandbox;
+      process.env['GEMINI_SANDBOX'] = originalEnvGeminiSandbox;
     } else {
-      delete process.env.GEMINI_SANDBOX;
+      delete process.env['GEMINI_SANDBOX'];
     }
     if (originalEnvSandbox !== undefined) {
-      process.env.SANDBOX = originalEnvSandbox;
+      process.env['SANDBOX'] = originalEnvSandbox;
     } else {
-      delete process.env.SANDBOX;
+      delete process.env['SANDBOX'];
     }
 
     const currentListeners = process.listeners('unhandledRejection');
@@ -123,7 +123,7 @@ describe('sprtscltr.tsx main function', () => {
     vi.restoreAllMocks();
   });
 
-  it('should call process.exit(1) if settings have errors', async () => {
+  it('should throw InvalidConfigurationError if settings have errors', async () => {
     const settingsError = {
       message: 'Test settings error',
       path: '/test/settings.json',
@@ -140,37 +140,23 @@ describe('sprtscltr.tsx main function', () => {
       path: '/system/settings.json',
       settings: {},
     };
+    const systemDefaultsFile: SettingsFile = {
+      path: '/system/system-defaults.json',
+      settings: {},
+    };
     const mockLoadedSettings = new LoadedSettings(
       systemSettingsFile,
+      systemDefaultsFile,
       userSettingsFile,
       workspaceSettingsFile,
       [settingsError],
+      true,
+      new Set(),
     );
 
     loadSettingsMock.mockReturnValue(mockLoadedSettings);
 
-    try {
-      await main();
-      // If main completes without throwing, the test should fail because process.exit was expected
-      expect.fail('main function did not exit as expected');
-    } catch (error) {
-      expect(error).toBeInstanceOf(MockProcessExitError);
-      if (error instanceof MockProcessExitError) {
-        expect(error.code).toBe(1);
-      }
-    }
-
-    // Verify console.error was called with the error message
-    expect(consoleErrorSpy).toHaveBeenCalledTimes(2);
-    expect(stripAnsi(String(consoleErrorSpy.mock.calls[0][0]))).toBe(
-      'Error in /test/settings.json: Test settings error',
-    );
-    expect(stripAnsi(String(consoleErrorSpy.mock.calls[1][0]))).toBe(
-      'Please fix /test/settings.json and try again.',
-    );
-
-    // Verify process.exit was called.
-    expect(processExitSpy).toHaveBeenCalledWith(1);
+    await expect(main()).rejects.toThrow(FatalConfigError);
   });
 
   it('should log unhandled promise rejections and open debug console on first error', async () => {

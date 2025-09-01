@@ -10,10 +10,12 @@ import { ApprovalMode, type Config } from '@sport/core';
 
 export interface UseAutoAcceptIndicatorArgs {
   config: Config;
+  addItem: (item: HistoryItemWithoutId, timestamp: number) => void;
 }
 
 export function useAutoAcceptIndicator({
   config,
+  addItem,
 }: UseAutoAcceptIndicatorArgs): ApprovalMode {
   const currentConfigValue = config.getApprovalMode();
   const [showAutoAcceptIndicator, setShowAutoAcceptIndicator] =
@@ -23,27 +25,40 @@ export function useAutoAcceptIndicator({
     setShowAutoAcceptIndicator(currentConfigValue);
   }, [currentConfigValue]);
 
-  useInput((input, key) => {
-    let nextApprovalMode: ApprovalMode | undefined;
+  useKeypress(
+    (key) => {
+      let nextApprovalMode: ApprovalMode | undefined;
 
-    if (key.ctrl && input === 'y') {
-      nextApprovalMode =
-        config.getApprovalMode() === ApprovalMode.YOLO
-          ? ApprovalMode.DEFAULT
-          : ApprovalMode.YOLO;
-    } else if (key.tab && key.shift) {
-      nextApprovalMode =
-        config.getApprovalMode() === ApprovalMode.AUTO_EDIT
-          ? ApprovalMode.DEFAULT
-          : ApprovalMode.AUTO_EDIT;
-    }
+      if (key.ctrl && key.name === 'y') {
+        nextApprovalMode =
+          config.getApprovalMode() === ApprovalMode.YOLO
+            ? ApprovalMode.DEFAULT
+            : ApprovalMode.YOLO;
+      } else if (key.shift && key.name === 'tab') {
+        nextApprovalMode =
+          config.getApprovalMode() === ApprovalMode.AUTO_EDIT
+            ? ApprovalMode.DEFAULT
+            : ApprovalMode.AUTO_EDIT;
+      }
 
-    if (nextApprovalMode) {
-      config.setApprovalMode(nextApprovalMode);
-      // Update local state immediately for responsiveness
-      setShowAutoAcceptIndicator(nextApprovalMode);
-    }
-  });
+      if (nextApprovalMode) {
+        try {
+          config.setApprovalMode(nextApprovalMode);
+          // Update local state immediately for responsiveness
+          setShowAutoAcceptIndicator(nextApprovalMode);
+        } catch (e) {
+          addItem(
+            {
+              type: MessageType.INFO,
+              text: (e as Error).message,
+            },
+            Date.now(),
+          );
+        }
+      }
+    },
+    { isActive: true },
+  );
 
   return showAutoAcceptIndicator;
 }

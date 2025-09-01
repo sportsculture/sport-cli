@@ -4,10 +4,9 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import {
+import type {
   EmbedContentParameters,
   GenerateContentConfig,
-  SchemaUnion,
   PartListUnion,
   Content,
   Tool,
@@ -17,16 +16,13 @@ import {
   getDirectoryContextString,
   getEnvironmentContext,
 } from '../utils/environmentContext.js';
-import {
-  Turn,
-  ServerGeminiStreamEvent,
-  GeminiEventType,
-  ChatCompressionInfo,
-} from './turn.js';
-import { Config } from '../config/config.js';
-import { UserTierId } from '../code_assist/types.js';
+import type { ServerGeminiStreamEvent, ChatCompressionInfo } from './turn.js';
+import { CompressionStatus } from './turn.js';
+import { Turn, GeminiEventType } from './turn.js';
+import type { Config } from '../config/config.js';
+import type { UserTierId } from '../code_assist/types.js';
 import { getCoreSystemPrompt, getCompressionPrompt } from './prompts.js';
-import { getResponseText } from '../utils/generateContentResponseUtilities.js';
+import { getResponseText } from '../utils/partUtils.js';
 import { checkNextSpeaker } from '../utils/nextSpeakerChecker.js';
 import { reportError } from '../utils/errorReporting.js';
 import { GeminiChat } from './geminiChat.js';
@@ -34,25 +30,39 @@ import { retryWithBackoff } from '../utils/retry.js';
 import { getErrorMessage } from '../utils/errors.js';
 import { isFunctionResponse } from '../utils/messageInspectors.js';
 import { tokenLimit } from './tokenLimits.js';
-import {
-  AuthType,
+import type {
   ContentGenerator,
   ContentGeneratorConfig,
-  createContentGenerator,
 } from './contentGenerator.js';
+import { AuthType, createContentGenerator } from './contentGenerator.js';
 import { ProxyAgent, setGlobalDispatcher } from 'undici';
-import { DEFAULT_GEMINI_FLASH_MODEL } from '../config/models.js';
+import {
+  DEFAULT_GEMINI_FLASH_MODEL,
+  DEFAULT_THINKING_MODE,
+} from '../config/models.js';
 import { LoopDetectionService } from '../services/loopDetectionService.js';
 import { ideContext } from '../ide/ideContext.js';
 import { toolLogger } from '../utils/logger.js';
 import { logNextSpeakerCheck } from '../telemetry/loggers.js';
 import {
+  logChatCompression,
+  logNextSpeakerCheck,
+  logMalformedJsonResponse,
+} from '../telemetry/loggers.js';
+import {
+  makeChatCompressionEvent,
   MalformedJsonResponseEvent,
   NextSpeakerCheckEvent,
 } from '../telemetry/types.js';
-import { ClearcutLogger } from '../telemetry/clearcut-logger/clearcut-logger.js';
+import type { IdeContext, File } from '../ide/ideContext.js';
 
-function isThinkingSupported(model: string) {
+export function isThinkingSupported(model: string) {
+  if (model.startsWith('gemini-2.5')) return true;
+  return false;
+}
+
+export function isThinkingDefault(model: string) {
+  if (model.startsWith('gemini-2.5-flash-lite')) return false;
   if (model.startsWith('gemini-2.5')) return true;
   return false;
 }
@@ -90,11 +100,25 @@ export function findIndexAfterFraction(
   return contentLengths.length;
 }
 
+const MAX_TURNS = 100;
+
+/**
+ * Threshold for compression token count as a fraction of the model's token limit.
+ * If the chat history exceeds this threshold, it will be compressed.
+ */
+const COMPRESSION_TOKEN_THRESHOLD = 0.7;
+
+/**
+ * The fraction of the latest chat history to keep. A value of 0.3
+ * means that only the last 30% of the chat history will be kept after compression.
+ */
+const COMPRESSION_PRESERVE_THRESHOLD = 0.3;
+
 export class GeminiClient {
   private chat?: GeminiChat;
   private contentGenerator?: ContentGenerator;
-  private embeddingModel: string;
-  private generateContentConfig: GenerateContentConfig = {
+  private readonly embeddingModel: string;
+  private readonly generateContentConfig: GenerateContentConfig = {
     temperature: 0,
     topP: 1,
   };
@@ -114,8 +138,16 @@ export class GeminiClient {
 
   private readonly loopDetector: LoopDetectionService;
   private lastPromptId: string;
+  private lastSentIdeContext: IdeContext | undefined;
+  private forceFullIdeContext = true;
 
-  constructor(private config: Config) {
+  /**
+   * At any point in this conversation, was compression triggered without
+   * being forced and did it fail?
+   */
+  private hasFailedCompressionAttempt = false;
+
+  constructor(private readonly config: Config) {
     if (config.getProxy()) {
       setGlobalDispatcher(new ProxyAgent(config.getProxy() as string));
     }
@@ -171,8 +203,33 @@ export class GeminiClient {
     return this.getChat().getHistory();
   }
 
-  setHistory(history: Content[]) {
-    this.getChat().setHistory(history);
+  setHistory(
+    history: Content[],
+    { stripThoughts = false }: { stripThoughts?: boolean } = {},
+  ) {
+    const historyToSet = stripThoughts
+      ? history.map((content) => {
+          const newContent = { ...content };
+          if (newContent.parts) {
+            newContent.parts = newContent.parts.map((part) => {
+              if (
+                part &&
+                typeof part === 'object' &&
+                'thoughtSignature' in part
+              ) {
+                const newPart = { ...part };
+                delete (newPart as { thoughtSignature?: string })
+                  .thoughtSignature;
+                return newPart;
+              }
+              return part;
+            });
+          }
+          return newContent;
+        })
+      : history;
+    this.getChat().setHistory(historyToSet);
+    this.forceFullIdeContext = true;
   }
 
   async resetChat(preserveHistory: boolean = false): Promise<void> {
@@ -244,8 +301,10 @@ export class GeminiClient {
   }
 
   async startChat(extraHistory?: Content[]): Promise<GeminiChat> {
+    this.forceFullIdeContext = true;
+    this.hasFailedCompressionAttempt = false;
     const envParts = await getEnvironmentContext(this.config);
-    const toolRegistry = await this.config.getToolRegistry();
+    const toolRegistry = this.config.getToolRegistry();
     const toolDeclarations = toolRegistry.getFunctionDeclarations();
     const tools: Tool[] = [{ functionDeclarations: toolDeclarations }];
 
@@ -278,13 +337,16 @@ export class GeminiClient {
     try {
       const userMemory = this.config.getUserMemory();
       const systemInstruction = getCoreSystemPrompt(userMemory);
-      const generateContentConfigWithThinking = isThinkingSupported(
-        this.config.getModel(),
-      )
+      const model = this.config.getModel();
+      const generateContentConfigWithThinking = isThinkingSupported(model)
         ? {
             ...this.generateContentConfig,
             thinkingConfig: {
+              thinkingBudget: -1,
               includeThoughts: true,
+              ...(!isThinkingDefault(model)
+                ? { thinkingBudget: DEFAULT_THINKING_MODE }
+                : {}),
             },
           }
         : this.generateContentConfig;
@@ -310,11 +372,179 @@ export class GeminiClient {
     }
   }
 
+  private getIdeContextParts(forceFullContext: boolean): {
+    contextParts: string[];
+    newIdeContext: IdeContext | undefined;
+  } {
+    const currentIdeContext = ideContext.getIdeContext();
+    if (!currentIdeContext) {
+      return { contextParts: [], newIdeContext: undefined };
+    }
+
+    if (forceFullContext || !this.lastSentIdeContext) {
+      // Send full context as JSON
+      const openFiles = currentIdeContext.workspaceState?.openFiles || [];
+      const activeFile = openFiles.find((f) => f.isActive);
+      const otherOpenFiles = openFiles
+        .filter((f) => !f.isActive)
+        .map((f) => f.path);
+
+      const contextData: Record<string, unknown> = {};
+
+      if (activeFile) {
+        contextData['activeFile'] = {
+          path: activeFile.path,
+          cursor: activeFile.cursor
+            ? {
+                line: activeFile.cursor.line,
+                character: activeFile.cursor.character,
+              }
+            : undefined,
+          selectedText: activeFile.selectedText || undefined,
+        };
+      }
+
+      if (otherOpenFiles.length > 0) {
+        contextData['otherOpenFiles'] = otherOpenFiles;
+      }
+
+      if (Object.keys(contextData).length === 0) {
+        return { contextParts: [], newIdeContext: currentIdeContext };
+      }
+
+      const jsonString = JSON.stringify(contextData, null, 2);
+      const contextParts = [
+        "Here is the user's editor context as a JSON object. This is for your information only.",
+        '```json',
+        jsonString,
+        '```',
+      ];
+
+      if (this.config.getDebugMode()) {
+        console.log(contextParts.join('\n'));
+      }
+      return {
+        contextParts,
+        newIdeContext: currentIdeContext,
+      };
+    } else {
+      // Calculate and send delta as JSON
+      const delta: Record<string, unknown> = {};
+      const changes: Record<string, unknown> = {};
+
+      const lastFiles = new Map(
+        (this.lastSentIdeContext.workspaceState?.openFiles || []).map(
+          (f: File) => [f.path, f],
+        ),
+      );
+      const currentFiles = new Map(
+        (currentIdeContext.workspaceState?.openFiles || []).map((f: File) => [
+          f.path,
+          f,
+        ]),
+      );
+
+      const openedFiles: string[] = [];
+      for (const [path] of currentFiles.entries()) {
+        if (!lastFiles.has(path)) {
+          openedFiles.push(path);
+        }
+      }
+      if (openedFiles.length > 0) {
+        changes['filesOpened'] = openedFiles;
+      }
+
+      const closedFiles: string[] = [];
+      for (const [path] of lastFiles.entries()) {
+        if (!currentFiles.has(path)) {
+          closedFiles.push(path);
+        }
+      }
+      if (closedFiles.length > 0) {
+        changes['filesClosed'] = closedFiles;
+      }
+
+      const lastActiveFile = (
+        this.lastSentIdeContext.workspaceState?.openFiles || []
+      ).find((f: File) => f.isActive);
+      const currentActiveFile = (
+        currentIdeContext.workspaceState?.openFiles || []
+      ).find((f: File) => f.isActive);
+
+      if (currentActiveFile) {
+        if (!lastActiveFile || lastActiveFile.path !== currentActiveFile.path) {
+          changes['activeFileChanged'] = {
+            path: currentActiveFile.path,
+            cursor: currentActiveFile.cursor
+              ? {
+                  line: currentActiveFile.cursor.line,
+                  character: currentActiveFile.cursor.character,
+                }
+              : undefined,
+            selectedText: currentActiveFile.selectedText || undefined,
+          };
+        } else {
+          const lastCursor = lastActiveFile.cursor;
+          const currentCursor = currentActiveFile.cursor;
+          if (
+            currentCursor &&
+            (!lastCursor ||
+              lastCursor.line !== currentCursor.line ||
+              lastCursor.character !== currentCursor.character)
+          ) {
+            changes['cursorMoved'] = {
+              path: currentActiveFile.path,
+              cursor: {
+                line: currentCursor.line,
+                character: currentCursor.character,
+              },
+            };
+          }
+
+          const lastSelectedText = lastActiveFile.selectedText || '';
+          const currentSelectedText = currentActiveFile.selectedText || '';
+          if (lastSelectedText !== currentSelectedText) {
+            changes['selectionChanged'] = {
+              path: currentActiveFile.path,
+              selectedText: currentSelectedText,
+            };
+          }
+        }
+      } else if (lastActiveFile) {
+        changes['activeFileChanged'] = {
+          path: null,
+          previousPath: lastActiveFile.path,
+        };
+      }
+
+      if (Object.keys(changes).length === 0) {
+        return { contextParts: [], newIdeContext: currentIdeContext };
+      }
+
+      delta['changes'] = changes;
+      const jsonString = JSON.stringify(delta, null, 2);
+      const contextParts = [
+        "Here is a summary of changes in the user's editor context, in JSON format. This is for your information only.",
+        '```json',
+        jsonString,
+        '```',
+      ];
+
+      if (this.config.getDebugMode()) {
+        console.log(contextParts.join('\n'));
+      }
+      return {
+        contextParts,
+        newIdeContext: currentIdeContext,
+      };
+    }
+  }
+
   async *sendMessageStream(
     request: PartListUnion,
     signal: AbortSignal,
     prompt_id: string,
-    turns: number = this.MAX_TURNS,
+    turns: number = MAX_TURNS,
     originalModel?: string,
   ): AsyncGenerator<ServerGeminiStreamEvent, Turn> {
     if (this.lastPromptId !== prompt_id) {
@@ -330,7 +560,7 @@ export class GeminiClient {
       return new Turn(this.getChat(), prompt_id);
     }
     // Ensure turns never exceeds MAX_TURNS to prevent infinite loops
-    const boundedTurns = Math.min(turns, this.MAX_TURNS);
+    const boundedTurns = Math.min(turns, MAX_TURNS);
     if (!boundedTurns) {
       return new Turn(this.getChat(), prompt_id);
     }
@@ -412,6 +642,10 @@ export class GeminiClient {
         yield event;
       }
 
+      if (this.config.getSkipNextSpeakerCheck()) {
+        return turn;
+      }
+
       const nextSpeakerCheck = await checkNextSpeaker(
         this.getChat(),
         this,
@@ -473,7 +707,7 @@ export class GeminiClient {
 
   async generateJson(
     contents: Content[],
-    schema: SchemaUnion,
+    schema: Record<string, unknown>,
     abortSignal: AbortSignal,
     model?: string,
     config: GenerateContentConfig = {},
@@ -497,7 +731,7 @@ export class GeminiClient {
             config: {
               ...requestConfig,
               systemInstruction,
-              responseSchema: schema,
+              responseJsonSchema: schema,
               responseMimeType: 'application/json',
             },
             contents,
@@ -528,7 +762,8 @@ export class GeminiClient {
       const prefix = '```json';
       const suffix = '```';
       if (text.startsWith(prefix) && text.endsWith(suffix)) {
-        ClearcutLogger.getInstance(this.config)?.logMalformedJsonResponseEvent(
+        logMalformedJsonResponse(
+          this.config,
           new MalformedJsonResponseEvent(modelToUse),
         );
         text = text
@@ -602,7 +837,7 @@ export class GeminiClient {
       const userMemory = this.config.getUserMemory();
       const systemInstruction = getCoreSystemPrompt(userMemory);
 
-      const requestConfig = {
+      const requestConfig: GenerateContentConfig = {
         abortSignal,
         ...configToUse,
         systemInstruction,
@@ -682,12 +917,19 @@ export class GeminiClient {
   async tryCompressChat(
     prompt_id: string,
     force: boolean = false,
-  ): Promise<ChatCompressionInfo | null> {
+  ): Promise<ChatCompressionInfo> {
     const curatedHistory = this.getChat().getHistory(true);
 
     // Regardless of `force`, don't do anything if the history is empty.
-    if (curatedHistory.length === 0) {
-      return null;
+    if (
+      curatedHistory.length === 0 ||
+      (this.hasFailedCompressionAttempt && !force)
+    ) {
+      return {
+        originalTokenCount: 0,
+        newTokenCount: 0,
+        compressionStatus: CompressionStatus.NOOP,
+      };
     }
 
     const model = this.config.getModel();
@@ -699,7 +941,13 @@ export class GeminiClient {
       });
     if (originalTokenCount === undefined) {
       console.warn(`Could not determine token count for model ${model}.`);
-      return null;
+      this.hasFailedCompressionAttempt = !force && true;
+      return {
+        originalTokenCount: 0,
+        newTokenCount: 0,
+        compressionStatus:
+          CompressionStatus.COMPRESSION_FAILED_TOKEN_COUNT_ERROR,
+      };
     }
 
     const contextPercentageThreshold =
@@ -708,15 +956,19 @@ export class GeminiClient {
     // Don't compress if not forced and we are under the limit.
     if (!force) {
       const threshold =
-        contextPercentageThreshold ?? this.COMPRESSION_TOKEN_THRESHOLD;
+        contextPercentageThreshold ?? COMPRESSION_TOKEN_THRESHOLD;
       if (originalTokenCount < threshold * tokenLimit(model)) {
-        return null;
+        return {
+          originalTokenCount,
+          newTokenCount: originalTokenCount,
+          compressionStatus: CompressionStatus.NOOP,
+        };
       }
     }
 
     let compressBeforeIndex = findIndexAfterFraction(
       curatedHistory,
-      1 - this.COMPRESSION_PRESERVE_THRESHOLD,
+      1 - COMPRESSION_PRESERVE_THRESHOLD,
     );
     // Find the first user message after the index. This is the start of the next turn.
     while (
@@ -739,11 +991,12 @@ export class GeminiClient {
         },
         config: {
           systemInstruction: { text: getCompressionPrompt() },
+          maxOutputTokens: originalTokenCount,
         },
       },
       prompt_id,
     );
-    this.chat = await this.startChat([
+    const chat = await this.startChat([
       {
         role: 'user',
         parts: [{ text: summary }],
@@ -754,21 +1007,50 @@ export class GeminiClient {
       },
       ...historyToKeep,
     ]);
+    this.forceFullIdeContext = true;
 
     const { totalTokens: newTokenCount } =
       await this.getContentGenerator().countTokens({
         // model might change after calling `sendMessage`, so we get the newest value from config
         model: this.config.getModel(),
-        contents: this.getChat().getHistory(),
+        contents: chat.getHistory(),
       });
     if (newTokenCount === undefined) {
       console.warn('Could not determine compressed history token count.');
-      return null;
+      this.hasFailedCompressionAttempt = !force && true;
+      return {
+        originalTokenCount,
+        newTokenCount: originalTokenCount,
+        compressionStatus:
+          CompressionStatus.COMPRESSION_FAILED_TOKEN_COUNT_ERROR,
+      };
+    }
+
+    logChatCompression(
+      this.config,
+      makeChatCompressionEvent({
+        tokens_before: originalTokenCount,
+        tokens_after: newTokenCount,
+      }),
+    );
+
+    if (newTokenCount > originalTokenCount) {
+      this.getChat().setHistory(curatedHistory);
+      this.hasFailedCompressionAttempt = !force && true;
+      return {
+        originalTokenCount,
+        newTokenCount,
+        compressionStatus:
+          CompressionStatus.COMPRESSION_FAILED_INFLATED_TOKEN_COUNT,
+      };
+    } else {
+      this.chat = chat; // Chat compression successful, set new state.
     }
 
     return {
       originalTokenCount,
       newTokenCount,
+      compressionStatus: CompressionStatus.COMPRESSED,
     };
   }
 
@@ -819,3 +1101,8 @@ export class GeminiClient {
     return null;
   }
 }
+
+export const TEST_ONLY = {
+  COMPRESSION_PRESERVE_THRESHOLD,
+  COMPRESSION_TOKEN_THRESHOLD,
+};

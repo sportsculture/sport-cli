@@ -7,10 +7,9 @@
 import { useCallback, useMemo, useEffect, useState } from 'react';
 import { type PartListUnion } from '@google/genai';
 import process from 'node:process';
-import { UseHistoryManagerReturn } from './useHistoryManager.js';
-import { useStateAndRef } from './useStateAndRef.js';
+import type { UseHistoryManagerReturn } from './useHistoryManager.js';
+import type { Config } from '@google/gemini-cli-core';
 import {
-  Config,
   GitService,
   Logger,
   ToolConfirmationOutcome,
@@ -18,12 +17,12 @@ import {
 import { useSessionStats } from '../contexts/SessionContext.js';
 import {
   Message,
-  MessageType,
   HistoryItemWithoutId,
   HistoryItem,
   SlashCommandProcessorResult,
 } from '../types.js';
-import { LoadedSettings } from '../../config/settings.js';
+import { MessageType } from '../types.js';
+import type { LoadedSettings } from '../../config/settings.js';
 import { type CommandContext, type SlashCommand } from '../commands/types.js';
 import { CommandService } from '../../services/CommandService.js';
 import { BuiltinCommandLoader } from '../../services/BuiltinCommandLoader.js';
@@ -54,6 +53,11 @@ export const useSlashCommandProcessor = (
 ) => {
   const session = useSessionStats();
   const [commands, setCommands] = useState<readonly SlashCommand[]>([]);
+  const [reloadTrigger, setReloadTrigger] = useState(0);
+
+  const reloadCommands = useCallback(() => {
+    setReloadTrigger((v) => v + 1);
+  }, []);
   const [shellConfirmationRequest, setShellConfirmationRequest] =
     useState<null | {
       commands: string[];
@@ -69,26 +73,29 @@ export const useSlashCommandProcessor = (
     if (!config?.getProjectRoot()) {
       return;
     }
-    return new GitService(config.getProjectRoot());
+    return new GitService(config.getProjectRoot(), config.storage);
   }, [config]);
 
   const logger = useMemo(() => {
-    const l = new Logger(config?.getSessionId() || '');
+    const l = new Logger(
+      config?.getSessionId() || '',
+      config?.storage ?? new Storage(process.cwd()),
+    );
     // The logger's initialize is async, but we can create the instance
     // synchronously. Commands that use it will await its initialization.
     return l;
   }, [config]);
 
-  const [pendingCompressionItemRef, setPendingCompressionItem] =
-    useStateAndRef<HistoryItemWithoutId | null>(null);
+  const [pendingCompressionItem, setPendingCompressionItem] =
+    useState<HistoryItemWithoutId | null>(null);
 
   const pendingHistoryItems = useMemo(() => {
     const items: HistoryItemWithoutId[] = [];
-    if (pendingCompressionItemRef.current != null) {
-      items.push(pendingCompressionItemRef.current);
+    if (pendingCompressionItem != null) {
+      items.push(pendingCompressionItem);
     }
     return items;
-  }, [pendingCompressionItemRef]);
+  }, [pendingCompressionItem]);
 
   const addMessage = useCallback(
     (message: Message) => {
@@ -103,6 +110,7 @@ export const useSlashCommandProcessor = (
           modelVersion: message.modelVersion,
           selectedAuthType: message.selectedAuthType,
           gcpProject: message.gcpProject,
+          ideClient: message.ideClient,
         };
       } else if (message.type === MessageType.STATS) {
         historyItemContent = {
@@ -156,7 +164,7 @@ export const useSlashCommandProcessor = (
         },
         loadHistory,
         setDebugMessage: onDebugMessage,
-        pendingItem: pendingCompressionItemRef.current,
+        pendingItem: pendingCompressionItem,
         setPendingItem: setPendingCompressionItem,
         toggleCorgiMode,
         toggleVimEnabled,
@@ -177,7 +185,7 @@ export const useSlashCommandProcessor = (
       refreshStatic,
       session.stats,
       onDebugMessage,
-      pendingCompressionItemRef,
+      pendingCompressionItem,
       setPendingCompressionItem,
       toggleCorgiMode,
       toggleVimEnabled,
@@ -212,10 +220,44 @@ export const useSlashCommandProcessor = (
       rawQuery: PartListUnion,
       oneTimeShellAllowlist?: Set<string>,
     ): Promise<SlashCommandProcessorResult | false> => {
+      if (typeof rawQuery !== 'string') {
+        return false;
+      }
+
+      const trimmed = rawQuery.trim();
+      if (!trimmed.startsWith('/') && !trimmed.startsWith('?')) {
+        return false;
+      }
+
       setIsProcessing(true);
-      try {
-        if (typeof rawQuery !== 'string') {
-          return false;
+
+      const userMessageTimestamp = Date.now();
+      addItem({ type: MessageType.USER, text: trimmed }, userMessageTimestamp);
+
+      const parts = trimmed.substring(1).trim().split(/\s+/);
+      const commandPath = parts.filter((p) => p); // The parts of the command, e.g., ['memory', 'add']
+
+      let currentCommands = commands;
+      let commandToExecute: SlashCommand | undefined;
+      let pathIndex = 0;
+      let hasError = false;
+      const canonicalPath: string[] = [];
+
+      for (const part of commandPath) {
+        // TODO: For better performance and architectural clarity, this two-pass
+        // search could be replaced. A more optimal approach would be to
+        // pre-compute a single lookup map in `CommandService.ts` that resolves
+        // all name and alias conflicts during the initial loading phase. The
+        // processor would then perform a single, fast lookup on that map.
+
+        // First pass: check for an exact match on the primary command name.
+        let foundCommand = currentCommands.find((cmd) => cmd.name === part);
+
+        // Second pass: if no primary name matches, check for an alias.
+        if (!foundCommand) {
+          foundCommand = currentCommands.find((cmd) =>
+            cmd.altNames?.includes(part),
+          );
         }
 
         const trimmed = rawQuery.trim();
@@ -264,8 +306,18 @@ export const useSlashCommandProcessor = (
           } else {
             break;
           }
+        } else {
+          break;
         }
+      }
 
+      const resolvedCommandPath = canonicalPath;
+      const subcommand =
+        resolvedCommandPath.length > 1
+          ? resolvedCommandPath.slice(1).join(' ')
+          : undefined;
+
+      try {
         if (commandToExecute) {
           const args = parts.slice(pathIndex).join(' ');
 
@@ -290,7 +342,6 @@ export const useSlashCommandProcessor = (
                 ]),
               };
             }
-
             const result = await commandToExecute.action(
               fullCommandContext,
               args,
@@ -354,9 +405,9 @@ export const useSlashCommandProcessor = (
                     }
                   }
                 case 'load_history': {
-                  await config
+                  config
                     ?.getGeminiClient()
-                    ?.setHistory(result.clientHistory);
+                    ?.setHistory(result.clientHistory, { stripThoughts: true });
                   fullCommandContext.ui.clear();
                   result.history.forEach((item, index) => {
                     fullCommandContext.ui.addItem(item, index);
@@ -454,8 +505,18 @@ export const useSlashCommandProcessor = (
           content: `Unknown command: ${trimmed}`,
           timestamp: new Date(),
         });
+
         return { type: 'handled' };
-      } catch (e) {
+      } catch (e: unknown) {
+        hasError = true;
+        if (config) {
+          const event = makeSlashCommandEvent({
+            command: resolvedCommandPath[0],
+            subcommand,
+            status: SlashCommandStatus.ERROR,
+          });
+          logSlashCommand(config, event);
+        }
         addItem(
           {
             type: MessageType.ERROR,
@@ -465,6 +526,14 @@ export const useSlashCommandProcessor = (
         );
         return { type: 'handled' };
       } finally {
+        if (config && resolvedCommandPath[0] && !hasError) {
+          const event = makeSlashCommandEvent({
+            command: resolvedCommandPath[0],
+            subcommand,
+            status: SlashCommandStatus.SUCCESS,
+          });
+          logSlashCommand(config, event);
+        }
         setIsProcessing(false);
       }
     },

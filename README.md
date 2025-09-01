@@ -22,11 +22,11 @@ With sport-cli you can:
 - Switch between AI providers seamlessly with the `/model` command
 - Track token usage and costs across different providers
 
-## Quickstart
+## 📦 Installation
 
-You have two options to install Gemini CLI.
+### Quick Install
 
-### With Node
+#### Run instantly with npx
 
 1. **Prerequisites:** Ensure you have [Node.js version 20](https://nodejs.org/en/download) or higher installed.
 2. **Run the CLI:** Execute the following command in your terminal:
@@ -223,7 +223,7 @@ sport
 > Write me a Discord bot that answers questions using a FAQ.md file I will provide
 ```
 
-Or work with an existing project:
+#### Install globally with npm
 
 ```sh
 git clone https://github.com/sportsculture/sport-cli
@@ -232,106 +232,89 @@ sport
 > Give me a summary of all of the changes that went in yesterday
 ```
 
-### Next steps
+## 📚 Documentation
 
-- Learn how to [contribute to or build from the source](./CONTRIBUTING.md).
-- Explore the available **[CLI Commands](./docs/cli/commands.md)**.
-- If you encounter any issues, review the **[troubleshooting guide](./docs/troubleshooting.md)**.
-- For more comprehensive documentation, see the [full documentation](./docs/index.md).
-- Take a look at some [popular tasks](#popular-tasks) for more inspiration.
-- Check out our **[Official Roadmap](./ROADMAP.md)**
+### Getting Started
 
-### Troubleshooting
+- [**Quickstart Guide**](./docs/cli/index.md) - Get up and running quickly
+- [**Authentication Setup**](./docs/cli/authentication.md) - Detailed auth configuration
+- [**Configuration Guide**](./docs/cli/configuration.md) - Settings and customization
+- [**Keyboard Shortcuts**](./docs/keyboard-shortcuts.md) - Productivity tips
 
-Head over to the [troubleshooting guide](docs/troubleshooting.md) if you're
-having issues.
+### Core Features
 
-## GitHub Integration
+- [**Commands Reference**](./docs/cli/commands.md) - All slash commands (`/help`, `/chat`, `/mcp`, etc.)
+- [**Checkpointing**](./docs/checkpointing.md) - Save and resume conversations
+- [**Memory Management**](./docs/tools/memory.md) - Using GEMINI.md context files
+- [**Token Caching**](./docs/cli/token-caching.md) - Optimize token usage
 
-Integrate Gemini CLI directly into your GitHub workflows with the [**Gemini CLI GitHub Action**](https://github.com/google-github-actions/run-gemini-cli). Key features include:
+### Tools & Extensions
 
-- **Pull Request Reviews**: Automatically review pull requests when they're opened.
-- **Issue Triage**: Automatically triage and label GitHub issues.
-- **On-demand Collaboration**: Mention `@gemini-cli` in issues and pull requests for assistance and task delegation.
-- **Custom Workflows**: Set up your own scheduled tasks and event-driven automations.
+- [**Built-in Tools Overview**](./docs/tools/index.md)
+  - [File System Operations](./docs/tools/file-system.md)
+  - [Shell Commands](./docs/tools/shell.md)
+  - [Web Fetch & Search](./docs/tools/web-fetch.md)
+  - [Multi-file Operations](./docs/tools/multi-file.md)
+- [**MCP Server Integration**](./docs/tools/mcp-server.md) - Extend with custom tools
+- [**Custom Extensions**](./docs/extension.md) - Build your own commands
 
-## Popular tasks
+### Advanced Topics
 
-### Explore a new codebase
+- [**Architecture Overview**](./docs/architecture.md) - How Gemini CLI works
+- [**IDE Integration**](./docs/ide-integration.md) - VS Code companion
+- [**Sandboxing & Security**](./docs/sandbox.md) - Safe execution environments
+- [**Enterprise Deployment**](./docs/deployment.md) - Docker, system-wide config
+- [**Telemetry & Monitoring**](./docs/telemetry.md) - Usage tracking
+- [**Tools API Development**](./docs/core/tools-api.md) - Create custom tools
 
-Start by `cd`ing into an existing or newly-cloned repository and running `gemini`.
+### Configuration & Customization
 
-```text
-> Describe the main pieces of this system's architecture.
-```
+- [**Settings Reference**](./docs/cli/configuration.md) - All configuration options
+- [**Theme Customization**](./docs/cli/themes.md) - Visual customization
+- [**.gemini Directory**](./docs/gemini-ignore.md) - Project-specific settings
+- [**Environment Variables**](./docs/cli/configuration.md#environment-variables)
 
-```text
-> What security mechanisms are in place?
-```
+### Troubleshooting & Support
 
-```text
-> Provide a step-by-step dev onboarding doc for developers new to the codebase.
-```
+- [**Troubleshooting Guide**](./docs/troubleshooting.md) - Common issues and solutions
+- [**FAQ**](./docs/troubleshooting.md#frequently-asked-questions) - Quick answers
+- Use `/bug` command to report issues directly from the CLI
 
-```text
-> Summarize this codebase and highlight the most interesting patterns or techniques I could learn from.
-```
+### Using MCP Servers
 
-```text
-> Identify potential areas for improvement or refactoring in this codebase, highlighting parts that appear fragile, complex, or hard to maintain.
-```
-
-```text
-> Which parts of this codebase might be challenging to scale or debug?
-```
-
-```text
-> Generate a README section for the [module name] module explaining what it does and how to use it.
-```
+Configure MCP servers in `~/.gemini/settings.json` to extend Gemini CLI with custom tools:
 
 ```text
-> What kind of error handling and logging strategies does the project use?
+> @github List my open pull requests
+> @slack Send a summary of today's commits to #dev channel
+> @database Run a query to find inactive users
 ```
 
-```text
-> Which tools, libraries, and dependencies are used in this project?
-```
+See the [MCP Server Integration guide](./docs/tools/mcp-server.md) for setup instructions.
 
-### Work with your existing code
+## 🤝 Contributing
 
-```text
-> Implement a first draft for GitHub issue #123.
-```
+We welcome contributions! Gemini CLI is fully open source (Apache 2.0), and we encourage the community to:
 
-```text
-> Help me migrate this codebase to the latest version of Java. Start with a plan.
-```
+- Report bugs and suggest features
+- Improve documentation
+- Submit code improvements
+- Share your MCP servers and extensions
 
-### Automate your workflows
+See our [Contributing Guide](./CONTRIBUTING.md) for development setup, coding standards, and how to submit pull requests.
 
-Use MCP servers to integrate your local system tools with your enterprise collaboration suite.
+Check our [Official Roadmap](https://github.com/orgs/google-gemini/projects/11/) for planned features and priorities.
 
-```text
-> Make me a slide deck showing the git history from the last 7 days, grouped by feature and team member.
-```
+## 📖 Resources
 
-```text
-> Make a full-screen web app for a wall display to show our most interacted-with GitHub issues.
-```
-
-### Interact with your system
-
-```text
-> Convert all the images in this directory to png, and rename them to use dates from the exif data.
-```
-
-```text
-> Organize my PDF invoices by month of expenditure.
-```
+- **[Official Roadmap](./ROADMAP.md)** - See what's coming next
+- **[NPM Package](https://www.npmjs.com/package/@google/gemini-cli)** - Package registry
+- **[GitHub Issues](https://github.com/google-gemini/gemini-cli/issues)** - Report bugs or request features
+- **[Security Advisories](https://github.com/google-gemini/gemini-cli/security/advisories)** - Security updates
 
 ### Uninstall
 
-Head over to the [Uninstall](docs/Uninstall.md) guide for uninstallation instructions.
+See the [Uninstall Guide](docs/Uninstall.md) for removal instructions.
 
 ## Fork Maintenance
 
@@ -376,8 +359,12 @@ We aim to contribute architectural improvements back to upstream when they benef
 
 ## Terms of Service and Privacy Notice
 
-For details on the terms of service and privacy notice applicable to your use of Gemini CLI, see the [Terms of Service and Privacy Notice](./docs/tos-privacy.md).
+- **License**: [Apache License 2.0](LICENSE)
+- **Terms of Service**: [Terms & Privacy](./docs/tos-privacy.md)
+- **Security**: [Security Policy](SECURITY.md)
 
-## Security Disclosures
+---
 
-Please see our [security disclosure process](SECURITY.md). All [security advisories](https://github.com/google-gemini/gemini-cli/security/advisories) are managed on Github.
+<p align="center">
+  Built with ❤️ by Google and the open source community
+</p>

@@ -6,11 +6,8 @@
 
 import { getErrorMessage, loadServerHierarchicalMemory } from '@sport/core';
 import { MessageType } from '../types.js';
-import {
-  CommandKind,
-  SlashCommand,
-  SlashCommandActionReturn,
-} from './types.js';
+import type { SlashCommand, SlashCommandActionReturn } from './types.js';
+import { CommandKind } from './types.js';
 
 export const memoryCommand: SlashCommand = {
   name: 'memory',
@@ -92,9 +89,11 @@ export const memoryCommand: SlashCommand = {
                 config.getDebugMode(),
                 config.getFileService(),
                 config.getExtensionContextFilePaths(),
-                context.services.settings.merged.memoryImportFormat || 'tree', // Use setting or default to 'tree'
+                config.getFolderTrust(),
+                context.services.settings.merged.context?.importFormat ||
+                  'tree', // Use setting or default to 'tree'
                 config.getFileFilteringOptions(),
-                context.services.settings.merged.memoryDiscoveryMaxDirs,
+                context.services.settings.merged.context?.discoveryMaxDirs,
               );
             config.setUserMemory(memoryContent);
             config.setGeminiMdFileCount(fileCount);

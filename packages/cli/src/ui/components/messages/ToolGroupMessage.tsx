@@ -6,7 +6,8 @@
 
 import React, { useMemo, useRef, useEffect } from 'react';
 import { Box } from 'ink';
-import { IndividualToolCallDisplay, ToolCallStatus } from '../../types.js';
+import type { IndividualToolCallDisplay } from '../../types.js';
+import { ToolCallStatus } from '../../types.js';
 import { ToolMessage } from './ToolMessage.js';
 import { ToolConfirmationMessage } from './ToolConfirmationMessage.js';
 import { Colors } from '../../colors.js';
@@ -18,7 +19,7 @@ interface ToolGroupMessageProps {
   toolCalls: IndividualToolCallDisplay[];
   availableTerminalHeight?: number;
   terminalWidth: number;
-  config?: Config;
+  config: Config;
   isFocused?: boolean;
 }
 

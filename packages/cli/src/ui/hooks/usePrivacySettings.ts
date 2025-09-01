@@ -80,7 +80,13 @@ export const usePrivacySettings = (config: Config) => {
 };
 
 function getCodeAssistServer(config: Config): CodeAssistServer {
-  const server = config.getGeminiClient().getContentGenerator();
+  let server = config.getGeminiClient().getContentGenerator();
+
+  // Unwrap LoggingContentGenerator if present
+  if (server instanceof LoggingContentGenerator) {
+    server = server.getWrapped();
+  }
+
   // Neither of these cases should ever happen.
   if (!(server instanceof CodeAssistServer)) {
     throw new Error('Oauth not being used');

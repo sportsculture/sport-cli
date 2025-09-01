@@ -4,15 +4,8 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import {
-  MockInstance,
-  vi,
-  describe,
-  it,
-  expect,
-  beforeEach,
-  afterEach,
-} from 'vitest';
+import type { MockInstance } from 'vitest';
+import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { ideCommand } from './ideCommand.js';
 import { type CommandContext } from './types.js';
 import { type Config } from '@sport/core';
@@ -85,6 +78,22 @@ describe('ideCommand', () => {
     expect(command?.subCommands).toHaveLength(2);
     expect(command?.subCommands?.[0].name).toBe('status');
     expect(command?.subCommands?.[1].name).toBe('install');
+  });
+
+  it('should show disable command when connected', () => {
+    vi.mocked(mockConfig.getIdeMode).mockReturnValue(true);
+    vi.mocked(mockConfig.getIdeClient).mockReturnValue({
+      getCurrentIde: () => DetectedIde.VSCode,
+      getDetectedIdeDisplayName: () => 'VS Code',
+      getConnectionStatus: () => ({
+        status: core.IDEConnectionStatus.Connected,
+      }),
+    } as ReturnType<Config['getIdeClient']>);
+    const command = ideCommand(mockConfig);
+    expect(command).not.toBeNull();
+    const subCommandNames = command?.subCommands?.map((cmd) => cmd.name);
+    expect(subCommandNames).toContain('disable');
+    expect(subCommandNames).not.toContain('enable');
   });
 
   describe('status subcommand', () => {
@@ -253,7 +262,7 @@ describe('ideCommand', () => {
         }),
         expect.any(Number),
       );
-    });
+    }, 10000);
 
     it('should show an error if installation fails', async () => {
       const vsixPath = '/path/to/bundle/gemini.vsix';

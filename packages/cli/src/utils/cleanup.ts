@@ -26,7 +26,8 @@ export async function runExitCleanup() {
 }
 
 export async function cleanupCheckpoints() {
-  const tempDir = getProjectTempDir(process.cwd());
+  const storage = new Storage(process.cwd());
+  const tempDir = storage.getProjectTempDir();
   const checkpointsDir = join(tempDir, 'checkpoints');
   try {
     await fs.rm(checkpointsDir, { recursive: true, force: true });

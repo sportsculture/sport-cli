@@ -5,10 +5,9 @@
  */
 
 import { useState, useCallback, useEffect } from 'react';
-import { LoadedSettings, SettingScope } from '../../config/settings.js';
+import type { LoadedSettings, SettingScope } from '../../config/settings.js';
+import { AuthType, type Config } from '@google/gemini-cli-core';
 import {
-  AuthType,
-  Config,
   clearCachedCredentialFile,
   getErrorMessage,
   shouldAttemptBrowserLaunch,
@@ -21,7 +20,7 @@ export const useAuthCommand = (
   config: Config,
 ) => {
   const [isAuthDialogOpen, setIsAuthDialogOpen] = useState(
-    settings.merged.selectedAuthType === undefined,
+    settings.merged.security?.auth?.selectedType === undefined,
   );
   const [pendingAuthType, setPendingAuthType] = useState<AuthType | null>(null);
   const [needsApiKey, setNeedsApiKey] = useState(false);
@@ -77,7 +76,7 @@ export const useAuthCommand = (
       if (authType) {
         await clearCachedCredentialFile();
 
-        settings.setValue(scope, 'selectedAuthType', authType);
+        settings.setValue(scope, 'security.auth.selectedType', authType);
         if (
           authType === AuthType.LOGIN_WITH_GOOGLE &&
           config.isBrowserLaunchSuppressed()

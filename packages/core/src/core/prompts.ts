@@ -113,8 +113,8 @@ When requested to perform tasks like fixing bugs, adding features, refactoring, 
 
 ${(function () {
   // Determine sandbox status based on environment variables
-  const isSandboxExec = process.env.SANDBOX === 'sandbox-exec';
-  const isGenericSandbox = !!process.env.SANDBOX; // Check if SANDBOX is set to any non-empty value
+  const isSandboxExec = process.env['SANDBOX'] === 'sandbox-exec';
+  const isGenericSandbox = !!process.env['SANDBOX']; // Check if SANDBOX is set to any non-empty value
 
   if (isSandboxExec) {
     return `
@@ -258,7 +258,7 @@ Your core function is efficient and safe assistance. Balance extreme conciseness
 `.trim();
 
   // if GEMINI_WRITE_SYSTEM_MD is set (and not 0|false), write base system prompt to file
-  const writeSystemMdVar = process.env.GEMINI_WRITE_SYSTEM_MD;
+  const writeSystemMdVar = process.env['GEMINI_WRITE_SYSTEM_MD'];
   if (writeSystemMdVar) {
     const writeSystemMdVarLower = writeSystemMdVar.toLowerCase();
     if (!['0', 'false'].includes(writeSystemMdVarLower)) {

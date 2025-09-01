@@ -4,15 +4,15 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { describe, it, expect, vi, beforeEach, afterEach, Mock } from 'vitest';
-import { render } from 'ink-testing-library';
+import type { Mock } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { waitFor } from '@testing-library/react';
+import { renderWithProviders } from '../test-utils/render.js';
 import { AppWrapper as App } from './App.js';
-import {
-  Config as ServerConfig,
-  MCPServerConfig,
-  ApprovalMode,
-  ToolRegistry,
+import type {
   AccessibilitySettings,
+  MCPServerConfig,
+  ToolRegistry,
   SandboxConfig,
   GeminiClient,
   ideContext,
@@ -21,10 +21,12 @@ import { LoadedSettings, SettingsFile, Settings } from '../config/settings.js';
 import process from 'node:process';
 import { useGeminiStream } from './hooks/useGeminiStream.js';
 import { useConsoleMessages } from './hooks/useConsoleMessages.js';
-import { StreamingState, ConsoleMessageItem } from './types.js';
+import type { ConsoleMessageItem } from './types.js';
+import { StreamingState } from './types.js';
 import { Tips } from './components/Tips.js';
-import { checkForUpdates, UpdateObject } from './utils/updateCheck.js';
-import { EventEmitter } from 'events';
+import type { UpdateObject } from './utils/updateCheck.js';
+import { checkForUpdates } from './utils/updateCheck.js';
+import { EventEmitter } from 'node:events';
 import { updateEventEmitter } from '../utils/updateEventEmitter.js';
 
 // Define a more complete mock server config based on actual Config
@@ -142,6 +144,7 @@ vi.mock('@sport/core', async (importOriginal) => {
         getShowMemoryUsage: vi.fn(() => opts.showMemoryUsage ?? false),
         getAccessibility: vi.fn(() => opts.accessibility ?? {}),
         getProjectRoot: vi.fn(() => opts.targetDir),
+        getEnablePromptCompletion: vi.fn(() => false),
         getGeminiClient: vi.fn(() => ({
           getUserTier: vi.fn(),
         })),
@@ -155,6 +158,10 @@ vi.mock('@sport/core', async (importOriginal) => {
           authType: opts.authType || 'gemini-api-key',
           model: opts.model || 'test-model-in-mock-factory',
         })),
+        isTrustedFolder: vi.fn(() => true),
+        getScreenReader: vi.fn(() => false),
+        getFolderTrustFeature: vi.fn(() => false),
+        getFolderTrust: vi.fn(() => false),
       };
     });
 
@@ -197,6 +204,14 @@ vi.mock('./hooks/useAuthCommand', () => ({
 vi.mock('./hooks/useLogger', () => ({
   useLogger: vi.fn(() => ({
     getPreviousUserMessages: vi.fn().mockResolvedValue([]),
+  })),
+}));
+
+vi.mock('./hooks/useInputHistoryStore.js', () => ({
+  useInputHistoryStore: vi.fn(() => ({
+    inputHistory: [],
+    addInput: vi.fn(),
+    initializeFromLogger: vi.fn(),
   })),
 }));
 
@@ -255,6 +270,10 @@ describe('App UI', () => {
       path: '/system/settings.json',
       settings: settings.system || {},
     };
+    const systemDefaultsFile: SettingsFile = {
+      path: '/system/system-defaults.json',
+      settings: {},
+    };
     const userSettingsFile: SettingsFile = {
       path: '/user/settings.json',
       settings: settings.user || {},
@@ -265,9 +284,12 @@ describe('App UI', () => {
     };
     return new LoadedSettings(
       systemSettingsFile,
+      systemDefaultsFile,
       userSettingsFile,
       workspaceSettingsFile,
       [],
+      true,
+      new Set(),
     );
   };
 
@@ -334,7 +356,7 @@ describe('App UI', () => {
       mockedCheckForUpdates.mockResolvedValue(info);
       const { spawn } = await import('node:child_process');
 
-      const { unmount } = render(
+      const { unmount } = renderWithProviders(
         <App
           config={mockConfig as unknown as ServerConfig}
           settings={mockSettings}
@@ -343,9 +365,10 @@ describe('App UI', () => {
       );
       currentUnmount = unmount;
 
-      await new Promise((resolve) => setTimeout(resolve, 10));
-
-      expect(spawn).not.toHaveBeenCalled();
+      // Wait for any potential async operations to complete
+      await waitFor(() => {
+        expect(spawn).not.toHaveBeenCalled();
+      });
     });
 
     it('should show a success message when update succeeds', async () => {
@@ -360,7 +383,7 @@ describe('App UI', () => {
       };
       mockedCheckForUpdates.mockResolvedValue(info);
 
-      const { lastFrame, unmount } = render(
+      const { lastFrame, unmount } = renderWithProviders(
         <App
           config={mockConfig as unknown as ServerConfig}
           settings={mockSettings}
@@ -371,11 +394,12 @@ describe('App UI', () => {
 
       updateEventEmitter.emit('update-success', info);
 
-      await new Promise((resolve) => setTimeout(resolve, 10));
-
-      expect(lastFrame()).toContain(
-        'Update successful! The new version will be used on your next run.',
-      );
+      // Wait for the success message to appear
+      await waitFor(() => {
+        expect(lastFrame()).toContain(
+          'Update successful! The new version will be used on your next run.',
+        );
+      });
     });
 
     it('should show an error message when update fails', async () => {
@@ -390,7 +414,7 @@ describe('App UI', () => {
       };
       mockedCheckForUpdates.mockResolvedValue(info);
 
-      const { lastFrame, unmount } = render(
+      const { lastFrame, unmount } = renderWithProviders(
         <App
           config={mockConfig as unknown as ServerConfig}
           settings={mockSettings}
@@ -401,11 +425,12 @@ describe('App UI', () => {
 
       updateEventEmitter.emit('update-failed', info);
 
-      await new Promise((resolve) => setTimeout(resolve, 10));
-
-      expect(lastFrame()).toContain(
-        'Automatic update failed. Please try updating manually',
-      );
+      // Wait for the error message to appear
+      await waitFor(() => {
+        expect(lastFrame()).toContain(
+          'Automatic update failed. Please try updating manually',
+        );
+      });
     });
 
     it('should show an error message when spawn fails', async () => {
@@ -420,7 +445,7 @@ describe('App UI', () => {
       };
       mockedCheckForUpdates.mockResolvedValue(info);
 
-      const { lastFrame, unmount } = render(
+      const { lastFrame, unmount } = renderWithProviders(
         <App
           config={mockConfig as unknown as ServerConfig}
           settings={mockSettings}
@@ -433,11 +458,12 @@ describe('App UI', () => {
       // which is what should be emitted when a spawn error occurs elsewhere.
       updateEventEmitter.emit('update-failed', info);
 
-      await new Promise((resolve) => setTimeout(resolve, 10));
-
-      expect(lastFrame()).toContain(
-        'Automatic update failed. Please try updating manually',
-      );
+      // Wait for the error message to appear
+      await waitFor(() => {
+        expect(lastFrame()).toContain(
+          'Automatic update failed. Please try updating manually',
+        );
+      });
     });
 
     it('should not auto-update if GEMINI_CLI_DISABLE_AUTOUPDATER is true', async () => {
@@ -454,7 +480,7 @@ describe('App UI', () => {
       mockedCheckForUpdates.mockResolvedValue(info);
       const { spawn } = await import('node:child_process');
 
-      const { unmount } = render(
+      const { unmount } = renderWithProviders(
         <App
           config={mockConfig as unknown as ServerConfig}
           settings={mockSettings}
@@ -463,9 +489,10 @@ describe('App UI', () => {
       );
       currentUnmount = unmount;
 
-      await new Promise((resolve) => setTimeout(resolve, 10));
-
-      expect(spawn).not.toHaveBeenCalled();
+      // Wait for any potential async operations to complete
+      await waitFor(() => {
+        expect(spawn).not.toHaveBeenCalled();
+      });
     });
   });
 
@@ -483,7 +510,7 @@ describe('App UI', () => {
       },
     });
 
-    const { lastFrame, unmount } = render(
+    const { lastFrame, unmount } = renderWithProviders(
       <App
         config={mockConfig as unknown as ServerConfig}
         settings={mockSettings}
@@ -492,7 +519,7 @@ describe('App UI', () => {
     );
     currentUnmount = unmount;
     await Promise.resolve();
-    expect(lastFrame()).toContain('1 open file (ctrl+e to view)');
+    expect(lastFrame()).toContain('1 open file (ctrl+g to view)');
   });
 
   it('should not display any files when not available', async () => {
@@ -502,7 +529,7 @@ describe('App UI', () => {
       },
     });
 
-    const { lastFrame, unmount } = render(
+    const { lastFrame, unmount } = renderWithProviders(
       <App
         config={mockConfig as unknown as ServerConfig}
         settings={mockSettings}
@@ -538,7 +565,7 @@ describe('App UI', () => {
       },
     });
 
-    const { lastFrame, unmount } = render(
+    const { lastFrame, unmount } = renderWithProviders(
       <App
         config={mockConfig as unknown as ServerConfig}
         settings={mockSettings}
@@ -547,7 +574,7 @@ describe('App UI', () => {
     );
     currentUnmount = unmount;
     await Promise.resolve();
-    expect(lastFrame()).toContain('3 open files (ctrl+e to view)');
+    expect(lastFrame()).toContain('3 open files (ctrl+g to view)');
   });
 
   it('should display active file and other context', async () => {
@@ -566,7 +593,7 @@ describe('App UI', () => {
     mockConfig.getGeminiMdFileCount.mockReturnValue(1);
     mockConfig.getAllGeminiMdFilenames.mockReturnValue(['GEMINI.md']);
 
-    const { lastFrame, unmount } = render(
+    const { lastFrame, unmount } = renderWithProviders(
       <App
         config={mockConfig as unknown as ServerConfig}
         settings={mockSettings}
@@ -576,7 +603,7 @@ describe('App UI', () => {
     currentUnmount = unmount;
     await Promise.resolve();
     expect(lastFrame()).toContain(
-      'Using: 1 open file (ctrl+e to view) | 1 GEMINI.md file',
+      'Using: 1 open file (ctrl+g to view) | 1 GEMINI.md file',
     );
   });
 
@@ -587,7 +614,7 @@ describe('App UI', () => {
     mockConfig.getDebugMode.mockReturnValue(false);
     mockConfig.getShowMemoryUsage.mockReturnValue(false);
 
-    const { lastFrame, unmount } = render(
+    const { lastFrame, unmount } = renderWithProviders(
       <App
         config={mockConfig as unknown as ServerConfig}
         settings={mockSettings}
@@ -608,7 +635,7 @@ describe('App UI', () => {
     mockConfig.getDebugMode.mockReturnValue(false);
     mockConfig.getShowMemoryUsage.mockReturnValue(false);
 
-    const { lastFrame, unmount } = render(
+    const { lastFrame, unmount } = renderWithProviders(
       <App
         config={mockConfig as unknown as ServerConfig}
         settings={mockSettings}
@@ -622,14 +649,17 @@ describe('App UI', () => {
 
   it('should display custom contextFileName in footer when set and count is 1', async () => {
     mockSettings = createMockSettings({
-      workspace: { contextFileName: 'AGENTS.md', theme: 'Default' },
+      workspace: {
+        context: { fileName: 'AGENTS.md' },
+        ui: { theme: 'Default' },
+      },
     });
     mockConfig.getGeminiMdFileCount.mockReturnValue(1);
     mockConfig.getAllGeminiMdFilenames.mockReturnValue(['AGENTS.md']);
     mockConfig.getDebugMode.mockReturnValue(false);
     mockConfig.getShowMemoryUsage.mockReturnValue(false);
 
-    const { lastFrame, unmount } = render(
+    const { lastFrame, unmount } = renderWithProviders(
       <App
         config={mockConfig as unknown as ServerConfig}
         settings={mockSettings}
@@ -644,8 +674,8 @@ describe('App UI', () => {
   it('should display a generic message when multiple context files with different names are provided', async () => {
     mockSettings = createMockSettings({
       workspace: {
-        contextFileName: ['AGENTS.md', 'CONTEXT.md'],
-        theme: 'Default',
+        context: { fileName: ['AGENTS.md', 'CONTEXT.md'] },
+        ui: { theme: 'Default' },
       },
     });
     mockConfig.getGeminiMdFileCount.mockReturnValue(2);
@@ -656,7 +686,7 @@ describe('App UI', () => {
     mockConfig.getDebugMode.mockReturnValue(false);
     mockConfig.getShowMemoryUsage.mockReturnValue(false);
 
-    const { lastFrame, unmount } = render(
+    const { lastFrame, unmount } = renderWithProviders(
       <App
         config={mockConfig as unknown as ServerConfig}
         settings={mockSettings}
@@ -670,7 +700,10 @@ describe('App UI', () => {
 
   it('should display custom contextFileName with plural when set and count is > 1', async () => {
     mockSettings = createMockSettings({
-      workspace: { contextFileName: 'MY_NOTES.TXT', theme: 'Default' },
+      workspace: {
+        context: { fileName: 'MY_NOTES.TXT' },
+        ui: { theme: 'Default' },
+      },
     });
     mockConfig.getGeminiMdFileCount.mockReturnValue(3);
     mockConfig.getAllGeminiMdFilenames.mockReturnValue([
@@ -681,7 +714,7 @@ describe('App UI', () => {
     mockConfig.getDebugMode.mockReturnValue(false);
     mockConfig.getShowMemoryUsage.mockReturnValue(false);
 
-    const { lastFrame, unmount } = render(
+    const { lastFrame, unmount } = renderWithProviders(
       <App
         config={mockConfig as unknown as ServerConfig}
         settings={mockSettings}
@@ -695,14 +728,17 @@ describe('App UI', () => {
 
   it('should not display context file message if count is 0, even if contextFileName is set', async () => {
     mockSettings = createMockSettings({
-      workspace: { contextFileName: 'ANY_FILE.MD', theme: 'Default' },
+      workspace: {
+        context: { fileName: 'ANY_FILE.MD' },
+        ui: { theme: 'Default' },
+      },
     });
     mockConfig.getGeminiMdFileCount.mockReturnValue(0);
     mockConfig.getAllGeminiMdFilenames.mockReturnValue([]);
     mockConfig.getDebugMode.mockReturnValue(false);
     mockConfig.getShowMemoryUsage.mockReturnValue(false);
 
-    const { lastFrame, unmount } = render(
+    const { lastFrame, unmount } = renderWithProviders(
       <App
         config={mockConfig as unknown as ServerConfig}
         settings={mockSettings}
@@ -726,7 +762,7 @@ describe('App UI', () => {
     mockConfig.getDebugMode.mockReturnValue(false);
     mockConfig.getShowMemoryUsage.mockReturnValue(false);
 
-    const { lastFrame, unmount } = render(
+    const { lastFrame, unmount } = renderWithProviders(
       <App
         config={mockConfig as unknown as ServerConfig}
         settings={mockSettings}
@@ -748,7 +784,7 @@ describe('App UI', () => {
     mockConfig.getDebugMode.mockReturnValue(false);
     mockConfig.getShowMemoryUsage.mockReturnValue(false);
 
-    const { lastFrame, unmount } = render(
+    const { lastFrame, unmount } = renderWithProviders(
       <App
         config={mockConfig as unknown as ServerConfig}
         settings={mockSettings}
@@ -761,7 +797,7 @@ describe('App UI', () => {
   });
 
   it('should display Tips component by default', async () => {
-    const { unmount } = render(
+    const { unmount } = renderWithProviders(
       <App
         config={mockConfig as unknown as ServerConfig}
         settings={mockSettings}
@@ -776,11 +812,11 @@ describe('App UI', () => {
   it('should not display Tips component when hideTips is true', async () => {
     mockSettings = createMockSettings({
       workspace: {
-        hideTips: true,
+        ui: { hideTips: true },
       },
     });
 
-    const { unmount } = render(
+    const { unmount } = renderWithProviders(
       <App
         config={mockConfig as unknown as ServerConfig}
         settings={mockSettings}
@@ -794,7 +830,7 @@ describe('App UI', () => {
 
   it('should display Header component by default', async () => {
     const { Header } = await import('./components/Header.js');
-    const { unmount } = render(
+    const { unmount } = renderWithProviders(
       <App
         config={mockConfig as unknown as ServerConfig}
         settings={mockSettings}
@@ -809,10 +845,10 @@ describe('App UI', () => {
   it('should not display Header component when hideBanner is true', async () => {
     const { Header } = await import('./components/Header.js');
     mockSettings = createMockSettings({
-      user: { hideBanner: true },
+      user: { ui: { hideBanner: true } },
     });
 
-    const { unmount } = render(
+    const { unmount } = renderWithProviders(
       <App
         config={mockConfig as unknown as ServerConfig}
         settings={mockSettings}
@@ -824,14 +860,66 @@ describe('App UI', () => {
     expect(vi.mocked(Header)).not.toHaveBeenCalled();
   });
 
-  it('should show tips if system says show, but workspace and user settings say hide', async () => {
+  it('should display Footer component by default', async () => {
+    const { lastFrame, unmount } = renderWithProviders(
+      <App
+        config={mockConfig as unknown as ServerConfig}
+        settings={mockSettings}
+        version={mockVersion}
+      />,
+    );
+    currentUnmount = unmount;
+    await Promise.resolve();
+    // Footer should render - look for target directory which is always shown
+    expect(lastFrame()).toContain('/test/dir');
+  });
+
+  it('should not display Footer component when hideFooter is true', async () => {
     mockSettings = createMockSettings({
-      system: { hideTips: false },
-      user: { hideTips: true },
-      workspace: { hideTips: true },
+      user: { ui: { hideFooter: true } },
     });
 
-    const { unmount } = render(
+    const { lastFrame, unmount } = renderWithProviders(
+      <App
+        config={mockConfig as unknown as ServerConfig}
+        settings={mockSettings}
+        version={mockVersion}
+      />,
+    );
+    currentUnmount = unmount;
+    await Promise.resolve();
+    // Footer should not render - target directory should not appear
+    expect(lastFrame()).not.toContain('/test/dir');
+  });
+
+  it('should show footer if system says show, but workspace and user settings say hide', async () => {
+    mockSettings = createMockSettings({
+      system: { ui: { hideFooter: false } },
+      user: { ui: { hideFooter: true } },
+      workspace: { ui: { hideFooter: true } },
+    });
+
+    const { lastFrame, unmount } = renderWithProviders(
+      <App
+        config={mockConfig as unknown as ServerConfig}
+        settings={mockSettings}
+        version={mockVersion}
+      />,
+    );
+    currentUnmount = unmount;
+    await Promise.resolve();
+    // Footer should render because system overrides - look for target directory
+    expect(lastFrame()).toContain('/test/dir');
+  });
+
+  it('should show tips if system says show, but workspace and user settings say hide', async () => {
+    mockSettings = createMockSettings({
+      system: { ui: { hideTips: false } },
+      user: { ui: { hideTips: true } },
+      workspace: { ui: { hideTips: true } },
+    });
+
+    const { unmount } = renderWithProviders(
       <App
         config={mockConfig as unknown as ServerConfig}
         settings={mockSettings}
@@ -861,7 +949,7 @@ describe('App UI', () => {
     it('should display theme dialog if NO_COLOR is not set', async () => {
       delete process.env.NO_COLOR;
 
-      const { lastFrame, unmount } = render(
+      const { lastFrame, unmount } = renderWithProviders(
         <App
           config={mockConfig as unknown as ServerConfig}
           settings={mockSettings}
@@ -876,7 +964,7 @@ describe('App UI', () => {
     it('should display a message if NO_COLOR is set', async () => {
       process.env.NO_COLOR = 'true';
 
-      const { lastFrame, unmount } = render(
+      const { lastFrame, unmount } = renderWithProviders(
         <App
           config={mockConfig as unknown as ServerConfig}
           settings={mockSettings}
@@ -891,7 +979,7 @@ describe('App UI', () => {
   });
 
   it('should render the initial UI correctly', () => {
-    const { lastFrame, unmount } = render(
+    const { lastFrame, unmount } = renderWithProviders(
       <App
         config={mockConfig as unknown as ServerConfig}
         settings={mockSettings}
@@ -911,7 +999,7 @@ describe('App UI', () => {
       thought: null,
     });
 
-    const { lastFrame, unmount } = render(
+    const { lastFrame, unmount } = renderWithProviders(
       <App
         config={mockConfig as unknown as ServerConfig}
         settings={mockSettings}
@@ -941,7 +1029,7 @@ describe('App UI', () => {
         getUserTier: vi.fn(),
       } as unknown as GeminiClient);
 
-      const { unmount, rerender } = render(
+      const { unmount, rerender } = renderWithProviders(
         <App
           config={mockConfig as unknown as ServerConfig}
           settings={mockSettings}
@@ -983,7 +1071,7 @@ describe('App UI', () => {
         clearConsoleMessages: vi.fn(),
       });
 
-      const { lastFrame, unmount } = render(
+      const { lastFrame, unmount } = renderWithProviders(
         <App
           config={mockConfig as unknown as ServerConfig}
           settings={mockSettings}

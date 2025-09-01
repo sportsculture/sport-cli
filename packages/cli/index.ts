@@ -11,6 +11,14 @@ import { main } from './src/sprtscltr.js';
 
 // --- Global Entry Point ---
 main().catch((error) => {
+  if (error instanceof FatalError) {
+    let errorMessage = error.message;
+    if (!process.env['NO_COLOR']) {
+      errorMessage = `\x1b[31m${errorMessage}\x1b[0m`;
+    }
+    console.error(errorMessage);
+    process.exit(error.exitCode);
+  }
   console.error('An unexpected critical error occurred:');
   if (error instanceof Error) {
     console.error(error.stack);
