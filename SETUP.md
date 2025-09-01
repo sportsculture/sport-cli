@@ -7,6 +7,7 @@
 You need at least one API key to use sport-cli. Choose from:
 
 #### Option A: Google Gemini (Recommended - Free tier available)
+
 1. Visit https://makersuite.google.com/app/apikey
 2. Create a new API key
 3. Set the environment variable:
@@ -15,6 +16,7 @@ You need at least one API key to use sport-cli. Choose from:
    ```
 
 #### Option B: OpenRouter (100+ models)
+
 1. Visit https://openrouter.ai/keys
 2. Create an account and generate an API key
 3. Set the environment variable:
@@ -23,6 +25,7 @@ You need at least one API key to use sport-cli. Choose from:
    ```
 
 #### Option C: Anthropic Claude
+
 1. Visit https://console.anthropic.com/settings/keys
 2. Create an API key
 3. Set the environment variable:
@@ -33,6 +36,7 @@ You need at least one API key to use sport-cli. Choose from:
 ### 2. Configure sport-cli
 
 #### Using .env file (Recommended)
+
 ```bash
 # Copy the example file
 cp .env.example .env
@@ -42,7 +46,9 @@ nano .env
 ```
 
 #### Or use export in your shell profile
+
 Add to `~/.bashrc` or `~/.zshrc`:
+
 ```bash
 export GOOGLE_GENAI_API_KEY="your-key-here"
 # Add other keys as needed
@@ -74,11 +80,13 @@ Once configured, you can use:
 ## 🔧 Troubleshooting
 
 ### No models showing?
+
 - Ensure at least one API key is set
 - Check environment variables: `env | grep API_KEY`
 - Try sourcing your shell profile: `source ~/.bashrc`
 
 ### Using with existing gemini-cli config?
+
 sport-cli reads both `.gemini/` and `.sport/` configuration directories, so your existing setup should work.
 
 ## 📚 Full Documentation

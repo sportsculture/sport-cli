@@ -74,6 +74,10 @@ export * from './tools/toolExecutor.js';
 // Export prompt logic
 export * from './prompts/mcp-prompts.js';
 
+// Export rankings functionality
+export { getRankingsClient } from './rankings/index.js';
+export type { ModelRanking, RankingSnapshot, RankingsData } from './rankings/index.js';
+
 // Export specific tool logic
 export * from './tools/read-file.js';
 export * from './tools/ls.js';

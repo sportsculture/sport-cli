@@ -14,7 +14,12 @@ export interface ModelRanking {
 }
 
 export interface RankingSnapshot {
-  category: 'overall' | 'programming' | 'translation' | 'roleplay' | 'reasoning';
+  category:
+    | 'overall'
+    | 'programming'
+    | 'translation'
+    | 'roleplay'
+    | 'reasoning';
   period: 'day' | 'week' | 'month';
   models: ModelRanking[];
 }
@@ -34,8 +39,9 @@ export interface ScraperConfig {
 }
 
 export const DEFAULT_CONFIG: ScraperConfig = {
-  userAgent: 'sport-cli-rankings-bot/1.0 (https://github.com/sportsculture/sport-cli)',
+  userAgent:
+    'sport-cli-rankings-bot/1.0 (https://github.com/sportsculture/sport-cli)',
   delayMs: 750,
   maxRetries: 3,
-  baseUrl: 'https://openrouter.ai'
+  baseUrl: 'https://openrouter.ai',
 };

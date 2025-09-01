@@ -1,0 +1,95 @@
+{
+  "version": "1.0.0",
+  "timestamp": "2025-09-01T03:30:00Z",
+  "source": "https://openrouter.ai/rankings",
+  "currentSnapshot": {
+    "rankings": [
+      {
+        "rank": 1,
+        "modelId": "x-ai/grok-code-fast-1",
+        "modelName": "Grok Code Fast 1"
+      },
+      {
+        "rank": 2,
+        "modelId": "anthropic/claude-sonnet-4",
+        "modelName": "Claude Sonnet 4"
+      },
+      {
+        "rank": 3,
+        "modelId": "qwen/qwen-2.5-coder-32b-instruct",
+        "modelName": "Qwen3 Coder 480B"
+      },
+      {
+        "rank": 4,
+        "modelId": "deepseek/deepseek-chat-v3.1",
+        "modelName": "DeepSeek V3.1"
+      },
+      {
+        "rank": 5,
+        "modelId": "openai/gpt-5",
+        "modelName": "GPT-5"
+      },
+      {
+        "rank": 6,
+        "modelId": "x-ai/grok-4",
+        "modelName": "Grok 4"
+      }
+    ]
+  },
+  "snapshots": [
+    {
+      "category": "programming",
+      "period": "day",
+      "models": [
+        {
+          "rank": 1,
+          "model_id": "x-ai/grok-code-fast-1",
+          "name": "Grok Code Fast 1",
+          "share": 0.30,
+          "tokens": 390000000000,
+          "url": "https://openrouter.ai/models/x-ai/grok-code-fast-1"
+        },
+        {
+          "rank": 2,
+          "model_id": "anthropic/claude-sonnet-4",
+          "name": "Claude Sonnet 4",
+          "share": 0.24,
+          "tokens": 367000000000,
+          "url": "https://openrouter.ai/models/anthropic/claude-sonnet-4"
+        },
+        {
+          "rank": 3,
+          "model_id": "qwen/qwen-2.5-coder-32b-instruct",
+          "name": "Qwen3 Coder 480B A35B",
+          "share": 0.20,
+          "tokens": 141000000000,
+          "url": "https://openrouter.ai/models/qwen/qwen-2.5-coder-32b-instruct"
+        },
+        {
+          "rank": 4,
+          "model_id": "deepseek/deepseek-chat-v3.1",
+          "name": "DeepSeek V3.1",
+          "share": 0.16,
+          "tokens": 117000000000,
+          "url": "https://openrouter.ai/models/deepseek/deepseek-chat-v3.1"
+        },
+        {
+          "rank": 5,
+          "model_id": "openai/gpt-5",
+          "name": "GPT-5",
+          "share": 0.13,
+          "tokens": 65600000000,
+          "url": "https://openrouter.ai/models/openai/gpt-5"
+        },
+        {
+          "rank": 6,
+          "model_id": "x-ai/grok-4",
+          "name": "Grok 4",
+          "share": 0.11,
+          "tokens": 62400000000,
+          "url": "https://openrouter.ai/models/x-ai/grok-4"
+        }
+      ]
+    }
+  ]
+}

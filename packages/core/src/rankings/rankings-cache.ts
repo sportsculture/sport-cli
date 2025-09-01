@@ -13,7 +13,7 @@ export class RankingsCacheManager {
   private memoryCache: RankingsCache = {
     data: null,
     lastFetch: null,
-    ttl: 24 * 60 * 60 * 1000 // 24 hours
+    ttl: 24 * 60 * 60 * 1000, // 24 hours
   };
 
   private readonly cacheDir: string;
@@ -23,12 +23,12 @@ export class RankingsCacheManager {
     // Use provided cache dir or default to ~/.sport/cache
     this.cacheDir = cacheDir || join(homedir(), '.sport', 'cache');
     this.cacheFile = join(this.cacheDir, 'rankings.json');
-    
+
     // Ensure cache directory exists
     if (!existsSync(this.cacheDir)) {
       mkdirSync(this.cacheDir, { recursive: true });
     }
-    
+
     // Load disk cache on initialization
     this.loadFromDisk();
   }
@@ -58,7 +58,7 @@ export class RankingsCacheManager {
     this.memoryCache = {
       data,
       lastFetch: new Date(),
-      ttl: 24 * 60 * 60 * 1000
+      ttl: 24 * 60 * 60 * 1000,
     };
 
     // Persist to disk
@@ -72,7 +72,7 @@ export class RankingsCacheManager {
     this.memoryCache = {
       data: null,
       lastFetch: null,
-      ttl: 24 * 60 * 60 * 1000
+      ttl: 24 * 60 * 60 * 1000,
     };
 
     // Remove disk cache
@@ -120,12 +120,12 @@ export class RankingsCacheManager {
     try {
       const content = readFileSync(this.cacheFile, 'utf-8');
       const cached = JSON.parse(content);
-      
+
       if (cached.data && cached.lastFetch) {
         this.memoryCache = {
           data: cached.data,
           lastFetch: new Date(cached.lastFetch),
-          ttl: cached.ttl || 24 * 60 * 60 * 1000
+          ttl: cached.ttl || 24 * 60 * 60 * 1000,
         };
       }
     } catch (error) {
@@ -138,11 +138,15 @@ export class RankingsCacheManager {
    */
   private saveToDisk(): void {
     try {
-      const content = JSON.stringify({
-        data: this.memoryCache.data,
-        lastFetch: this.memoryCache.lastFetch,
-        ttl: this.memoryCache.ttl
-      }, null, 2);
+      const content = JSON.stringify(
+        {
+          data: this.memoryCache.data,
+          lastFetch: this.memoryCache.lastFetch,
+          ttl: this.memoryCache.ttl,
+        },
+        null,
+        2,
+      );
 
       writeFileSync(this.cacheFile, content);
     } catch (error) {
@@ -165,9 +169,11 @@ export class RankingsCacheManager {
     const isValid = this.isValid(this.memoryCache);
     const ageHours = this.getAge();
     const snapshotCount = this.memoryCache.data?.snapshots.length || 0;
-    const modelCount = this.memoryCache.data?.snapshots.reduce(
-      (sum, s) => sum + s.models.length, 0
-    ) || 0;
+    const modelCount =
+      this.memoryCache.data?.snapshots.reduce(
+        (sum, s) => sum + s.models.length,
+        0,
+      ) || 0;
     const lastUpdate = this.memoryCache.data?.timestamp || null;
 
     return {
@@ -176,7 +182,7 @@ export class RankingsCacheManager {
       ageHours,
       snapshotCount,
       modelCount,
-      lastUpdate
+      lastUpdate,
     };
   }
 }

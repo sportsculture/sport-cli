@@ -14,7 +14,12 @@ export interface ModelRanking {
 }
 
 export interface RankingSnapshot {
-  category: 'overall' | 'programming' | 'translation' | 'roleplay' | 'reasoning';
+  category:
+    | 'overall'
+    | 'programming'
+    | 'translation'
+    | 'roleplay'
+    | 'reasoning';
   period: 'day' | 'week' | 'month';
   models: ModelRanking[];
 }

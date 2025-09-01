@@ -1,0 +1,93 @@
+{
+  "version": "1.0.0",
+  "timestamp": "2025-09-01T02:15:00Z",
+  "source": "https://openrouter.ai/rankings",
+  "snapshots": [
+    {
+      "category": "programming",
+      "period": "day",
+      "models": [
+        {
+          "rank": 1,
+          "model_id": "x-ai/grok-code-fast-1",
+          "name": "Grok Code Fast 1",
+          "share": 0.30,
+          "tokens": 390000000000,
+          "url": "https://openrouter.ai/models/x-ai/grok-code-fast-1"
+        },
+        {
+          "rank": 2,
+          "model_id": "anthropic/claude-3.5-sonnet-20241022",
+          "name": "Claude Sonnet 4",
+          "share": 0.24,
+          "tokens": 367000000000,
+          "url": "https://openrouter.ai/models/anthropic/claude-3.5-sonnet-20241022"
+        },
+        {
+          "rank": 3,
+          "model_id": "qwen/qwen-2.5-coder-32b-instruct",
+          "name": "Qwen3 Coder 480B A35B",
+          "share": 0.20,
+          "tokens": 141000000000,
+          "url": "https://openrouter.ai/models/qwen/qwen-2.5-coder-32b-instruct"
+        },
+        {
+          "rank": 4,
+          "model_id": "deepseek/deepseek-v3",
+          "name": "DeepSeek V3.1",
+          "share": 0.16,
+          "tokens": 117000000000,
+          "url": "https://openrouter.ai/models/deepseek/deepseek-v3"
+        },
+        {
+          "rank": 5,
+          "model_id": "openai/gpt-4o-preview",
+          "name": "GPT-5",
+          "share": 0.13,
+          "tokens": 65600000000,
+          "url": "https://openrouter.ai/models/openai/gpt-4o-preview"
+        },
+        {
+          "rank": 6,
+          "model_id": "x-ai/grok-4",
+          "name": "Grok 4",
+          "share": 0.11,
+          "tokens": 62400000000,
+          "url": "https://openrouter.ai/models/x-ai/grok-4"
+        },
+        {
+          "rank": 7,
+          "model_id": "google/gemini-2.0-flash-exp",
+          "name": "Gemini 2.5 Pro",
+          "share": 0.09,
+          "tokens": 42200000000,
+          "url": "https://openrouter.ai/models/google/gemini-2.0-flash-exp"
+        },
+        {
+          "rank": 8,
+          "model_id": "google/gemini-2.0-flash",
+          "name": "Gemini 2.5 Flash",
+          "share": 0.07,
+          "tokens": 40900000000,
+          "url": "https://openrouter.ai/models/google/gemini-2.0-flash"
+        },
+        {
+          "rank": 9,
+          "model_id": "glm/glm-4-air",
+          "name": "GLM 4.5 Air",
+          "share": 0.06,
+          "tokens": 27700000000,
+          "url": "https://openrouter.ai/models/glm/glm-4-air"
+        },
+        {
+          "rank": 10,
+          "model_id": "openai/gpt-4o-mini",
+          "name": "GPT-5 Mini",
+          "share": 0.05,
+          "tokens": 22200000000,
+          "url": "https://openrouter.ai/models/openai/gpt-4o-mini"
+        }
+      ]
+    }
+  ]
+}

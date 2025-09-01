@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "timestamp": "2025-08-11T20:00:48.427Z",
+  "timestamp": "2025-09-01T01:44:05.259Z",
   "source": "https://openrouter.ai/rankings",
   "snapshots": [
     {
@@ -11,80 +11,80 @@
           "rank": 1,
           "model_id": "openai/gpt-4o",
           "name": "GPT-4o",
-          "share": 0.2593298043082978,
-          "tokens": 285879949,
+          "share": 0.3453641542563706,
+          "tokens": 409666625,
           "url": "https://openrouter.ai/models/openai/gpt-4o"
         },
         {
           "rank": 2,
           "model_id": "anthropic/claude-3.5-sonnet",
           "name": "Claude 3.5 Sonnet",
-          "share": 0.16984338583415484,
-          "tokens": 145975231,
+          "share": 0.18343864475005894,
+          "tokens": 183103984,
           "url": "https://openrouter.ai/models/anthropic/claude-3.5-sonnet"
         },
         {
           "rank": 3,
           "model_id": "openai/gpt-4o-mini",
           "name": "GPT-4o Mini",
-          "share": 0.10352260362728909,
-          "tokens": 97846873,
+          "share": 0.10067574791817273,
+          "tokens": 108596227,
           "url": "https://openrouter.ai/models/openai/gpt-4o-mini"
         },
         {
           "rank": 4,
           "model_id": "anthropic/claude-3-opus",
           "name": "Claude 3 Opus",
-          "share": 0.0661579335872375,
-          "tokens": 71862180,
+          "share": 0.058046955621026436,
+          "tokens": 63185832,
           "url": "https://openrouter.ai/models/anthropic/claude-3-opus"
         },
         {
           "rank": 5,
           "model_id": "google/gemini-pro-1.5",
           "name": "Gemini Pro 1.5",
-          "share": 0.05492738074560877,
-          "tokens": 51949277,
+          "share": 0.06403529506228614,
+          "tokens": 62870121,
           "url": "https://openrouter.ai/models/google/gemini-pro-1.5"
         },
         {
           "rank": 6,
           "model_id": "meta-llama/llama-3.1-70b-instruct",
           "name": "Llama 3.1 70B",
-          "share": 0.029260185432239252,
-          "tokens": 33341768,
+          "share": 0.02871051323136825,
+          "tokens": 31128100,
           "url": "https://openrouter.ai/models/meta-llama/llama-3.1-70b-instruct"
         },
         {
           "rank": 7,
           "model_id": "openai/gpt-3.5-turbo",
           "name": "GPT-3.5 Turbo",
-          "share": 0.02412091060176233,
-          "tokens": 19642278,
+          "share": 0.02148006595195619,
+          "tokens": 21604642,
           "url": "https://openrouter.ai/models/openai/gpt-3.5-turbo"
         },
         {
           "rank": 8,
           "model_id": "mistralai/mistral-large",
           "name": "Mistral Large",
-          "share": 0.026512555810285394,
-          "tokens": 27497098,
+          "share": 0.02837650232085432,
+          "tokens": 27339794,
           "url": "https://openrouter.ai/models/mistralai/mistral-large"
         },
         {
           "rank": 9,
           "model_id": "anthropic/claude-3-haiku",
           "name": "Claude 3 Haiku",
-          "share": 0.028631441507232347,
-          "tokens": 25618378,
+          "share": 0.024005689436554168,
+          "tokens": 25597071,
           "url": "https://openrouter.ai/models/anthropic/claude-3-haiku"
         },
         {
           "rank": 10,
           "model_id": "google/gemini-flash-1.5",
           "name": "Gemini Flash 1.5",
-          "share": 0.02595861848842218,
-          "tokens": 26497891,
+          "share": 0.024980344416574506,
+          "tokens": 24657497,
           "url": "https://openrouter.ai/models/google/gemini-flash-1.5"
         }
       ]
@@ -97,80 +97,80 @@
           "rank": 1,
           "model_id": "openai/gpt-4o",
           "name": "GPT-4o",
-          "share": 0.32365195108685957,
-          "tokens": 263345597,
+          "share": 0.3061833154952844,
+          "tokens": 250769640,
           "url": "https://openrouter.ai/models/openai/gpt-4o"
         },
         {
           "rank": 2,
           "model_id": "anthropic/claude-3.5-sonnet",
           "name": "Claude 3.5 Sonnet",
-          "share": 0.17728887944352067,
-          "tokens": 178918314,
+          "share": 0.16533707262655692,
+          "tokens": 177175941,
           "url": "https://openrouter.ai/models/anthropic/claude-3.5-sonnet"
         },
         {
           "rank": 3,
           "model_id": "openai/gpt-4o-mini",
           "name": "GPT-4o Mini",
-          "share": 0.12117427252644804,
-          "tokens": 108237398,
+          "share": 0.12034439554632244,
+          "tokens": 132691327,
           "url": "https://openrouter.ai/models/openai/gpt-4o-mini"
         },
         {
           "rank": 4,
           "model_id": "anthropic/claude-3-opus",
           "name": "Claude 3 Opus",
-          "share": 0.06104547502831209,
-          "tokens": 49696592,
+          "share": 0.053081358180011994,
+          "tokens": 54240815,
           "url": "https://openrouter.ai/models/anthropic/claude-3-opus"
         },
         {
           "rank": 5,
           "model_id": "google/gemini-pro-1.5",
           "name": "Gemini Pro 1.5",
-          "share": 0.06300313504491087,
-          "tokens": 67521219,
+          "share": 0.05549552661242458,
+          "tokens": 50154596,
           "url": "https://openrouter.ai/models/google/gemini-pro-1.5"
         },
         {
           "rank": 6,
           "model_id": "meta-llama/llama-3.1-70b-instruct",
           "name": "Llama 3.1 70B",
-          "share": 0.029792965581414865,
-          "tokens": 31054760,
+          "share": 0.02085403212310957,
+          "tokens": 20086420,
           "url": "https://openrouter.ai/models/meta-llama/llama-3.1-70b-instruct"
         },
         {
           "rank": 7,
           "model_id": "openai/gpt-3.5-turbo",
           "name": "GPT-3.5 Turbo",
-          "share": 0.025816900680079684,
-          "tokens": 25306515,
+          "share": 0.021062065840775995,
+          "tokens": 22608334,
           "url": "https://openrouter.ai/models/openai/gpt-3.5-turbo"
         },
         {
           "rank": 8,
           "model_id": "mistralai/mistral-large",
           "name": "Mistral Large",
-          "share": 0.02795438786999132,
-          "tokens": 30811358,
+          "share": 0.029446161110501322,
+          "tokens": 24312072,
           "url": "https://openrouter.ai/models/mistralai/mistral-large"
         },
         {
           "rank": 9,
           "model_id": "anthropic/claude-3-haiku",
           "name": "Claude 3 Haiku",
-          "share": 0.024243509054268003,
-          "tokens": 22069441,
+          "share": 0.024693263292397346,
+          "tokens": 27087358,
           "url": "https://openrouter.ai/models/anthropic/claude-3-haiku"
         },
         {
           "rank": 10,
           "model_id": "google/gemini-flash-1.5",
           "name": "Gemini Flash 1.5",
-          "share": 0.02152794605653441,
-          "tokens": 20673188,
+          "share": 0.021125038689433218,
+          "tokens": 17066782,
           "url": "https://openrouter.ai/models/google/gemini-flash-1.5"
         }
       ]
@@ -183,80 +183,80 @@
           "rank": 1,
           "model_id": "openai/gpt-4o",
           "name": "GPT-4o",
-          "share": 0.3165312951753763,
-          "tokens": 365783647,
+          "share": 0.3146811754422252,
+          "tokens": 364341966,
           "url": "https://openrouter.ai/models/openai/gpt-4o"
         },
         {
           "rank": 2,
           "model_id": "anthropic/claude-3.5-sonnet",
           "name": "Claude 3.5 Sonnet",
-          "share": 0.1714446016601423,
-          "tokens": 170839160,
+          "share": 0.198558024876614,
+          "tokens": 192997794,
           "url": "https://openrouter.ai/models/anthropic/claude-3.5-sonnet"
         },
         {
           "rank": 3,
           "model_id": "openai/gpt-4o-mini",
           "name": "GPT-4o Mini",
-          "share": 0.12960380017373319,
-          "tokens": 142299741,
+          "share": 0.11286726044217914,
+          "tokens": 130501633,
           "url": "https://openrouter.ai/models/openai/gpt-4o-mini"
         },
         {
           "rank": 4,
           "model_id": "anthropic/claude-3-opus",
           "name": "Claude 3 Opus",
-          "share": 0.06850991888679864,
-          "tokens": 79340119,
+          "share": 0.06613385022332488,
+          "tokens": 71441871,
           "url": "https://openrouter.ai/models/anthropic/claude-3-opus"
         },
         {
           "rank": 5,
           "model_id": "google/gemini-pro-1.5",
           "name": "Gemini Pro 1.5",
-          "share": 0.06799446329085998,
-          "tokens": 67002777,
+          "share": 0.0669268432767669,
+          "tokens": 69070392,
           "url": "https://openrouter.ai/models/google/gemini-pro-1.5"
         },
         {
           "rank": 6,
           "model_id": "meta-llama/llama-3.1-70b-instruct",
           "name": "Llama 3.1 70B",
-          "share": 0.02260709383648169,
-          "tokens": 18991997,
+          "share": 0.024317839305715745,
+          "tokens": 26997214,
           "url": "https://openrouter.ai/models/meta-llama/llama-3.1-70b-instruct"
         },
         {
           "rank": 7,
           "model_id": "openai/gpt-3.5-turbo",
           "name": "GPT-3.5 Turbo",
-          "share": 0.029484324054099256,
-          "tokens": 23742786,
+          "share": 0.029148261855573204,
+          "tokens": 24653796,
           "url": "https://openrouter.ai/models/openai/gpt-3.5-turbo"
         },
         {
           "rank": 8,
           "model_id": "mistralai/mistral-large",
           "name": "Mistral Large",
-          "share": 0.026329799087722486,
-          "tokens": 28142181,
+          "share": 0.029582306156736942,
+          "tokens": 24343071,
           "url": "https://openrouter.ai/models/mistralai/mistral-large"
         },
         {
           "rank": 9,
           "model_id": "anthropic/claude-3-haiku",
           "name": "Claude 3 Haiku",
-          "share": 0.020007659263018493,
-          "tokens": 20678951,
+          "share": 0.021750747967627403,
+          "tokens": 24128346,
           "url": "https://openrouter.ai/models/anthropic/claude-3-haiku"
         },
         {
           "rank": 10,
           "model_id": "google/gemini-flash-1.5",
           "name": "Gemini Flash 1.5",
-          "share": 0.022083020955764116,
-          "tokens": 18728523,
+          "share": 0.02216994389267153,
+          "tokens": 25488780,
           "url": "https://openrouter.ai/models/google/gemini-flash-1.5"
         }
       ]
@@ -269,80 +269,80 @@
           "rank": 1,
           "model_id": "openai/gpt-4o",
           "name": "GPT-4o",
-          "share": 0.34753326819545943,
-          "tokens": 402218651,
+          "share": 0.2618319573578016,
+          "tokens": 289331028,
           "url": "https://openrouter.ai/models/openai/gpt-4o"
         },
         {
           "rank": 2,
           "model_id": "anthropic/claude-3.5-sonnet",
           "name": "Claude 3.5 Sonnet",
-          "share": 0.18859475759101904,
-          "tokens": 219837003,
+          "share": 0.16139855922969298,
+          "tokens": 181534784,
           "url": "https://openrouter.ai/models/anthropic/claude-3.5-sonnet"
         },
         {
           "rank": 3,
           "model_id": "deepseek/deepseek-coder",
           "name": "DeepSeek Coder",
-          "share": 0.11401425723035816,
-          "tokens": 109319433,
+          "share": 0.11577260297362493,
+          "tokens": 123650481,
           "url": "https://openrouter.ai/models/deepseek/deepseek-coder"
         },
         {
           "rank": 4,
           "model_id": "anthropic/claude-3-opus",
           "name": "Claude 3 Opus",
-          "share": 0.05010447520201359,
-          "tokens": 58592106,
+          "share": 0.061450704927950565,
+          "tokens": 49955093,
           "url": "https://openrouter.ai/models/anthropic/claude-3-opus"
         },
         {
           "rank": 5,
           "model_id": "google/gemini-pro-1.5",
           "name": "Gemini Pro 1.5",
-          "share": 0.05777538909322353,
-          "tokens": 55360219,
+          "share": 0.05844039431653039,
+          "tokens": 58901125,
           "url": "https://openrouter.ai/models/google/gemini-pro-1.5"
         },
         {
           "rank": 6,
           "model_id": "meta-llama/llama-3.1-70b-instruct",
           "name": "Llama 3.1 70B",
-          "share": 0.02642189816979018,
-          "tokens": 30323094,
+          "share": 0.023837593250149183,
+          "tokens": 26070610,
           "url": "https://openrouter.ai/models/meta-llama/llama-3.1-70b-instruct"
         },
         {
           "rank": 7,
           "model_id": "openai/gpt-3.5-turbo",
           "name": "GPT-3.5 Turbo",
-          "share": 0.027553897776987753,
-          "tokens": 28821100,
+          "share": 0.02388640967518683,
+          "tokens": 20056355,
           "url": "https://openrouter.ai/models/openai/gpt-3.5-turbo"
         },
         {
           "rank": 8,
           "model_id": "mistralai/mistral-large",
           "name": "Mistral Large",
-          "share": 0.026887228397532364,
-          "tokens": 32192904,
+          "share": 0.02805813992551056,
+          "tokens": 28814623,
           "url": "https://openrouter.ai/models/mistralai/mistral-large"
         },
         {
           "rank": 9,
           "model_id": "anthropic/claude-3-haiku",
           "name": "Claude 3 Haiku",
-          "share": 0.02756656832845567,
-          "tokens": 29463313,
+          "share": 0.021925187624297182,
+          "tokens": 23680062,
           "url": "https://openrouter.ai/models/anthropic/claude-3-haiku"
         },
         {
           "rank": 10,
           "model_id": "google/gemini-flash-1.5",
           "name": "Gemini Flash 1.5",
-          "share": 0.024824900730620873,
-          "tokens": 20823997,
+          "share": 0.028170134217193894,
+          "tokens": 33619544,
           "url": "https://openrouter.ai/models/google/gemini-flash-1.5"
         }
       ]
@@ -355,80 +355,80 @@
           "rank": 1,
           "model_id": "openai/gpt-4o",
           "name": "GPT-4o",
-          "share": 0.27746137097763546,
-          "tokens": 263718716,
+          "share": 0.2549815795238937,
+          "tokens": 283154646,
           "url": "https://openrouter.ai/models/openai/gpt-4o"
         },
         {
           "rank": 2,
           "model_id": "anthropic/claude-3.5-sonnet",
           "name": "Claude 3.5 Sonnet",
-          "share": 0.15084790667382125,
-          "tokens": 173544343,
+          "share": 0.16201894264663103,
+          "tokens": 132477976,
           "url": "https://openrouter.ai/models/anthropic/claude-3.5-sonnet"
         },
         {
           "rank": 3,
           "model_id": "deepseek/deepseek-coder",
           "name": "DeepSeek Coder",
-          "share": 0.11956808183672735,
-          "tokens": 136419782,
+          "share": 0.10560258781118677,
+          "tokens": 113517170,
           "url": "https://openrouter.ai/models/deepseek/deepseek-coder"
         },
         {
           "rank": 4,
           "model_id": "anthropic/claude-3-opus",
           "name": "Claude 3 Opus",
-          "share": 0.06068939674745025,
-          "tokens": 52614291,
+          "share": 0.0538637082399726,
+          "tokens": 61259679,
           "url": "https://openrouter.ai/models/anthropic/claude-3-opus"
         },
         {
           "rank": 5,
           "model_id": "google/gemini-pro-1.5",
           "name": "Gemini Pro 1.5",
-          "share": 0.06472002244741457,
-          "tokens": 69408667,
+          "share": 0.06786794694385881,
+          "tokens": 55530562,
           "url": "https://openrouter.ai/models/google/gemini-pro-1.5"
         },
         {
           "rank": 6,
           "model_id": "meta-llama/llama-3.1-70b-instruct",
           "name": "Llama 3.1 70B",
-          "share": 0.0219150532930783,
-          "tokens": 18224357,
+          "share": 0.028668372868352852,
+          "tokens": 25067831,
           "url": "https://openrouter.ai/models/meta-llama/llama-3.1-70b-instruct"
         },
         {
           "rank": 7,
           "model_id": "openai/gpt-3.5-turbo",
           "name": "GPT-3.5 Turbo",
-          "share": 0.022312880894242677,
-          "tokens": 25448267,
+          "share": 0.02017618890366075,
+          "tokens": 22292106,
           "url": "https://openrouter.ai/models/openai/gpt-3.5-turbo"
         },
         {
           "rank": 8,
           "model_id": "mistralai/mistral-large",
           "name": "Mistral Large",
-          "share": 0.027765969206019092,
-          "tokens": 29793207,
+          "share": 0.024542293193893318,
+          "tokens": 24817841,
           "url": "https://openrouter.ai/models/mistralai/mistral-large"
         },
         {
           "rank": 9,
           "model_id": "anthropic/claude-3-haiku",
           "name": "Claude 3 Haiku",
-          "share": 0.029669532328830142,
-          "tokens": 26734846,
+          "share": 0.02833696383070708,
+          "tokens": 23108461,
           "url": "https://openrouter.ai/models/anthropic/claude-3-haiku"
         },
         {
           "rank": 10,
           "model_id": "google/gemini-flash-1.5",
           "name": "Gemini Flash 1.5",
-          "share": 0.025473072804234175,
-          "tokens": 26923287,
+          "share": 0.027945268265371692,
+          "tokens": 31271105,
           "url": "https://openrouter.ai/models/google/gemini-flash-1.5"
         }
       ]
@@ -441,80 +441,80 @@
           "rank": 1,
           "model_id": "openai/gpt-4o",
           "name": "GPT-4o",
-          "share": 0.2742628187723438,
-          "tokens": 271285842,
+          "share": 0.2976051539675367,
+          "tokens": 243760077,
           "url": "https://openrouter.ai/models/openai/gpt-4o"
         },
         {
           "rank": 2,
           "model_id": "anthropic/claude-3.5-sonnet",
           "name": "Claude 3.5 Sonnet",
-          "share": 0.18019550362446402,
-          "tokens": 160755784,
+          "share": 0.18224644551377883,
+          "tokens": 205538933,
           "url": "https://openrouter.ai/models/anthropic/claude-3.5-sonnet"
         },
         {
           "rank": 3,
           "model_id": "deepseek/deepseek-coder",
           "name": "DeepSeek Coder",
-          "share": 0.10291200895846443,
-          "tokens": 103700799,
+          "share": 0.11594796414608573,
+          "tokens": 125718638,
           "url": "https://openrouter.ai/models/deepseek/deepseek-coder"
         },
         {
           "rank": 4,
           "model_id": "anthropic/claude-3-opus",
           "name": "Claude 3 Opus",
-          "share": 0.06377435487175381,
-          "tokens": 67827429,
+          "share": 0.06907834717812042,
+          "tokens": 67198505,
           "url": "https://openrouter.ai/models/anthropic/claude-3-opus"
         },
         {
           "rank": 5,
           "model_id": "google/gemini-pro-1.5",
           "name": "Gemini Pro 1.5",
-          "share": 0.06470281039195419,
-          "tokens": 65158839,
+          "share": 0.06932534320263761,
+          "tokens": 80404784,
           "url": "https://openrouter.ai/models/google/gemini-pro-1.5"
         },
         {
           "rank": 6,
           "model_id": "meta-llama/llama-3.1-70b-instruct",
           "name": "Llama 3.1 70B",
-          "share": 0.026069433259841995,
-          "tokens": 29252924,
+          "share": 0.027267281613877526,
+          "tokens": 25687798,
           "url": "https://openrouter.ai/models/meta-llama/llama-3.1-70b-instruct"
         },
         {
           "rank": 7,
           "model_id": "openai/gpt-3.5-turbo",
           "name": "GPT-3.5 Turbo",
-          "share": 0.021120683299222866,
-          "tokens": 18454747,
+          "share": 0.021773667100354048,
+          "tokens": 23370704,
           "url": "https://openrouter.ai/models/openai/gpt-3.5-turbo"
         },
         {
           "rank": 8,
           "model_id": "mistralai/mistral-large",
           "name": "Mistral Large",
-          "share": 0.027454717817323747,
-          "tokens": 27928911,
+          "share": 0.028585950547612204,
+          "tokens": 29042801,
           "url": "https://openrouter.ai/models/mistralai/mistral-large"
         },
         {
           "rank": 9,
           "model_id": "anthropic/claude-3-haiku",
           "name": "Claude 3 Haiku",
-          "share": 0.02149588951640025,
-          "tokens": 21208085,
+          "share": 0.021237334377844592,
+          "tokens": 23465470,
           "url": "https://openrouter.ai/models/anthropic/claude-3-haiku"
         },
         {
           "rank": 10,
           "model_id": "google/gemini-flash-1.5",
           "name": "Gemini Flash 1.5",
-          "share": 0.021540015294624192,
-          "tokens": 23878816,
+          "share": 0.023036755999570415,
+          "tokens": 19702337,
           "url": "https://openrouter.ai/models/google/gemini-flash-1.5"
         }
       ]
@@ -527,80 +527,80 @@
           "rank": 1,
           "model_id": "openai/gpt-4o",
           "name": "GPT-4o",
-          "share": 0.3035312850477368,
-          "tokens": 364189115,
+          "share": 0.2668072554309594,
+          "tokens": 303270099,
           "url": "https://openrouter.ai/models/openai/gpt-4o"
         },
         {
           "rank": 2,
           "model_id": "google/gemini-pro-1.5",
           "name": "Gemini Pro 1.5",
-          "share": 0.19800697274368678,
-          "tokens": 195284205,
+          "share": 0.19666298075120428,
+          "tokens": 172456770,
           "url": "https://openrouter.ai/models/google/gemini-pro-1.5"
         },
         {
           "rank": 3,
           "model_id": "openai/gpt-4o-mini",
           "name": "GPT-4o Mini",
-          "share": 0.11493215438316157,
-          "tokens": 120984018,
+          "share": 0.1141869389479197,
+          "tokens": 104328871,
           "url": "https://openrouter.ai/models/openai/gpt-4o-mini"
         },
         {
           "rank": 4,
           "model_id": "anthropic/claude-3-opus",
           "name": "Claude 3 Opus",
-          "share": 0.05546495343715135,
-          "tokens": 65394692,
+          "share": 0.06569910996834899,
+          "tokens": 64323425,
           "url": "https://openrouter.ai/models/anthropic/claude-3-opus"
         },
         {
           "rank": 5,
           "model_id": "anthropic/claude-3.5-sonnet",
           "name": "Claude 3.5 Sonnet",
-          "share": 0.05041782306715049,
-          "tokens": 43578509,
+          "share": 0.06849483570841494,
+          "tokens": 58912037,
           "url": "https://openrouter.ai/models/anthropic/claude-3.5-sonnet"
         },
         {
           "rank": 6,
           "model_id": "meta-llama/llama-3.1-70b-instruct",
           "name": "Llama 3.1 70B",
-          "share": 0.02711361480142684,
-          "tokens": 23946235,
+          "share": 0.029409380230048382,
+          "tokens": 27519598,
           "url": "https://openrouter.ai/models/meta-llama/llama-3.1-70b-instruct"
         },
         {
           "rank": 7,
           "model_id": "openai/gpt-3.5-turbo",
           "name": "GPT-3.5 Turbo",
-          "share": 0.02623054897653004,
-          "tokens": 28371455,
+          "share": 0.0206900519490968,
+          "tokens": 19269442,
           "url": "https://openrouter.ai/models/openai/gpt-3.5-turbo"
         },
         {
           "rank": 8,
           "model_id": "mistralai/mistral-large",
           "name": "Mistral Large",
-          "share": 0.02096547031330721,
-          "tokens": 19390934,
+          "share": 0.02078611292751125,
+          "tokens": 23215784,
           "url": "https://openrouter.ai/models/mistralai/mistral-large"
         },
         {
           "rank": 9,
           "model_id": "anthropic/claude-3-haiku",
           "name": "Claude 3 Haiku",
-          "share": 0.02967888549260446,
-          "tokens": 25494370,
+          "share": 0.027044139404403485,
+          "tokens": 27469516,
           "url": "https://openrouter.ai/models/anthropic/claude-3-haiku"
         },
         {
           "rank": 10,
           "model_id": "google/gemini-flash-1.5",
           "name": "Gemini Flash 1.5",
-          "share": 0.024174910452655213,
-          "tokens": 22535960,
+          "share": 0.025120663332412026,
+          "tokens": 24621424,
           "url": "https://openrouter.ai/models/google/gemini-flash-1.5"
         }
       ]
@@ -613,80 +613,80 @@
           "rank": 1,
           "model_id": "openai/gpt-4o",
           "name": "GPT-4o",
-          "share": 0.2838349690412746,
-          "tokens": 311430416,
+          "share": 0.34224222650361724,
+          "tokens": 371495328,
           "url": "https://openrouter.ai/models/openai/gpt-4o"
         },
         {
           "rank": 2,
           "model_id": "google/gemini-pro-1.5",
           "name": "Gemini Pro 1.5",
-          "share": 0.15866779547127116,
-          "tokens": 161006073,
+          "share": 0.16438397809857727,
+          "tokens": 180077608,
           "url": "https://openrouter.ai/models/google/gemini-pro-1.5"
         },
         {
           "rank": 3,
           "model_id": "openai/gpt-4o-mini",
           "name": "GPT-4o Mini",
-          "share": 0.10705282425222283,
-          "tokens": 113281070,
+          "share": 0.10521823708295402,
+          "tokens": 111930916,
           "url": "https://openrouter.ai/models/openai/gpt-4o-mini"
         },
         {
           "rank": 4,
           "model_id": "anthropic/claude-3-opus",
           "name": "Claude 3 Opus",
-          "share": 0.062079246077273595,
-          "tokens": 64102014,
+          "share": 0.06895100227328202,
+          "tokens": 71187781,
           "url": "https://openrouter.ai/models/anthropic/claude-3-opus"
         },
         {
           "rank": 5,
           "model_id": "anthropic/claude-3.5-sonnet",
           "name": "Claude 3.5 Sonnet",
-          "share": 0.05611136258108542,
-          "tokens": 50990988,
+          "share": 0.06313181115569874,
+          "tokens": 69498739,
           "url": "https://openrouter.ai/models/anthropic/claude-3.5-sonnet"
         },
         {
           "rank": 6,
           "model_id": "meta-llama/llama-3.1-70b-instruct",
           "name": "Llama 3.1 70B",
-          "share": 0.02812749845763561,
-          "tokens": 26017816,
+          "share": 0.026471751691721827,
+          "tokens": 24913886,
           "url": "https://openrouter.ai/models/meta-llama/llama-3.1-70b-instruct"
         },
         {
           "rank": 7,
           "model_id": "openai/gpt-3.5-turbo",
           "name": "GPT-3.5 Turbo",
-          "share": 0.023050533318758275,
-          "tokens": 20712339,
+          "share": 0.026152714949445564,
+          "tokens": 23870580,
           "url": "https://openrouter.ai/models/openai/gpt-3.5-turbo"
         },
         {
           "rank": 8,
           "model_id": "mistralai/mistral-large",
           "name": "Mistral Large",
-          "share": 0.027224509464308166,
-          "tokens": 26519031,
+          "share": 0.021713750355306365,
+          "tokens": 23257445,
           "url": "https://openrouter.ai/models/mistralai/mistral-large"
         },
         {
           "rank": 9,
           "model_id": "anthropic/claude-3-haiku",
           "name": "Claude 3 Haiku",
-          "share": 0.0262256315768348,
-          "tokens": 28666383,
+          "share": 0.026063909668534332,
+          "tokens": 26943325,
           "url": "https://openrouter.ai/models/anthropic/claude-3-haiku"
         },
         {
           "rank": 10,
           "model_id": "google/gemini-flash-1.5",
           "name": "Gemini Flash 1.5",
-          "share": 0.02868062493757205,
-          "tokens": 31705865,
+          "share": 0.022798359734137436,
+          "tokens": 22260981,
           "url": "https://openrouter.ai/models/google/gemini-flash-1.5"
         }
       ]
@@ -699,80 +699,80 @@
           "rank": 1,
           "model_id": "openai/gpt-4o",
           "name": "GPT-4o",
-          "share": 0.29873868128883474,
-          "tokens": 252003758,
+          "share": 0.31699392443422536,
+          "tokens": 350236488,
           "url": "https://openrouter.ai/models/openai/gpt-4o"
         },
         {
           "rank": 2,
           "model_id": "google/gemini-pro-1.5",
           "name": "Gemini Pro 1.5",
-          "share": 0.1657557917655597,
-          "tokens": 147249510,
+          "share": 0.17983873450090976,
+          "tokens": 157509908,
           "url": "https://openrouter.ai/models/google/gemini-pro-1.5"
         },
         {
           "rank": 3,
           "model_id": "openai/gpt-4o-mini",
           "name": "GPT-4o Mini",
-          "share": 0.12220496356522231,
-          "tokens": 145122109,
+          "share": 0.12528223574085726,
+          "tokens": 102567840,
           "url": "https://openrouter.ai/models/openai/gpt-4o-mini"
         },
         {
           "rank": 4,
           "model_id": "anthropic/claude-3-opus",
           "name": "Claude 3 Opus",
-          "share": 0.05482205741832461,
-          "tokens": 49466352,
+          "share": 0.05197220986206482,
+          "tokens": 48814519,
           "url": "https://openrouter.ai/models/anthropic/claude-3-opus"
         },
         {
           "rank": 5,
           "model_id": "anthropic/claude-3.5-sonnet",
           "name": "Claude 3.5 Sonnet",
-          "share": 0.0518143616242593,
-          "tokens": 59606228,
+          "share": 0.057554123704993194,
+          "tokens": 68275097,
           "url": "https://openrouter.ai/models/anthropic/claude-3.5-sonnet"
         },
         {
           "rank": 6,
           "model_id": "meta-llama/llama-3.1-70b-instruct",
           "name": "Llama 3.1 70B",
-          "share": 0.02827999251401027,
-          "tokens": 24309649,
+          "share": 0.028849771567825595,
+          "tokens": 33250754,
           "url": "https://openrouter.ai/models/meta-llama/llama-3.1-70b-instruct"
         },
         {
           "rank": 7,
           "model_id": "openai/gpt-3.5-turbo",
           "name": "GPT-3.5 Turbo",
-          "share": 0.028008010652031526,
-          "tokens": 30036986,
+          "share": 0.026189554470465847,
+          "tokens": 24264028,
           "url": "https://openrouter.ai/models/openai/gpt-3.5-turbo"
         },
         {
           "rank": 8,
           "model_id": "mistralai/mistral-large",
           "name": "Mistral Large",
-          "share": 0.029157151622642943,
-          "tokens": 31399032,
+          "share": 0.024775365240609755,
+          "tokens": 27128512,
           "url": "https://openrouter.ai/models/mistralai/mistral-large"
         },
         {
           "rank": 9,
           "model_id": "anthropic/claude-3-haiku",
           "name": "Claude 3 Haiku",
-          "share": 0.022658376098988627,
-          "tokens": 19113454,
+          "share": 0.027953914732792358,
+          "tokens": 27073311,
           "url": "https://openrouter.ai/models/anthropic/claude-3-haiku"
         },
         {
           "rank": 10,
           "model_id": "google/gemini-flash-1.5",
           "name": "Gemini Flash 1.5",
-          "share": 0.02699431887302454,
-          "tokens": 30876404,
+          "share": 0.022906753915042224,
+          "tokens": 25932683,
           "url": "https://openrouter.ai/models/google/gemini-flash-1.5"
         }
       ]
@@ -785,80 +785,80 @@
           "rank": 1,
           "model_id": "openai/gpt-4o",
           "name": "GPT-4o",
-          "share": 0.28465449762114037,
-          "tokens": 321288205,
+          "share": 0.29405135266212135,
+          "tokens": 284391653,
           "url": "https://openrouter.ai/models/openai/gpt-4o"
         },
         {
           "rank": 2,
           "model_id": "anthropic/claude-3.5-sonnet",
           "name": "Claude 3.5 Sonnet",
-          "share": 0.16916624849650735,
-          "tokens": 180305801,
+          "share": 0.15172295614455913,
+          "tokens": 146249229,
           "url": "https://openrouter.ai/models/anthropic/claude-3.5-sonnet"
         },
         {
           "rank": 3,
           "model_id": "openai/gpt-4o-mini",
           "name": "GPT-4o Mini",
-          "share": 0.12888313976798893,
-          "tokens": 109598367,
+          "share": 0.12375589489773817,
+          "tokens": 111136603,
           "url": "https://openrouter.ai/models/openai/gpt-4o-mini"
         },
         {
           "rank": 4,
           "model_id": "anthropic/claude-3-opus",
           "name": "Claude 3 Opus",
-          "share": 0.05870831185207903,
-          "tokens": 62814185,
+          "share": 0.06651205337897838,
+          "tokens": 72392590,
           "url": "https://openrouter.ai/models/anthropic/claude-3-opus"
         },
         {
           "rank": 5,
           "model_id": "google/gemini-pro-1.5",
           "name": "Gemini Pro 1.5",
-          "share": 0.056681052653040985,
-          "tokens": 49415576,
+          "share": 0.05901389145000012,
+          "tokens": 54316862,
           "url": "https://openrouter.ai/models/google/gemini-pro-1.5"
         },
         {
           "rank": 6,
           "model_id": "meta-llama/llama-3.1-70b-instruct",
           "name": "Llama 3.1 70B",
-          "share": 0.02217308439233308,
-          "tokens": 22307365,
+          "share": 0.020978349630690354,
+          "tokens": 20341152,
           "url": "https://openrouter.ai/models/meta-llama/llama-3.1-70b-instruct"
         },
         {
           "rank": 7,
           "model_id": "openai/gpt-3.5-turbo",
           "name": "GPT-3.5 Turbo",
-          "share": 0.0292550997095507,
-          "tokens": 25145053,
+          "share": 0.021824307866477308,
+          "tokens": 24519053,
           "url": "https://openrouter.ai/models/openai/gpt-3.5-turbo"
         },
         {
           "rank": 8,
           "model_id": "mistralai/mistral-large",
           "name": "Mistral Large",
-          "share": 0.022923874259606146,
-          "tokens": 22551728,
+          "share": 0.027475284780006177,
+          "tokens": 31507628,
           "url": "https://openrouter.ai/models/mistralai/mistral-large"
         },
         {
           "rank": 9,
           "model_id": "anthropic/claude-3-haiku",
           "name": "Claude 3 Haiku",
-          "share": 0.02714927140741037,
-          "tokens": 30888457,
+          "share": 0.029459175544689464,
+          "tokens": 27809114,
           "url": "https://openrouter.ai/models/anthropic/claude-3-haiku"
         },
         {
           "rank": 10,
           "model_id": "google/gemini-flash-1.5",
           "name": "Gemini Flash 1.5",
-          "share": 0.022521646244816996,
-          "tokens": 25507371,
+          "share": 0.02930656701441779,
+          "tokens": 32975465,
           "url": "https://openrouter.ai/models/google/gemini-flash-1.5"
         }
       ]
@@ -871,80 +871,80 @@
           "rank": 1,
           "model_id": "openai/gpt-4o",
           "name": "GPT-4o",
-          "share": 0.30073091433003096,
-          "tokens": 250940505,
+          "share": 0.3299701917705458,
+          "tokens": 332601973,
           "url": "https://openrouter.ai/models/openai/gpt-4o"
         },
         {
           "rank": 2,
           "model_id": "anthropic/claude-3.5-sonnet",
           "name": "Claude 3.5 Sonnet",
-          "share": 0.17688836526337678,
-          "tokens": 154375167,
+          "share": 0.16411527995719863,
+          "tokens": 136587738,
           "url": "https://openrouter.ai/models/anthropic/claude-3.5-sonnet"
         },
         {
           "rank": 3,
           "model_id": "openai/gpt-4o-mini",
           "name": "GPT-4o Mini",
-          "share": 0.11222322634560102,
-          "tokens": 128087323,
+          "share": 0.10441473891926874,
+          "tokens": 117758323,
           "url": "https://openrouter.ai/models/openai/gpt-4o-mini"
         },
         {
           "rank": 4,
           "model_id": "anthropic/claude-3-opus",
           "name": "Claude 3 Opus",
-          "share": 0.0548579515153103,
-          "tokens": 62822430,
+          "share": 0.05461409046703618,
+          "tokens": 49795798,
           "url": "https://openrouter.ai/models/anthropic/claude-3-opus"
         },
         {
           "rank": 5,
           "model_id": "google/gemini-pro-1.5",
           "name": "Gemini Pro 1.5",
-          "share": 0.0555645886621675,
-          "tokens": 59405729,
+          "share": 0.06430150221601125,
+          "tokens": 74477208,
           "url": "https://openrouter.ai/models/google/gemini-pro-1.5"
         },
         {
           "rank": 6,
           "model_id": "meta-llama/llama-3.1-70b-instruct",
           "name": "Llama 3.1 70B",
-          "share": 0.0265098074713562,
-          "tokens": 26184834,
+          "share": 0.023367676755856527,
+          "tokens": 20004347,
           "url": "https://openrouter.ai/models/meta-llama/llama-3.1-70b-instruct"
         },
         {
           "rank": 7,
           "model_id": "openai/gpt-3.5-turbo",
           "name": "GPT-3.5 Turbo",
-          "share": 0.021368409383745676,
-          "tokens": 25516534,
+          "share": 0.020229980276039835,
+          "tokens": 22114974,
           "url": "https://openrouter.ai/models/openai/gpt-3.5-turbo"
         },
         {
           "rank": 8,
           "model_id": "mistralai/mistral-large",
           "name": "Mistral Large",
-          "share": 0.022382534611007032,
-          "tokens": 17999178,
+          "share": 0.021440555577317888,
+          "tokens": 23370681,
           "url": "https://openrouter.ai/models/mistralai/mistral-large"
         },
         {
           "rank": 9,
           "model_id": "anthropic/claude-3-haiku",
           "name": "Claude 3 Haiku",
-          "share": 0.025455644978172955,
-          "tokens": 23287739,
+          "share": 0.026291448159354587,
+          "tokens": 27717228,
           "url": "https://openrouter.ai/models/anthropic/claude-3-haiku"
         },
         {
           "rank": 10,
           "model_id": "google/gemini-flash-1.5",
           "name": "Gemini Flash 1.5",
-          "share": 0.02075542070674574,
-          "tokens": 22841409,
+          "share": 0.022297160892995615,
+          "tokens": 23859302,
           "url": "https://openrouter.ai/models/google/gemini-flash-1.5"
         }
       ]
@@ -957,80 +957,80 @@
           "rank": 1,
           "model_id": "openai/gpt-4o",
           "name": "GPT-4o",
-          "share": 0.252466678385707,
-          "tokens": 227608360,
+          "share": 0.25672634473089534,
+          "tokens": 235013488,
           "url": "https://openrouter.ai/models/openai/gpt-4o"
         },
         {
           "rank": 2,
           "model_id": "anthropic/claude-3.5-sonnet",
           "name": "Claude 3.5 Sonnet",
-          "share": 0.16719750833305766,
-          "tokens": 182038896,
+          "share": 0.17945976737415453,
+          "tokens": 209937316,
           "url": "https://openrouter.ai/models/anthropic/claude-3.5-sonnet"
         },
         {
           "rank": 3,
           "model_id": "openai/gpt-4o-mini",
           "name": "GPT-4o Mini",
-          "share": 0.10769645439601543,
-          "tokens": 93289704,
+          "share": 0.1176392183016328,
+          "tokens": 134384301,
           "url": "https://openrouter.ai/models/openai/gpt-4o-mini"
         },
         {
           "rank": 4,
           "model_id": "anthropic/claude-3-opus",
           "name": "Claude 3 Opus",
-          "share": 0.057180812807267986,
-          "tokens": 50232054,
+          "share": 0.06409497255424321,
+          "tokens": 52619128,
           "url": "https://openrouter.ai/models/anthropic/claude-3-opus"
         },
         {
           "rank": 5,
           "model_id": "google/gemini-pro-1.5",
           "name": "Gemini Pro 1.5",
-          "share": 0.06379690372654945,
-          "tokens": 65606968,
+          "share": 0.05133410610320381,
+          "tokens": 50956183,
           "url": "https://openrouter.ai/models/google/gemini-pro-1.5"
         },
         {
           "rank": 6,
           "model_id": "meta-llama/llama-3.1-70b-instruct",
           "name": "Llama 3.1 70B",
-          "share": 0.02034430046742818,
-          "tokens": 20511393,
+          "share": 0.026555945638381873,
+          "tokens": 27124726,
           "url": "https://openrouter.ai/models/meta-llama/llama-3.1-70b-instruct"
         },
         {
           "rank": 7,
           "model_id": "openai/gpt-3.5-turbo",
           "name": "GPT-3.5 Turbo",
-          "share": 0.028000196522908707,
-          "tokens": 30510939,
+          "share": 0.026296569757705956,
+          "tokens": 25795701,
           "url": "https://openrouter.ai/models/openai/gpt-3.5-turbo"
         },
         {
           "rank": 8,
           "model_id": "mistralai/mistral-large",
           "name": "Mistral Large",
-          "share": 0.021347376517138996,
-          "tokens": 17775022,
+          "share": 0.02290226649817299,
+          "tokens": 27100453,
           "url": "https://openrouter.ai/models/mistralai/mistral-large"
         },
         {
           "rank": 9,
           "model_id": "anthropic/claude-3-haiku",
           "name": "Claude 3 Haiku",
-          "share": 0.028820670653791132,
-          "tokens": 26854863,
+          "share": 0.022024267375516472,
+          "tokens": 19634687,
           "url": "https://openrouter.ai/models/anthropic/claude-3-haiku"
         },
         {
           "rank": 10,
           "model_id": "google/gemini-flash-1.5",
           "name": "Gemini Flash 1.5",
-          "share": 0.0279687696396943,
-          "tokens": 26405576,
+          "share": 0.02089292898552447,
+          "tokens": 21196774,
           "url": "https://openrouter.ai/models/google/gemini-flash-1.5"
         }
       ]

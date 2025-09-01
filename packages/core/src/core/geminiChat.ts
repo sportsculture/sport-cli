@@ -227,7 +227,11 @@ export class GeminiChat {
           {
             model: modelToUse,
             contents: requestContents,
-            config: { ...this.generationConfig, ...params.config, tools: this.tools },
+            config: {
+              ...this.generationConfig,
+              ...params.config,
+              tools: this.tools,
+            },
           },
           prompt_id,
         );
@@ -339,7 +343,11 @@ export class GeminiChat {
           {
             model: modelToUse,
             contents: requestContents,
-            config: { ...this.generationConfig, ...params.config, tools: this.tools },
+            config: {
+              ...this.generationConfig,
+              ...params.config,
+              tools: this.tools,
+            },
           },
           prompt_id,
         );

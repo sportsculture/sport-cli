@@ -5,6 +5,7 @@ This module scrapes OpenRouter model rankings and updates a GitHub Gist with the
 ## Setup
 
 1. Install dependencies:
+
 ```bash
 cd scripts/rankings-scraper
 npm install
@@ -37,10 +38,12 @@ npm run update-gist rankings.json
 ## GitHub Actions Setup
 
 Add these secrets to your repository:
+
 - `GIST_ID`: Your Gist ID
 - `GH_TOKEN`: Your GitHub Personal Access Token
 
 The workflow will run automatically:
+
 - Daily at 04:37 UTC
 - On manual trigger via workflow_dispatch
 
@@ -75,16 +78,19 @@ The scraper produces JSON with this structure:
 ## Troubleshooting
 
 ### Scraper finds no models
+
 - Check if OpenRouter's HTML structure has changed
 - Update selectors in `scrape-rankings.ts`
 - Enable debug logging to see what's being parsed
 
 ### Gist update fails
+
 - Verify your GitHub token has `gist` scope
 - Check that the Gist ID is correct
 - Ensure the token hasn't expired
 
 ### Rate limiting
+
 - The scraper includes polite delays between requests
 - If you get rate limited, increase `delayMs` in the config
 
@@ -100,6 +106,7 @@ To modify the scraper:
 ## Politeness
 
 This scraper follows best practices:
+
 - Identifies itself with a descriptive User-Agent
 - Includes delays between requests (750ms default)
 - Implements exponential backoff for retries

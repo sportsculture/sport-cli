@@ -204,3 +204,48 @@ Open an issue first to discuss before creating PRs.
 - `packages/core/src/providers/index.ts` - Provider management
 - `packages/core/src/tools/index.ts` - Tool system
 - `settings-schema.json` - Settings validation schema
+
+## OpenRouter Rankings Scraper
+
+The project includes a web scraper for OpenRouter model rankings:
+
+### Location
+- `scripts/rankings-scraper/` - Scraper directory
+
+### Key Files
+- `scrape-programming-rankings.ts` - Main scraper that fetches live rankings from OpenRouter
+- `update-gist.ts` - Updates GitHub gist with scraped data
+- `generate-mock-data.ts` - Generates test data for development
+- `types.ts` - TypeScript type definitions for rankings data
+
+### Usage
+
+```bash
+# Scrape live rankings from OpenRouter
+cd scripts/rankings-scraper
+npx tsx scrape-programming-rankings.ts
+
+# Update the gist with new data
+npx tsx update-gist.ts real-live-rankings.json
+
+# Generate mock data for testing
+npx tsx generate-mock-data.ts
+```
+
+### Data Storage
+- Rankings are stored in a GitHub gist: https://gist.github.com/sportsculture/a8f3bac998db4178457d3bd9f0a0d705
+- The gist is updated via GitHub API using environment variables:
+  - `GIST_ID` - The gist ID
+  - `GH_TOKEN` - GitHub personal access token
+
+### How It Works
+1. `scrape-programming-rankings.ts` uses Puppeteer to navigate OpenRouter's rankings page
+2. Extracts model rankings, token usage, and growth metrics
+3. Maps display names to actual OpenRouter model IDs using verified mappings
+4. Data is saved to JSON and uploaded to the gist for persistence
+
+### Important Notes
+- The scraper extracts display names from the website (e.g., "Claude Sonnet 4", "GPT-5")
+- These are mapped to real OpenRouter API model IDs (e.g., `anthropic/claude-sonnet-4`, `openai/gpt-5`)
+- Model ID mappings are verified against the OpenRouter API (`https://openrouter.ai/api/v1/models`)
+- The gist contains the corrected model IDs that can be used with the OpenRouter API

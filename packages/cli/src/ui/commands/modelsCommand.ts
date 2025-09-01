@@ -14,13 +14,58 @@ import {
   getTopRecommendations,
   scoreModels,
   formatModelForDisplay,
+  getRankingsClient,
 } from '@sport/core';
 
 // Helper function to get dynamic recommendations
 async function getDynamicRecommendations(
   allModels: Array<{ model?: any; configured: boolean }>,
 ): Promise<Array<{ id: string; recommendedFor: string; provider: string }>> {
-  // Extract OpenRouter models for scoring
+  // Try to get live rankings from the gist
+  const rankingsClient = getRankingsClient();
+  const recommendations: Array<{
+    id: string;
+    recommendedFor: string;
+    provider: string;
+  }> = [];
+  
+  try {
+    // Fetch rankings from the gist - we have programming rankings
+    console.log('Fetching rankings from gist...');
+    const topModels = await rankingsClient.getTopModels('programming', 'day', 10);
+    console.log('Got models from gist:', topModels?.length || 0);
+    
+    if (topModels && topModels.length > 0) {
+      // Show the actual top models from OpenRouter rankings
+      for (let i = 0; i < Math.min(6, topModels.length); i++) {
+        const model = topModels[i];
+        const provider = model.model_id.includes('/') 
+          ? model.model_id.split('/')[0] 
+          : 'OpenRouter';
+        
+        let label = '';
+        if (i === 0) label = '🏆 #1 on OpenRouter';
+        else if (i === 1) label = '🥈 #2 on OpenRouter';
+        else if (i === 2) label = '🥉 #3 on OpenRouter';
+        else if (i === 3) label = '📊 #4 on OpenRouter';
+        else if (i === 4) label = '📈 #5 on OpenRouter';
+        else if (i === 5) label = '⭐ #6 on OpenRouter';
+        
+        recommendations.push({
+          id: model.model_id,
+          recommendedFor: label,
+          provider: provider,
+        });
+      }
+      
+      return recommendations;
+    }
+  } catch (error) {
+    // Fall through to legacy scoring method if rankings fetch fails
+    console.log('Failed to fetch rankings, using legacy scoring:', error);
+  }
+
+  // Fallback to legacy scoring method
   const openRouterModels = allModels
     .filter((m) => m.configured && m.model && m.model.provider === 'OpenRouter')
     .map((m) => m.model)
@@ -51,7 +96,7 @@ async function getDynamicRecommendations(
   const allScored = scoreModels(openRouterModels);
 
   // Create curated selection: 1 Dolphin + 1 best from each major provider
-  const recommendations: Array<{
+  const legacyRecommendations: Array<{
     id: string;
     recommendedFor: string;
     provider: string;
@@ -69,7 +114,7 @@ async function getDynamicRecommendations(
   const bestDolphin = allScored.find((m) => m.id.includes('dolphin'));
   if (bestDolphin) {
     const formatted = formatModelForDisplay(bestDolphin);
-    recommendations.push(formatted);
+    legacyRecommendations.push(formatted);
     selectedIds.add(bestDolphin.id);
     selectedProviders.add(getProvider(bestDolphin));
   }
@@ -85,7 +130,7 @@ async function getDynamicRecommendations(
   );
   if (bestOpenAI) {
     const formatted = formatModelForDisplay(bestOpenAI);
-    recommendations.push(formatted);
+    legacyRecommendations.push(formatted);
     selectedIds.add(bestOpenAI.id);
     selectedProviders.add(getProvider(bestOpenAI));
   }
@@ -101,7 +146,7 @@ async function getDynamicRecommendations(
   );
   if (bestAnthropic) {
     const formatted = formatModelForDisplay(bestAnthropic);
-    recommendations.push(formatted);
+    legacyRecommendations.push(formatted);
     selectedIds.add(bestAnthropic.id);
     selectedProviders.add(getProvider(bestAnthropic));
   }
@@ -116,7 +161,7 @@ async function getDynamicRecommendations(
   );
   if (bestGoogle) {
     const formatted = formatModelForDisplay(bestGoogle);
-    recommendations.push(formatted);
+    legacyRecommendations.push(formatted);
     selectedIds.add(bestGoogle.id);
     selectedProviders.add(getProvider(bestGoogle));
   }
@@ -129,7 +174,7 @@ async function getDynamicRecommendations(
   );
   if (bestXAI) {
     const formatted = formatModelForDisplay(bestXAI);
-    recommendations.push(formatted);
+    legacyRecommendations.push(formatted);
     selectedIds.add(bestXAI.id);
     selectedProviders.add(getProvider(bestXAI));
   }
@@ -145,14 +190,14 @@ async function getDynamicRecommendations(
   );
   if (bestFree) {
     const formatted = formatModelForDisplay(bestFree);
-    recommendations.push(formatted);
+    legacyRecommendations.push(formatted);
     selectedIds.add(bestFree.id);
     selectedProviders.add(getProvider(bestFree));
   }
 
   // Fill remaining slots with other top models (if any slots remain)
   const maxRecommendations = 8; // Allow slightly more for good selection
-  const remainingSlots = maxRecommendations - recommendations.length;
+  const remainingSlots = maxRecommendations - legacyRecommendations.length;
   if (remainingSlots > 0) {
     const fillerModels = allScored
       .filter(
@@ -166,7 +211,7 @@ async function getDynamicRecommendations(
         return formatted;
       });
 
-    recommendations.push(...fillerModels);
+    legacyRecommendations.push(...fillerModels);
   }
 
   // Add Gemini models if available (avoid duplicates)
@@ -177,7 +222,7 @@ async function getDynamicRecommendations(
     .slice(0, 2); // Add top 2 Gemini models
 
   for (const geminiModel of geminiModels) {
-    recommendations.push({
+    legacyRecommendations.push({
       id: geminiModel.id,
       recommendedFor: geminiModel.id.includes('pro')
         ? 'Free Advanced Model'
@@ -187,7 +232,7 @@ async function getDynamicRecommendations(
     selectedIds.add(geminiModel.id); // Track as selected
   }
 
-  return recommendations;
+  return legacyRecommendations;
 }
 
 export const modelsCommand: SlashCommand = {
@@ -343,7 +388,7 @@ export const modelsCommand: SlashCommand = {
       }
 
       modelsContent += `🔗 \x1b[1m[View all OpenRouter models](https://openrouter.ai/models)\x1b[0m\n\n`;
-      
+
       // Show detailed provider status
       modelsContent += `📊 \x1b[1mProvider Status:\x1b[0m\n`;
       if (configuredProviders.length > 0) {
@@ -353,13 +398,13 @@ export const modelsCommand: SlashCommand = {
         modelsContent += `  ❌ Not configured: ${unconfiguredProviders.join(', ')}\n`;
       }
       modelsContent += `\n`;
-      
+
       // Add explanation of recommendations
       modelsContent += `💡 \x1b[1mHow recommendations work:\x1b[0m\n`;
       modelsContent += `  • Models are scored based on capabilities, cost, and performance\n`;
       modelsContent += `  • Top models from each provider are selected\n`;
       modelsContent += `  • Recommendations update based on available models\n\n`;
-      
+
       modelsContent +=
         '_💡 \x1b[1mTip\x1b[0m: Type `/models all` to see all available models grouped by provider._\n\n';
     } else {

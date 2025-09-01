@@ -1,6 +1,7 @@
 # OpenRouter Rankings Scraper Implementation Plan
 
 ## 🎯 Objective
+
 Create a polite, efficient system to collect OpenRouter model rankings daily and use them to provide data-driven model recommendations in sport-cli.
 
 ## 📊 Data Flow Architecture
@@ -13,9 +14,11 @@ OpenRouter Rankings → Daily Scraper → GitHub Gist → sport-cli → Smart Re
 ## 🏗️ Implementation Phases
 
 ### Phase 1: Scraper Module Setup
+
 **Location**: `scripts/rankings-scraper/`
 
 #### 1.1 Core Scraper (`scrape-rankings.ts`)
+
 ```typescript
 // Key features:
 - Cheerio-based HTML parsing (fast, lightweight)
@@ -26,6 +29,7 @@ OpenRouter Rankings → Daily Scraper → GitHub Gist → sport-cli → Smart Re
 ```
 
 #### 1.2 Data Schema
+
 ```json
 {
   "version": "1.0.0",
@@ -51,6 +55,7 @@ OpenRouter Rankings → Daily Scraper → GitHub Gist → sport-cli → Smart Re
 ```
 
 #### 1.3 Gist Updater (`update-gist.ts`)
+
 ```typescript
 // Features:
 - GitHub API integration
@@ -60,6 +65,7 @@ OpenRouter Rankings → Daily Scraper → GitHub Gist → sport-cli → Smart Re
 ```
 
 ### Phase 2: GitHub Actions Workflow
+
 **Location**: `.github/workflows/rankings-scraper.yml`
 
 ```yaml
@@ -78,9 +84,11 @@ Steps:
 ```
 
 ### Phase 3: CLI Integration
+
 **Location**: `packages/core/src/rankings/`
 
 #### 3.1 Rankings Client (`rankings-client.ts`)
+
 ```typescript
 class RankingsClient {
   - fetchLatest(): Fetch from Gist URL
@@ -92,6 +100,7 @@ class RankingsClient {
 ```
 
 #### 3.2 Cache Manager (`rankings-cache.ts`)
+
 ```typescript
 // Storage locations:
 - Memory cache (runtime)
@@ -101,9 +110,11 @@ class RankingsClient {
 ```
 
 ### Phase 4: Recommendations Enhancement
+
 **Location**: `packages/cli/src/ui/commands/modelsCommand.ts`
 
 #### 4.1 Enhanced Scoring
+
 ```typescript
 // Combine multiple signals:
 - OpenRouter rankings (40% weight)
@@ -113,6 +124,7 @@ class RankingsClient {
 ```
 
 #### 4.2 New Recommendation Categories
+
 ```typescript
 - "🔥 Trending" - Rising in rankings
 - "👑 Most Popular" - #1 in overall rankings
@@ -150,18 +162,21 @@ sport-cli/
 ## 🔒 Security & Secrets
 
 ### Required Secrets (GitHub Actions)
+
 ```
 GIST_ID: <gist-id>
 GH_TOKEN: <github-personal-access-token>
 ```
 
 ### Permissions Needed
+
 - `gist:write` - Update the rankings Gist
 - `repo:read` - Read repository (for Actions)
 
 ## 🎯 Politeness & Best Practices
 
 ### Scraping Etiquette
+
 1. **User-Agent**: `sport-cli-rankings-bot/1.0 (https://github.com/sportsculture/sport-cli; contact@sportsculture.com)`
 2. **Rate Limiting**: 500-1000ms delay between requests
 3. **Caching**: Honor ETags and 304 responses
@@ -169,6 +184,7 @@ GH_TOKEN: <github-personal-access-token>
 5. **Attribution**: Always include source URL and timestamp
 
 ### Error Handling
+
 1. **Graceful Degradation**: Use cached data if scraping fails
 2. **Alerting**: Create GitHub Issue if scraping fails 3 days in a row
 3. **Layout Changes**: Detect and log when selectors fail
@@ -177,21 +193,25 @@ GH_TOKEN: <github-personal-access-token>
 ## 📈 Success Metrics
 
 ### Phase 1 Success (Week 1)
+
 - [ ] Scraper successfully extracts rankings
 - [ ] Data pushed to GitHub Gist
 - [ ] Manual test run succeeds
 
 ### Phase 2 Success (Week 2)
+
 - [ ] GitHub Actions runs daily without errors
 - [ ] Gist updates with fresh data
 - [ ] 7 days of successful runs
 
 ### Phase 3 Success (Week 3)
+
 - [ ] CLI fetches rankings data
 - [ ] Cache works correctly
 - [ ] Rankings displayed in --models command
 
 ### Phase 4 Success (Week 4)
+
 - [ ] Smart recommendations use real rankings
 - [ ] Users see "Trending" and "Popular" badges
 - [ ] Performance metrics improved
@@ -199,22 +219,26 @@ GH_TOKEN: <github-personal-access-token>
 ## 🚀 Implementation Timeline
 
 ### Week 1: Foundation
+
 - Day 1-2: Create scraper module
 - Day 3: Set up GitHub Gist
 - Day 4: Test scraper locally
 - Day 5-7: Refine selectors, handle edge cases
 
 ### Week 2: Automation
+
 - Day 8-9: Create GitHub Actions workflow
 - Day 10: Configure secrets and permissions
 - Day 11-14: Monitor daily runs, fix issues
 
 ### Week 3: Integration
+
 - Day 15-16: Build rankings client
 - Day 17-18: Implement caching
 - Day 19-21: Integrate with CLI
 
 ### Week 4: Enhancement
+
 - Day 22-23: Update recommendations algorithm
 - Day 24-25: Add trending indicators
 - Day 26-28: Testing and documentation
@@ -239,12 +263,14 @@ GH_TOKEN: <github-personal-access-token>
 ## ✅ Checklist for Implementation
 
 ### Prerequisites
+
 - [ ] Create GitHub Gist manually
 - [ ] Generate GitHub Personal Access Token
 - [ ] Add secrets to repository
 - [ ] Verify OpenRouter rankings page structure
 
 ### Development
+
 - [ ] Implement scraper with Cheerio
 - [ ] Add Puppeteer fallback
 - [ ] Create Gist updater
@@ -255,12 +281,14 @@ GH_TOKEN: <github-personal-access-token>
 - [ ] Update recommendation algorithm
 
 ### Testing
+
 - [ ] Unit tests for parser
 - [ ] Integration tests for client
 - [ ] End-to-end test with mock data
 - [ ] Manual verification of rankings
 
 ### Deployment
+
 - [ ] Enable GitHub Actions workflow
 - [ ] Monitor first week of runs
 - [ ] Add error alerting

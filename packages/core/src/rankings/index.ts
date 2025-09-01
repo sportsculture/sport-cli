@@ -13,7 +13,7 @@ export type {
   RankingSnapshot,
   RankingsData,
   RankingsCache,
-  TrendingModel
+  TrendingModel,
 } from './types.js';
 
 // Singleton instance for convenience

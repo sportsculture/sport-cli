@@ -45,9 +45,7 @@ import { DEFAULT_GEMINI_FLASH_MODEL } from '../config/models.js';
 import { LoopDetectionService } from '../services/loopDetectionService.js';
 import { ideContext } from '../ide/ideContext.js';
 import { toolLogger } from '../utils/logger.js';
-import {
-  logNextSpeakerCheck,
-} from '../telemetry/loggers.js';
+import { logNextSpeakerCheck } from '../telemetry/loggers.js';
 import {
   MalformedJsonResponseEvent,
   NextSpeakerCheckEvent,

@@ -5,13 +5,19 @@
  */
 
 import fetch from 'node-fetch';
-import { RankingsData, ModelRanking, RankingSnapshot, TrendingModel } from './types.js';
+import {
+  RankingsData,
+  ModelRanking,
+  RankingSnapshot,
+  TrendingModel,
+} from './types.js';
 import { RankingsCacheManager } from './rankings-cache.js';
 
 export class RankingsClient {
   private readonly gistUrl: string;
   private readonly cache: RankingsCacheManager;
-  private readonly fallbackUrl = 'https://gist.githubusercontent.com/sportsculture/a8f3bac998db4178457d3bd9f0a0d705/raw/openrouter-rankings.json';
+  private readonly fallbackUrl =
+    'https://gist.githubusercontent.com/sportsculture/a8f3bac998db4178457d3bd9f0a0d705/raw/openrouter-rankings.json';
 
   constructor(gistUrl?: string, cacheDir?: string) {
     this.gistUrl = gistUrl || this.fallbackUrl;
@@ -26,7 +32,9 @@ export class RankingsClient {
     if (!forceRefresh) {
       const cached = this.cache.get();
       if (cached) {
-        console.debug(`Using cached rankings (age: ${this.cache.getAge()?.toFixed(1)} hours)`);
+        console.debug(
+          `Using cached rankings (age: ${this.cache.getAge()?.toFixed(1)} hours)`,
+        );
         return cached;
       }
     }
@@ -35,17 +43,17 @@ export class RankingsClient {
       console.debug('Fetching fresh rankings from Gist...');
       const response = await fetch(this.gistUrl, {
         headers: {
-          'Accept': 'application/json',
-          'User-Agent': 'sport-cli/1.0'
-        }
+          Accept: 'application/json',
+          'User-Agent': 'sport-cli/1.0',
+        },
       });
 
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
 
-      const data = await response.json() as RankingsData;
-      
+      const data = (await response.json()) as RankingsData;
+
       // Validate data structure
       if (!data.version || !data.snapshots) {
         throw new Error('Invalid rankings data structure');
@@ -53,19 +61,21 @@ export class RankingsClient {
 
       // Cache the fresh data
       this.cache.set(data);
-      console.debug(`Rankings updated: ${data.snapshots.length} snapshots, ${this.getTotalModels(data)} models`);
-      
+      console.debug(
+        `Rankings updated: ${data.snapshots.length} snapshots, ${this.getTotalModels(data)} models`,
+      );
+
       return data;
     } catch (error) {
       console.warn('Failed to fetch rankings:', error);
-      
+
       // Fall back to cached data if available
       const cached = this.cache.get();
       if (cached) {
         console.debug('Using stale cache due to fetch error');
         return cached;
       }
-      
+
       return null;
     }
   }
@@ -83,17 +93,17 @@ export class RankingsClient {
   async getTopModels(
     category: RankingSnapshot['category'] = 'overall',
     period: RankingSnapshot['period'] = 'day',
-    count = 10
+    count = 10,
   ): Promise<ModelRanking[]> {
     const data = await this.fetchLatest();
     if (!data) return [];
 
     const snapshot = data.snapshots.find(
-      s => s.category === category && s.period === period
+      (s) => s.category === category && s.period === period,
     );
 
     if (!snapshot) return [];
-    
+
     return snapshot.models.slice(0, count);
   }
 
@@ -103,22 +113,25 @@ export class RankingsClient {
   async getModelRank(
     modelId: string,
     category: RankingSnapshot['category'] = 'overall',
-    period: RankingSnapshot['period'] = 'day'
+    period: RankingSnapshot['period'] = 'day',
   ): Promise<ModelRanking | null> {
     const data = await this.fetchLatest();
     if (!data) return null;
 
     const snapshot = data.snapshots.find(
-      s => s.category === category && s.period === period
+      (s) => s.category === category && s.period === period,
     );
 
     if (!snapshot) return null;
-    
-    return snapshot.models.find(m => 
-      m.model_id === modelId || 
-      m.model_id.endsWith(`/${modelId}`) ||
-      modelId.endsWith(`/${m.model_id}`)
-    ) || null;
+
+    return (
+      snapshot.models.find(
+        (m) =>
+          m.model_id === modelId ||
+          m.model_id.endsWith(`/${modelId}`) ||
+          modelId.endsWith(`/${m.model_id}`),
+      ) || null
+    );
   }
 
   /**
@@ -129,10 +142,10 @@ export class RankingsClient {
     if (!data) return [];
 
     const daySnapshot = data.snapshots.find(
-      s => s.category === 'overall' && s.period === 'day'
+      (s) => s.category === 'overall' && s.period === 'day',
     );
     const weekSnapshot = data.snapshots.find(
-      s => s.category === 'overall' && s.period === 'week'
+      (s) => s.category === 'overall' && s.period === 'week',
     );
 
     if (!daySnapshot || !weekSnapshot) return [];
@@ -141,35 +154,36 @@ export class RankingsClient {
 
     // Compare day rankings with week rankings
     for (const dayModel of daySnapshot.models.slice(0, 20)) {
-      const weekModel = weekSnapshot.models.find(m => m.model_id === dayModel.model_id);
-      
+      const weekModel = weekSnapshot.models.find(
+        (m) => m.model_id === dayModel.model_id,
+      );
+
       if (!weekModel) {
         // New model in daily rankings
         trending.push({
           ...dayModel,
           trend: 'new',
           previousRank: undefined,
-          rankChange: undefined
+          rankChange: undefined,
         });
       } else {
         const rankChange = weekModel.rank - dayModel.rank;
         const shareChange = dayModel.share - weekModel.share;
-        
+
         trending.push({
           ...dayModel,
           previousRank: weekModel.rank,
           rankChange,
           shareChange,
-          trend: rankChange > 2 ? 'rising' : 
-                 rankChange < -2 ? 'falling' : 
-                 'stable'
+          trend:
+            rankChange > 2 ? 'rising' : rankChange < -2 ? 'falling' : 'stable',
         });
       }
     }
 
     // Sort by positive rank change (biggest climbers first)
     return trending
-      .filter(m => m.trend === 'rising' || m.trend === 'new')
+      .filter((m) => m.trend === 'rising' || m.trend === 'new')
       .sort((a, b) => {
         if (a.trend === 'new' && b.trend !== 'new') return -1;
         if (b.trend === 'new' && a.trend !== 'new') return 1;
@@ -215,11 +229,16 @@ export class RankingsClient {
     if (!data) return {};
 
     const leaders: Record<string, ModelRanking | null> = {};
-    const categories: RankingSnapshot['category'][] = ['overall', 'programming', 'translation', 'reasoning'];
+    const categories: RankingSnapshot['category'][] = [
+      'overall',
+      'programming',
+      'translation',
+      'reasoning',
+    ];
 
     for (const category of categories) {
       const snapshot = data.snapshots.find(
-        s => s.category === category && s.period === 'day'
+        (s) => s.category === category && s.period === 'day',
       );
       leaders[category] = snapshot?.models[0] || null;
     }
@@ -246,18 +265,18 @@ export class RankingsClient {
         totalModels: 0,
         totalSnapshots: 0,
         cacheAge: null,
-        categories: []
+        categories: [],
       };
     }
 
-    const categories = [...new Set(data.snapshots.map(s => s.category))];
+    const categories = [...new Set(data.snapshots.map((s) => s.category))];
 
     return {
       lastUpdate: data.timestamp,
       totalModels: this.getTotalModels(data),
       totalSnapshots: data.snapshots.length,
       cacheAge: cacheStats.ageHours,
-      categories
+      categories,
     };
   }
 

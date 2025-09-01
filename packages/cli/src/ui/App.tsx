@@ -292,10 +292,8 @@ const App = ({ config, settings, startupWarnings = [], version }: AppProps) => {
     handleModelSelect,
   } = useModelSelector(config, addItem);
 
-  const {
-    isFolderTrustDialogOpen,
-    handleFolderTrustSelect,
-  } = useFolderTrust(settings);
+  const { isFolderTrustDialogOpen, handleFolderTrustSelect } =
+    useFolderTrust(settings);
 
   const performMemoryRefresh = useCallback(async () => {
     addItem(
@@ -819,10 +817,7 @@ const App = ({ config, settings, startupWarnings = [], version }: AppProps) => {
           items={[
             <Box flexDirection="column" key="header">
               {!settings.merged.hideBanner && (
-                <Header
-                  version={version}
-                  nightly={nightly}
-                />
+                <Header version={version} nightly={nightly} />
               )}
               {!settings.merged.hideTips && <Tips config={config} />}
             </Box>,
@@ -885,9 +880,7 @@ const App = ({ config, settings, startupWarnings = [], version }: AppProps) => {
           {shellConfirmationRequest ? (
             <ShellConfirmationDialog request={shellConfirmationRequest} />
           ) : isFolderTrustDialogOpen ? (
-            <FolderTrustDialog
-              onSelect={handleFolderTrustSelect}
-            />
+            <FolderTrustDialog onSelect={handleFolderTrustSelect} />
           ) : isThemeDialogOpen ? (
             <Box flexDirection="column">
               {themeError && (

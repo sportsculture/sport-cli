@@ -29,103 +29,158 @@ interface ModelRanking {
 }
 
 // Known model ID mappings and pricing (per million tokens)
-const MODEL_MAPPINGS: Record<string, { 
-  modelId: string; 
-  pricing?: { input: number; output: number };
-  verified?: boolean;
-}> = {
-  'claude-sonnet-4': { 
-    modelId: 'anthropic/claude-3.5-sonnet-20241022',
-    pricing: { input: 3.00, output: 15.00 },
-    verified: true
+// Based on actual OpenRouter API models
+const MODEL_MAPPINGS: Record<
+  string,
+  {
+    modelId: string;
+    pricing?: { input: number; output: number };
+    verified?: boolean;
+  }
+> = {
+  // Claude models
+  'claude-sonnet-4': {
+    modelId: 'anthropic/claude-sonnet-4',
+    pricing: { input: 3.0, output: 15.0 },
+    verified: true,
   },
-  'claude-3.7-sonnet': { 
+  'claude-3.7-sonnet': {
+    modelId: 'anthropic/claude-3.7-sonnet',
+    pricing: { input: 3.0, output: 15.0 },
+    verified: true,
+  },
+  'claude-3.5-sonnet': {
     modelId: 'anthropic/claude-3.5-sonnet',
-    pricing: { input: 3.00, output: 15.00 },
-    verified: true
+    pricing: { input: 3.0, output: 15.0 },
+    verified: true,
   },
-  'qwen3-coder': { 
+  
+  // Grok models
+  'grok-code-fast-1': {
+    modelId: 'x-ai/grok-code-fast-1',
+    pricing: { input: 0.0, output: 0.0 }, // Unknown pricing
+    verified: true,
+  },
+  'grok-4': {
+    modelId: 'x-ai/grok-4',
+    pricing: { input: 0.0, output: 0.0 }, // Unknown pricing
+    verified: true,
+  },
+  
+  // GPT models
+  'gpt-5': {
+    modelId: 'openai/gpt-5',
+    pricing: { input: 15.0, output: 60.0 },
+    verified: true,
+  },
+  'gpt-5-mini': {
+    modelId: 'openai/gpt-5-mini',
+    pricing: { input: 0.15, output: 0.60 },
+    verified: true,
+  },
+  'gpt-4o-mini': {
+    modelId: 'openai/gpt-4o-mini',
+    pricing: { input: 0.15, output: 0.60 },
+    verified: true,
+  },
+  
+  // DeepSeek models
+  'deepseek-v3.1': {
+    modelId: 'deepseek/deepseek-chat-v3.1',
+    pricing: { input: 0.14, output: 0.28 },
+    verified: true,
+  },
+  'deepseek-v3-0324': {
+    modelId: 'deepseek/deepseek-chat-v3-0324',
+    pricing: { input: 0.14, output: 0.28 },
+    verified: true,
+  },
+  
+  // Qwen models
+  'qwen3-coder': {
     modelId: 'qwen/qwen-2.5-coder-32b-instruct',
     pricing: { input: 0.18, output: 0.18 },
-    verified: false
+    verified: false,
   },
-  'horizon-beta': { 
-    modelId: 'openrouter/auto',
-    pricing: { input: 0.50, output: 1.50 },
-    verified: false
+  'qwen3-coder-480b-a35b': {
+    modelId: 'qwen/qwen-2.5-coder-32b-instruct',
+    pricing: { input: 0.18, output: 0.18 },
+    verified: false,
   },
-  'kimi-k2': { 
-    modelId: 'moonshotai/moonshot-v1-128k',
-    pricing: { input: 0.30, output: 0.30 },
-    verified: false
-  },
-  'gemini-2.5-pro': { 
+  
+  // Google models
+  'gemini-2.5-pro': {
     modelId: 'google/gemini-2.0-flash-exp',
-    pricing: { input: 0.00, output: 0.00 },
-    verified: false
+    pricing: { input: 0.0, output: 0.0 },
+    verified: false,
   },
-  'gemini-2.5-flash': { 
+  'gemini-2.5-flash': {
     modelId: 'google/gemini-2.0-flash',
-    pricing: { input: 0.00, output: 0.00 },
-    verified: false
+    pricing: { input: 0.0, output: 0.0 },
+    verified: false,
   },
-  'gpt-5': { 
-    modelId: 'openai/gpt-4o-preview',
-    pricing: { input: 15.00, output: 60.00 },
-    verified: false
+  
+  // Other models
+  'horizon-beta': {
+    modelId: 'openrouter/auto',
+    pricing: { input: 0.5, output: 1.5 },
+    verified: false,
   },
-  'glm-4.5': { 
+  'glm-4.5': {
     modelId: 'glm/glm-4-flash',
-    pricing: { input: 0.50, output: 0.50 },
-    verified: false
+    pricing: { input: 0.5, output: 0.5 },
+    verified: false,
   },
-  'glm-4.5-air': { 
+  'glm-4.5-air': {
     modelId: 'glm/glm-4-air',
-    pricing: { input: 0.30, output: 0.30 },
-    verified: false
+    pricing: { input: 0.3, output: 0.3 },
+    verified: false,
   },
 };
 
 async function scrapeProgrammingRankings(): Promise<ModelRanking[]> {
   console.log('🚀 Scraping Programming Rankings from OpenRouter\n');
   console.log('='.repeat(60));
-  
+
   const browser = await puppeteer.launch({
     headless: 'new',
-    args: ['--no-sandbox', '--disable-setuid-sandbox']
+    args: ['--no-sandbox', '--disable-setuid-sandbox'],
   });
-  
+
   try {
     const page = await browser.newPage();
     await page.setViewport({ width: 1920, height: 1080 });
-    
+
     const url = 'https://openrouter.ai/rankings';
     console.log(`📍 Navigating to: ${url}`);
-    
-    await page.goto(url, { 
+
+    await page.goto(url, {
       waitUntil: 'domcontentloaded',
-      timeout: 30000 
+      timeout: 30000,
     });
-    
+
     console.log('⏳ Waiting for initial page load...');
-    await new Promise(resolve => setTimeout(resolve, 3000));
-    
+    await new Promise((resolve) => setTimeout(resolve, 3000));
+
     // Click on Programming filter
     console.log('🎯 Clicking Programming filter...');
-    
+
     const clicked = await page.evaluate(() => {
       // Find all buttons with "Programming" text
       const buttons = Array.from(document.querySelectorAll('button'));
-      
+
       // Look for the Programming button that's likely a filter (not in menu)
       for (const button of buttons) {
         const text = button.textContent?.trim();
-        if (text === 'Programming' && !button.getAttribute('role')?.includes('menuitem')) {
+        if (
+          text === 'Programming' &&
+          !button.getAttribute('role')?.includes('menuitem')
+        ) {
           button.click();
           return true;
         }
       }
-      
+
       // Fallback: click any Programming button
       for (const button of buttons) {
         if (button.textContent?.trim() === 'Programming') {
@@ -133,26 +188,26 @@ async function scrapeProgrammingRankings(): Promise<ModelRanking[]> {
           return true;
         }
       }
-      
+
       return false;
     });
-    
+
     if (!clicked) {
       console.log('⚠️ Could not find Programming button');
       return [];
     }
-    
+
     console.log('✅ Clicked Programming filter');
-    await new Promise(resolve => setTimeout(resolve, 3000));
-    
+    await new Promise((resolve) => setTimeout(resolve, 3000));
+
     // Extract rankings
     console.log('📊 Extracting programming rankings...\n');
-    
+
     const rankings = await page.evaluate(() => {
       const results: any[] = [];
       const text = document.body.innerText;
-      const lines = text.split('\n').map(l => l.trim());
-      
+      const lines = text.split('\n').map((l) => l.trim());
+
       // Find where programming rankings start
       // Look for "1." that appears after we see specific programming context
       let startIndex = -1;
@@ -163,11 +218,20 @@ async function scrapeProgrammingRankings(): Promise<ModelRanking[]> {
             const nextLine = lines[i + 1];
             // Check for patterns that indicate this is the programming section
             // We expect model names, not provider names at rank 1
-            if (nextLine && !['google', 'anthropic', 'openai', 'deepseek'].includes(nextLine.toLowerCase()) &&
-                nextLine.length > 3) {
+            if (
+              nextLine &&
+              !['google', 'anthropic', 'openai', 'deepseek'].includes(
+                nextLine.toLowerCase(),
+              ) &&
+              nextLine.length > 3
+            ) {
               // Additional check: look back for Programming context
               const prevLines = lines.slice(Math.max(0, i - 30), i).join(' ');
-              if (i > 100 || prevLines.includes('Programming') || prevLines.includes('100%')) {
+              if (
+                i > 100 ||
+                prevLines.includes('Programming') ||
+                prevLines.includes('100%')
+              ) {
                 startIndex = i;
                 break;
               }
@@ -175,16 +239,16 @@ async function scrapeProgrammingRankings(): Promise<ModelRanking[]> {
           }
         }
       }
-      
+
       if (startIndex === -1) {
         console.log('Could not find programming rankings start');
         return results;
       }
-      
+
       // Parse rankings
       let i = startIndex;
       let rank = 1;
-      
+
       while (i < lines.length && rank <= 10) {
         if (lines[i] === `${rank}.`) {
           // Next 5 lines should be: model name, "by", provider, tokens, percentage
@@ -194,10 +258,12 @@ async function scrapeProgrammingRankings(): Promise<ModelRanking[]> {
             const provider = lines[i + 3];
             const tokensLine = lines[i + 4];
             const growthLine = lines[i + 5];
-            
+
             // Parse tokens (e.g., "357B tokens" -> 357000000000)
             let totalTokens = 0;
-            const tokensMatch = tokensLine.match(/^([\d.]+)([BMK]?)\s*tokens$/i);
+            const tokensMatch = tokensLine.match(
+              /^([\d.]+)([BMK]?)\s*tokens$/i,
+            );
             if (tokensMatch) {
               const value = parseFloat(tokensMatch[1]);
               const unit = tokensMatch[2].toUpperCase();
@@ -211,7 +277,7 @@ async function scrapeProgrammingRankings(): Promise<ModelRanking[]> {
                 totalTokens = value;
               }
             }
-            
+
             // Parse growth (e.g., "14%" or "new")
             let percentageChange: number | 'new' = 0;
             if (growthLine === 'new') {
@@ -222,7 +288,7 @@ async function scrapeProgrammingRankings(): Promise<ModelRanking[]> {
                 percentageChange = parseInt(growthMatch[1]);
               }
             }
-            
+
             results.push({
               rank,
               modelName,
@@ -230,9 +296,9 @@ async function scrapeProgrammingRankings(): Promise<ModelRanking[]> {
               tokensLine,
               growthLine,
               totalTokens,
-              percentageChange
+              percentageChange,
             });
-            
+
             rank++;
             i += 6; // Move to next potential ranking
           } else {
@@ -242,22 +308,27 @@ async function scrapeProgrammingRankings(): Promise<ModelRanking[]> {
           i++;
         }
       }
-      
+
       return results;
     });
-    
+
     // Convert to our format
-    const modelRankings: ModelRanking[] = rankings.map(r => {
+    const modelRankings: ModelRanking[] = rankings.map((r) => {
       // Get mapping if known
-      const modelKey = r.modelName.toLowerCase()
+      const modelKey = r.modelName
+        .toLowerCase()
         .replace(/\s+/g, '-')
         .replace(/[^a-z0-9-]/g, '');
       const mapping = MODEL_MAPPINGS[modelKey];
-      
+
       // Use mapped ID or generate one
-      const modelId = mapping?.modelId || 
-        `${r.provider}/${r.modelName.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')}`;
-      
+      const modelId =
+        mapping?.modelId ||
+        `${r.provider}/${r.modelName
+          .toLowerCase()
+          .replace(/\s+/g, '-')
+          .replace(/[^a-z0-9-]/g, '')}`;
+
       return {
         rank: r.rank,
         modelId,
@@ -265,42 +336,50 @@ async function scrapeProgrammingRankings(): Promise<ModelRanking[]> {
         provider: r.provider,
         usage: {
           totalTokens: r.totalTokens,
-          percentageChange: r.percentageChange
+          percentageChange: r.percentageChange,
         },
-        ...(mapping?.pricing && { cost: mapping.pricing })
+        ...(mapping?.pricing && { cost: mapping.pricing }),
       };
     });
-    
+
     // Display results
     console.log('🏆 TOP 10 PROGRAMMING MODELS:');
     console.log('='.repeat(60));
     console.log();
-    console.log('Rank | Model                          | Provider    | Tokens   | Growth  | Cost ($/MTok)');
-    console.log('-----|--------------------------------|-------------|----------|---------|---------------');
-    
-    modelRankings.forEach(model => {
+    console.log(
+      'Rank | Model                          | Provider    | Tokens   | Growth  | Cost ($/MTok)',
+    );
+    console.log(
+      '-----|--------------------------------|-------------|----------|---------|---------------',
+    );
+
+    modelRankings.forEach((model) => {
       const rank = String(model.rank).padEnd(4);
       const name = model.modelName.substring(0, 30).padEnd(30);
       const provider = model.provider.substring(0, 11).padEnd(11);
-      const tokens = model.usage.totalTokens 
+      const tokens = model.usage.totalTokens
         ? `${(model.usage.totalTokens / 1e9).toFixed(1)}B`.padEnd(8)
         : 'N/A'.padEnd(8);
-      const growth = model.usage.percentageChange === 'new' 
-        ? 'new'.padEnd(7)
-        : `${model.usage.percentageChange > 0 ? '+' : ''}${model.usage.percentageChange}%`.padEnd(7);
-      const cost = model.cost 
+      const growth =
+        model.usage.percentageChange === 'new'
+          ? 'new'.padEnd(7)
+          : `${model.usage.percentageChange > 0 ? '+' : ''}${model.usage.percentageChange}%`.padEnd(
+              7,
+            );
+      const cost = model.cost
         ? `$${model.cost.input}/$${model.cost.output}`
         : 'Unknown';
-      
-      console.log(`${rank} | ${name} | ${provider} | ${tokens} | ${growth} | ${cost}`);
+
+      console.log(
+        `${rank} | ${name} | ${provider} | ${tokens} | ${growth} | ${cost}`,
+      );
     });
-    
+
     console.log();
     console.log('💡 Cost format: Input/Output per million tokens');
     console.log('📈 Growth: Week-over-week percentage change');
-    
+
     return modelRankings;
-    
   } catch (error) {
     console.error('❌ Error:', error);
     return [];
@@ -312,7 +391,7 @@ async function scrapeProgrammingRankings(): Promise<ModelRanking[]> {
 // Run if called directly
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   scrapeProgrammingRankings()
-    .then(rankings => {
+    .then((rankings) => {
       console.log(`\n✅ Successfully scraped ${rankings.length} rankings`);
     })
     .catch(console.error);

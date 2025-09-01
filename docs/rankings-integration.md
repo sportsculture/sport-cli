@@ -26,6 +26,7 @@ Automated scraper that collects rankings data daily:
 ### 2. GitHub Actions Workflow (`.github/workflows/rankings-scraper.yml`)
 
 Automated daily execution:
+
 - Runs at 04:37 UTC daily
 - Fetches latest rankings
 - Updates GitHub Gist with fresh data
@@ -56,6 +57,7 @@ const leaders = await client.getCategoryLeaders();
 ### 4. Caching System
 
 Intelligent caching to minimize API calls:
+
 - **Memory cache**: Runtime storage
 - **Disk cache**: Persistent storage at `~/.sport/cache/rankings.json`
 - **24-hour TTL**: Automatic refresh after expiry
@@ -81,6 +83,7 @@ Intelligent caching to minimize API calls:
 ### 3. Configure Repository Secrets
 
 Add to your GitHub repository:
+
 - `GIST_ID`: Your Gist ID
 - `GH_TOKEN`: Your GitHub token
 
@@ -147,6 +150,7 @@ Rankings are used to score and sort model recommendations:
 ### Visual Indicators
 
 Models display badges based on rankings:
+
 - 🔥 **Trending**: Rising in rankings
 - 👑 **Most Popular**: #1 in overall rankings
 - 💻 **Top for Code**: #1 in programming category
@@ -259,6 +263,7 @@ await client.fetchLatest(true); // force refresh
 ## Support
 
 For issues or questions:
+
 - Check GitHub Actions logs
 - Review error messages
 - Open an issue with details
